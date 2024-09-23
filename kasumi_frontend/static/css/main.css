@@ -32,6 +32,10 @@ header {
     justify-content: flex-end;
 }
 
+.header-right .back-button {
+    display: none;
+}
+
 .header-center {
     flex: 2;
     text-align: center;
@@ -108,11 +112,11 @@ footer p {
 }
 
 .language-selector {
-    width: 130px;
+    width: 140px;
 }
 
 .language-selector .dropdown-options {
-    width: 130px;
+    width: 140px;
 }
 
 
@@ -222,6 +226,13 @@ footer p {
 
     .header-left {
         display: none;
+    }
+
+    .header-right {
+        justify-content: space-between;
+    }
+    .header-right .back-button {
+        display: block;
     }
 
     .header-center {

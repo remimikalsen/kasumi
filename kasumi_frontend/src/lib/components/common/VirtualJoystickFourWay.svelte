@@ -6,6 +6,7 @@
     let interval;
 
     function startKeyRepeat(key) {
+        stopKeyRepeat();
         handleKey(key);
         interval = setTimeout(() => {
             interval = setInterval(() => {

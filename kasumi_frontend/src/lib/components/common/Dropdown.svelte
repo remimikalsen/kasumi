@@ -55,7 +55,7 @@
             {/if}
             {options.find(option => option.value === selectedValue)?.label}
         {:else}
-            {selectOptionText}
+            <span class="dropdown-text">{selectOptionText}</span>
         {/if}
         <span class="dropdown-arrow">{isOpen ? '▲' : '▼'}</span>
     </button>
@@ -66,7 +66,7 @@
                     {#if option.image}
                         <img src={option.image} alt={`${option.value} flag`} style="width: 20px; height: 20px; vertical-align: middle; margin-right: 5px;">
                     {/if}
-                    {option.label}
+                    <span class="dropdown-text">{option.label}</span>
                 </button>
             {/each}
         </div>

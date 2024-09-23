@@ -59,6 +59,11 @@
                 <p class="page-subheader">{pageSubHeaderText}</p>
             </div>
             <div class="header-right">
+                {#if $page.url.pathname !== '/'}
+                    <button type="button" class="back-button" on:click={goBack} aria-label="{back}" title="{back}">
+                        <img src="/images/back.png" alt="{back}" title="{back}" />
+                    </button>
+                {/if}                
                 <LanguageSelector />
             </div>
         </header>
