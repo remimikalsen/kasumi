@@ -465,7 +465,7 @@ h2.level-denomination {
   padding: 20px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 800px) {
   .container {
     flex-direction: column; /* Stack the columns on smaller screens */
     padding: 10px;
