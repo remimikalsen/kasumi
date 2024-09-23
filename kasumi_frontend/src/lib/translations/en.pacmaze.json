@@ -1,0 +1,22 @@
+{
+    "headerTitle": "PacMaze",
+    "headerSubTitle": "Take on the maze!",
+    "level_title": "Level <LEVEL> of <LEVELS>",
+    "level_complete_title": "Level complete",
+    "level_complete": "Level <LEVEL> of <LEVELS> solved.",
+    "congrats_title": "Congratulations!",
+    "game_complete": "Want to go for the hall of fame? You finished in <TIME> <TIME_TEXT>.",
+    "time_singular": "second",
+    "time_plural": "seconds",
+    "game_over": "You were caught by a ghost! Game over.",
+    "start_over": "Start over",
+    "high_score": "Top score!",
+    "rank": "Rank",
+    "initials": "Initials",
+    "leaderboard_score": "Time",
+    "aria_maze_title": "Maze grid, use arrow keys to move",
+    "aria_wall": "Wall",
+    "aria_corridor": "Corridor",
+    "next_level": "Next level"
+
+}

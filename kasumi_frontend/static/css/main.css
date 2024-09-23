@@ -1,0 +1,242 @@
+body {
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #0d1b2a;
+    color: #e0e1dd;
+    text-align: center;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1b263b;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.header-left, .header-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.header-left {
+    justify-content: flex-start;
+}
+
+.header-right {
+    justify-content: flex-end;
+}
+
+.header-center {
+    flex: 2;
+    text-align: center;
+}
+
+header p {
+    color: white;
+}
+  
+h1 {
+    font-size: 3rem;
+    color: #e94560;
+    margin: 0;
+}
+  
+p {
+    margin: 10px 0;
+    font-size: 1.5rem;
+}
+  
+a {
+    color: #f0a500;
+    text-decoration: none;
+}
+  
+a:hover {
+    text-decoration: underline;
+}
+
+.layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+    align-items: center;
+    text-align: center; 
+}
+
+main .ingress {
+    margin-top: 40px;
+    margin-bottom: 0px;
+}
+
+main .content {
+    max-width: 100%; 
+    min-width: 300px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; 
+}
+
+main .content div {
+    flex: 1; 
+    margin: 20px; 
+    padding: 20px;
+}
+
+footer {
+    background-color: #1b263b;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
+}
+  
+footer p {
+    color: white;
+}
+  
+footer p {
+    margin: 5px 0;
+}
+
+.language-selector {
+    width: 130px;
+}
+
+.language-selector .dropdown-options {
+    width: 130px;
+}
+
+
+.glowing {
+    padding: 10px;
+    color: #e0e1dd;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: #f05972;
+    border-width: 2px;
+    box-shadow: 0 0px 12px rgba(237, 74, 213, 0.6), 0 0 20px rgba(237, 74, 213, 0.4), 0 0 30px rgba(237, 74, 213, 0.2);
+    min-width: 250px;
+    margin: 20px auto;
+    background: transparent;
+    transition: box-shadow 0.3s ease-in-out, background 0.3s ease-in-out;
+}
+
+.glowing:hover,
+.glowing:active {
+    color: #e0e1dd;
+    border-color: #f05972;
+    box-shadow: 0 0px 20px rgba(237, 74, 213, 0.8), 0 0 30px rgba(237, 74, 213, 0.6), 0 0 40px rgba(237, 74, 213, 0.4);
+    background: rgba(237, 74, 213, 0.1);
+}
+
+
+.golden {
+    color: #ffd700; /* Golden color */
+    text-shadow: 
+        0 0 5px #ffd700,  /* Inner glow */
+        0 0 10px #ffd700, /* Slightly outer glow */
+        0 0 20px #ffd700, /* Further outer glow */
+        0 0 40px #ff8c00;
+    font-weight: bold;
+}
+
+.goldenLight {
+    color: #ffd700; /* Golden color */
+    text-shadow: 
+        0 0 1px #ffd700,  /* Inner glow */
+        0 0 2px #ffd700,  /* Slightly outer glow */
+        0 0 20px #ffd700,  /* Slightly outer glow */
+        0 0 24px #ff8c00; /* Outermost glow */
+    font-weight: normal;
+}
+
+.silver {
+    color: #c0c0c0; /* Silver color */
+    text-shadow: 
+        0 0 5px #c0c0c0,  /* Inner glow */
+        0 0 10px #c0c0c0, /* Slightly outer glow */
+        0 0 20px #ffffff, /* Further outer glow with a lighter shade */
+        0 0 40px #ffffff;
+    font-weight: bold;
+    }
+
+
+.bronze {
+    color: #cd7f32; /* Bronze color */
+    text-shadow: 
+        0 0 5px #cd7f32,  /* Inner glow */
+        0 0 10px #cd7f32, /* Slightly outer glow */
+        0 0 20px #b87333, /* Further outer glow with a darker bronze shade */
+        0 0 40px #b87333;
+    font-weight: bold;
+}
+
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.loading-container img {
+    width: 60px;
+    height: 60px;
+}
+
+.back-button {
+    padding: 0px;
+    border-style: none;
+    cursor: pointer;
+    background-color: transparent;
+}
+
+.back-button img {
+    width: 40px;
+    height: 40px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+
+    header {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .header-left, .header-right {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 10px;
+        margin-top: 10px;
+    }
+
+    .header-left {
+        display: none;
+    }
+
+    .header-center {
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    p {
+        font-size: 1rem;
+    }
+
+    main {
+        padding: 10px;
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "contentIngress": "Fizemos alguns jogos com o nosso pai. Consegues bater os recordes?",
+    "dogRunTopScoreIntro": "Mais ossos no DogRun",
+    "dogRunImgAltText": "Captura de ecrã do DogRun",
+    "dogRunTopScore": "<INICIAIS> - <PONTUAÇÃO> <TEXTO_OSSO>",
+    "bone_singular": "osso",
+    "bone_plural": "ossos",
+    "pacMazeTopScoreIntro": "Melhor tempo no PacMaze",
+    "pacMazeImgAltText": "Captura de ecrã do PacMaze",
+    "pacMazeTopScore": "<INICIAIS> - <TEMPO> <TEXTO_TEMPO>",
+    "time_singular": "segundo",
+    "time_plural": "segundos"
+}

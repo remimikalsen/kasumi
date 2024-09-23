@@ -1,0 +1,21 @@
+services:
+  kasumi_frontend:
+    restart: unless-stopped
+    build:
+      context: ./kasumi_frontend
+    environment:
+      - INTERNAL_API_URL=http://kasumi_backend:3000/api
+      - PUBLIC_DEFAULT_LANG=no
+      - PUBLIC_AVAILABLE_LANGS=["no", "en", "pt"]
+      - NODE_ENV=production
+    ports:
+      - "8084:3000"
+    depends_on:
+      - kasumi_backend
+
+  kasumi_backend:
+    restart: unless-stopped
+    build:
+      context: ./kasumi_backend
+    volumes:
+      - ./kasumi_db:/app/database

@@ -1,0 +1,13 @@
+{
+    "contentIngress": "Vi har laget spill sammen med pappaen vår. Klarer du å slå rekordene?",
+    "dogRunTopScoreIntro": "Flest bein i DogRun",
+    "dogRunImgAltText": "Bilde av DogRun",
+    "dogRunTopScore": "<INITIALS> - <SCORE> <BONE_TEXT>",
+    "bone_singular": "bein",
+    "bone_plural": "bein",
+    "pacMazeTopScoreIntro": "Beste tid på PacMaze",
+    "pacMazeImgAltText": "Bilde av PacMaze",
+    "pacMazeTopScore": "<INITIALS> - <TIME> <TIME_TEXT>",
+    "time_singular": "sekund",
+    "time_plural": "sekunder"
+}
