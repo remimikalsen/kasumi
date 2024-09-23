@@ -5,6 +5,7 @@ services:
       context: ./kasumi_frontend
     environment:
       - INTERNAL_API_URL=http://kasumi_backend:3000/api
+      - PUBLIC_VARIANT=original
       - PUBLIC_DEFAULT_LANG=no
       - PUBLIC_AVAILABLE_LANGS=["no", "en", "pt"]
       - NODE_ENV=production

@@ -3,7 +3,12 @@
     "metaDescription": "Kaja and Sunniva's homepage",
     "headerTitle": "KaSuMi",
     "headerSubTitle": "Kaja and Sunniva's homepage",
-    "siteBy": "Made for you by Sunniva and Kaja",
+    "siteBy": "Made for you by Kaja and Sunniva",
     "viewSourceCode": "View the source code on GitHub",
-    "back": "Go back"
+    "back": "Go back",
+    "documentTitleAlt": "SuKaMi.me",
+    "metaDescriptionAlt": "Sunniva and Kaja's homepage",
+    "headerTitleAlt": "SuKaMi",
+    "headerSubTitleAlt": "Sunniva and Kaja's homepage",
+    "siteByAlt": "Made for you by Sunniva and Kaja"
 }

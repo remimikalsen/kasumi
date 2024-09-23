@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
     import { browser } from '$app/environment';
+    import { env } from '$env/dynamic/public';
     import LanguageSelector from '$lib/components/common/LanguageSelector.svelte';
     import { getLocalizedText, loadTexts, activeLanguage, pageHeader, pageSubHeader, documentTitle } from '$lib/stores/translatedTexts.js';
 
@@ -10,13 +11,14 @@
     let siteBy = '';
     let viewSourceCode = '';
     let back = '';
+    let alt = env.PUBLIC_VARIANT === 'alt' ? 'Alt' : '';
 
     async function fetchTexts() {
         isLoading = true;
         await loadTexts(commonTexts);
-        siteBy = getLocalizedText(commonTexts, 'siteBy');
+        siteBy = getLocalizedText(commonTexts, 'siteBy'+alt);
         back = getLocalizedText(commonTexts, 'back');
-        viewSourceCode = getLocalizedText(commonTexts, 'viewSourceCode');
+        viewSourceCode = getLocalizedText(commonTexts, 'viewSourceCode'+alt);
         isLoading = false;
     }
 
@@ -72,7 +74,7 @@
         </main>
         <footer>
             <p>{siteBy}</p>
-            <p>{viewSourceCode} <a href="https://github.com/remimikalsen/pacmaze">GitHub</a></p>
+            <p>{viewSourceCode} <a href="https://github.com/remimikalsen/kasumi">GitHub</a></p>
         </footer>
     </div>
 {/if}

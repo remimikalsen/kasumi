@@ -8,6 +8,7 @@
     "pacMazeTopScoreIntro": "Beste tid på PacMaze",
     "pacMazeImgAltText": "Bilde av PacMaze",
     "pacMazeTopScore": "<INITIALS> - <TIME> <TIME_TEXT>",
+    "decimal_separator": ",",
     "time_singular": "sekund",
     "time_plural": "sekunder"
 }

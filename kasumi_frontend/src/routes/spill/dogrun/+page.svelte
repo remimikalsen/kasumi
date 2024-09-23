@@ -2,11 +2,13 @@
     import DogRunGame from '$lib/components/dogrun/DogRunGame.svelte';
     import { getLocalizedText, loadTexts, pageHeader, pageSubHeader, documentTitle } from '$lib/stores/translatedTexts.js';
     import { onMount } from 'svelte';
+    import { env } from '$env/dynamic/public';
 
     let pageTexts = 'dogrun';
     let commonTexts = 'common';
     let isLoading = true;
 
+    let alt = env.PUBLIC_VARIANT === 'alt' ? 'Alt' : '';
 
     async function fetchTexts() {
         isLoading = true;
@@ -23,7 +25,7 @@
     $: if (!isLoading) {
         pageHeader.set(getLocalizedText(pageTexts, 'headerTitle'));
         pageSubHeader.set(getLocalizedText(pageTexts, 'headerSubTitle'));
-        documentTitle.set(getLocalizedText(pageTexts, 'headerTitle') + ' - ' + getLocalizedText(commonTexts, 'documentTitle'));
+        documentTitle.set(getLocalizedText(pageTexts, 'headerTitle') + ' - ' + getLocalizedText(commonTexts, 'documentTitle' + alt));
     }
 
 </script>

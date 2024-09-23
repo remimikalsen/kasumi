@@ -6,6 +6,7 @@
     "level_complete": "Level <LEVEL> of <LEVELS> solved.",
     "congrats_title": "Congratulations!",
     "game_complete": "Want to go for the hall of fame? You finished in <TIME> <TIME_TEXT>.",
+    "decimal_separator": ".",
     "time_singular": "second",
     "time_plural": "seconds",
     "game_over": "You were caught by a ghost! Game over.",

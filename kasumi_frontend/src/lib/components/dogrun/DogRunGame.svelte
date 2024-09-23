@@ -72,7 +72,7 @@
         let gameWrapper;
 
         const pageTexts = 'dogrun';
-        const commonTexts = 'common';
+        //const commonTexts = 'common';
         let isLoadingTexts = true;
 
         let instructionsVisible = false;
@@ -93,7 +93,7 @@
         async function fetchTexts() {
             isLoadingTexts = true;
             await loadTexts(pageTexts);
-            await loadTexts(commonTexts);
+            //await loadTexts(commonTexts);
             isLoadingTexts = false;
         }
         $: $activeLanguage, fetchTexts();

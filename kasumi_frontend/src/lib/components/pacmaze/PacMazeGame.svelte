@@ -33,7 +33,7 @@
   let ghostInterval;
 
   const pageTexts = 'pacmaze';
-  const commonTexts = 'common';
+  //const commonTexts = 'common';
   let isLoadingTexts = true;
 
   const mazes = [
@@ -111,7 +111,7 @@
   async function fetchTexts() {
             isLoadingTexts = true;
             await loadTexts(pageTexts);
-            await loadTexts(commonTexts);
+            //await loadTexts(commonTexts);
             isLoadingTexts = false;
         }
   $: $activeLanguage, fetchTexts();
@@ -304,7 +304,7 @@
       } else {
         showCongratulations = true;
         showKeyboard = true; // Show the keyboard for entering initials
-        currentMessage = getLocalizedText(pageTexts, "game_complete").replace('<TIME>', totalTime.toFixed(2)).replace('TIME_TEXT', totalTime >= 2 ? getLocalizedText(commonTexts, 'time_plural') : getLocalizedText(commonTexts, 'time_singular'));
+        currentMessage = getLocalizedText(pageTexts, "game_complete").replace('<TIME>', totalTime.toFixed(2)).replace('<TIME_TEXT>', totalTime >= 2 ? getLocalizedText(pageTexts, 'time_plural') : getLocalizedText(pageTexts, 'time_singular')).replace('.', getLocalizedText(pageTexts, 'decimal_separator'));
         maze = null;
       }
     }
@@ -427,7 +427,7 @@
           <tr>
             <td class="rank">{i + 1}.</td>
             <td class="initials">{initials}</td>
-            <td class="time">{time ? time.toFixed(2) : ''} s</td>
+            <td class="time">{time ? time.toFixed(2).replace('.', getLocalizedText(pageTexts, 'decimal_separator')) : ''} s</td>
           </tr>
         {/each}
       </tbody>

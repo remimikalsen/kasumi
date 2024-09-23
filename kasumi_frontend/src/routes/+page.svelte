@@ -1,11 +1,14 @@
 
 <script>
     import { onMount } from 'svelte';
+    import { env } from '$env/dynamic/public';
     import { getLocalizedText, loadTexts, activeLanguage, documentTitle, pageHeader, pageSubHeader } from '$lib/stores/translatedTexts.js';
 
     const pageTexts = 'frontpage';
     const commonTexts = 'common';
     let isLoading = true;
+
+    let alt = env.PUBLIC_VARIANT === 'alt' ? 'Alt' : '';
 
     async function fetchTexts() {
         isLoading = true;
@@ -45,9 +48,9 @@
 
     
     $: if (!isLoading) {
-        pageHeader.set(getLocalizedText(commonTexts, 'headerTitle'));
-        pageSubHeader.set(getLocalizedText(commonTexts, 'headerSubTitle'));
-        documentTitle.set(getLocalizedText(commonTexts, 'documentTitle'));
+        pageHeader.set(getLocalizedText(commonTexts, 'headerTitle'+alt));
+        pageSubHeader.set(getLocalizedText(commonTexts, 'headerSubTitle'+alt));
+        documentTitle.set(getLocalizedText(commonTexts, 'documentTitle'+alt));
     }
     
 </script>
@@ -97,7 +100,7 @@
                         <p class="goldenLight">
                             {@html getLocalizedText(pageTexts, 'pacMazeTopScore')
                                 .replace('<INITIALS>', `<span style="text-transform: uppercase;">${pacmazeLeaderboard[0]?.initials || ''}</span>`)
-                                .replace('<TIME>', (pacmazeLeaderboard[0].time).toFixed(2))
+                                .replace('<TIME>', (pacmazeLeaderboard[0].time).toFixed(2).replace('.', getLocalizedText(pageTexts, 'decimal_separator')))
                                 .replace('<TIME_TEXT>', pacmazeLeaderboard[0]?.time >= 2 
                                     ? getLocalizedText(pageTexts, 'time_plural') 
                                     : getLocalizedText(pageTexts, 'time_singular'))}

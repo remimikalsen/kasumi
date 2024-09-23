@@ -1,9 +1,14 @@
 {
     "documentTitle": "KaSuMi.me",
-    "metaDescription": "Página inicial de Kaja e Sunniva",
+    "metaDescription": "Página web de Kaja e Sunniva",
     "headerTitle": "KaSuMi",
-    "headerSubTitle": "Página inicial de Kaja e Sunniva",
-    "siteBy": "Feito para ti por Sunniva e Kaja",
+    "headerSubTitle": "Página web de Kaja e Sunniva",
+    "siteBy": "Feito para ti por Kaja e Sunniva",
     "viewSourceCode": "Veja o código fonte no GitHub",
-    "back": "Voltar"
+    "back": "Voltar",
+    "documentTitleAlt": "SuKaMi.me",
+    "metaDescriptionAlt": "Página web de Sunniva e Kaja",
+    "headerTitleAlt": "SuKaMi",
+    "headerSubTitleAlt": "Página web de Sunniva e Kaja",
+    "siteByAlt": "Feito para ti por Sunniva e Kaja"
 }
