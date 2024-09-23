@@ -4,10 +4,10 @@ Welcome to the Kasumi Project! This README will guide you through the setup and 
 
 ## Table of Contents
 - [Introduction](#introduction)
-- [Features](#features)
+- [Featuring games](#featuring games)
 - [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
+- [Configuration](#configuration)
+- [Translations](#translations)
 - [License](#license)
 
 ## Introduction
