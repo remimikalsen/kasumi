@@ -16,7 +16,7 @@
     async function fetchTexts() {
         isLoading = true;
         await loadTexts(commonTexts);
-        siteBy = getLocalizedText(commonTexts, 'siteBy'+alt);
+        siteBy = getLocalizedText(commonTexts, 'siteBy');
         back = getLocalizedText(commonTexts, 'back');
         viewSourceCode = getLocalizedText(commonTexts, 'viewSourceCode'+alt);
         isLoading = false;
