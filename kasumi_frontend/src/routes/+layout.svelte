@@ -42,6 +42,30 @@
     }
 </script>
 
+<svelte:head>
+    <meta name="description" content="Websiden til Kaja og Sunniva. Her kan du spille spillene våre!">
+    <meta property="og_site_name" content="kasumi.me">
+    <meta property="og:url" content="https://kasumi.me">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Kasumi.me">
+    <meta property="og:description" content="Websiden til Kaja og Sunniva. Her kan du spille spillene våre!">
+    <meta property="og:image" content="{env.PUBLIC_URL}/favicon.png">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="kasumi.me">
+    <meta property="twitter:url" content="https://kasumi.me">
+    <meta name="twitter:title" content="Kasumi.me">
+    <meta name="twitter:description" content="Websiden til Kaja og Sunniva. Her kan du spille spillene våre!">
+    <meta name="twitter:image" content="{env.PUBLIC_URL}/favicon.png">
+    {@html `  <script type="application/ld+json">{
+    "@context": "https://schema.org",
+    "@type": "Website",
+    "name": "Kasumi.me",
+    "url": "https://kasumi.me",
+    "logo": "${env.PUBLIC_URL}/favicon.png"}</script>`}
+</svelte:head> 
+
+
 {#if isLoading}
     <div class="loading-container">
         <img src="/images/loading.gif" alt="Loading..." />
