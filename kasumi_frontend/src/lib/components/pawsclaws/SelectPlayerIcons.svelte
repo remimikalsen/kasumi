@@ -46,9 +46,9 @@
   div.playerIconSetup div.playerNumber {
     padding-right: 5px;
     font-style: italic;
-    display: inline-block;
-    vertical-align: top;
+    display: block;
     padding-top: 12px;
+    margin-bottom: 10px;
   }
 
   div.playerNumber {

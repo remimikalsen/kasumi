@@ -165,4 +165,21 @@
     margin-bottom: 50px;
   }
 
+  @media (max-width: 800px) {
+    div.setup {
+      justify-content: center;
+
+    }
+    div.columns {
+      flex-direction: column;
+      margin: 0 auto;
+    }
+    div.columns div.right-column,
+    div.columns div.left-column {
+      justify-content: space-between;
+      margin-top: 0;
+      margin-bottom: 0;
+    }   
+  }
+
 </style>
