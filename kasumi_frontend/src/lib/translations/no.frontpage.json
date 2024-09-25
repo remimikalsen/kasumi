@@ -10,5 +10,8 @@
     "pacMazeTopScore": "<INITIALS> - <TIME> <TIME_TEXT>",
     "decimal_separator": ",",
     "time_singular": "sekund",
-    "time_plural": "sekunder"
+    "time_plural": "sekunder",
+    "pawsclawsTopScoreIntro": "Med venner?",
+    "pawsclawsImgAltText": "Skjermbilde av Poter mot Klør",
+    "pawsclawsTopScore": "Utfordre en venn!"
 }

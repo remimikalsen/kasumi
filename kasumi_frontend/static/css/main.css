@@ -119,6 +119,43 @@ footer p {
     width: 140px;
 }
 
+.garasjesjakkSetupSelect {
+    margin-top: 15px;
+    width: 200px;
+}
+
+.garasjesjakkSetupSelect .dropdown-options {
+    width: 200px;
+}
+
+.garasjesjakkSetupSelectLong {
+    margin-top: 15px;
+    width: 200px;
+}
+
+.garasjesjakkSetupSelectLong .dropdown-options {
+    width: 200px;
+}
+
+div.game-tools .navigateDropdown {
+    width: 150px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+div.game-tools .navigateDropdown .dropdown-options {
+    width: 150px;
+}  
+
+div.game-rules {
+    max-width: 400px;
+}
+
+.game-tools ul li button,
+div.game-rules button svg {
+    padding-top: 2px;
+}
+
 
 .glowing {
     padding: 10px;

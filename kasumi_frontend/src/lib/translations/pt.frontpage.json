@@ -10,5 +10,8 @@
     "pacMazeTopScore": "<INITIALS> - <TIME> <TIME_TEXT>",
     "decimal_separator": ",",
     "time_singular": "segundo",
-    "time_plural": "segundos"
+    "time_plural": "segundos",
+    "pawsclawsTopScoreIntro": "Entre amigos?",
+    "pawsclawsImgAltText": "Captura de ecrã de Patas ou Garras",
+    "pawsclawsTopScore": "Desafia um amigo!"
 }

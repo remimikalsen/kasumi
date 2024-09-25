@@ -108,6 +108,17 @@
                     </div>
                 {/if}
             </div>
+            <div class="preview">
+                <a href="/spill/pawsclaws" class="glowing">
+                    <img src="/images/front-page/pawsclaws-preview.png" alt="{getLocalizedText(pageTexts, 'pawsclawsImgAltText')}" />
+                </a>
+                    <div class="score">
+                        <p class="topScore">{getLocalizedText(pageTexts, 'pawsclawsTopScoreIntro')}</p>
+                        <p class="goldenLight">
+                            {getLocalizedText(pageTexts, 'pawsclawsTopScore')}
+                        </p>
+                    </div>
+            </div>
         </div>
 {/if}
 

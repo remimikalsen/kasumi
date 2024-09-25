@@ -7,6 +7,7 @@
     export let className = '';
     export let dropdownLabel = '';
     export let selectOptionText = "Select an option";
+    export let id = '';
 
     let isOpen = false;
     let dropdownRef;
@@ -47,7 +48,7 @@
     });
 </script>
 
-<div class="dropdown {className}" bind:this={dropdownRef}>
+<div class="dropdown {className}" bind:this={dropdownRef} {id}>
     <button class="dropdown-button" on:click={toggleDropdown} aria-label="{dropdownLabel}" title="{dropdownLabel}">
         {#if selectedValue}
             {#if options.find(option => option.value === selectedValue)?.image}
