@@ -88,7 +88,8 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        margin-top: 20px;
+        margin-top: 10px;
+        margin-bottom: 10px;
     }
 
     .virtual-joystick .space-key {
@@ -108,9 +109,9 @@
         -ms-user-select: none;
         -moz-user-select: none;
         -webkit-tap-highlight-color: transparent; /* Remove tap highlight on touch devices */
-        width: 30px;
-        height: 30px;
-        font-size: 18px;
+        width: 60px;
+        height: 60px;
+        font-size: 24spx;
         margin: 5px;
         border-radius: 10px;
         background-color: #f05972;

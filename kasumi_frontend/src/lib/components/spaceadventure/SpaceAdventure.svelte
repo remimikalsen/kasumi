@@ -79,7 +79,7 @@
 
     if (typeof window !== 'undefined') {
       width = Math.min(800, window.innerWidth);
-      height = Math.min(600, window.innerHeight - 100); // Leave space for buttons on mobile
+      height = Math.min(600, window.innerHeight - 190); // Leave space for buttons on mobile
 
       ctx = canvas.getContext('2d');
       loadLeaderboard();
