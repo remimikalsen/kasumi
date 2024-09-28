@@ -13,5 +13,9 @@
     "time_plural": "segundos",
     "pawsclawsTopScoreIntro": "Entre amigos?",
     "pawsclawsImgAltText": "Captura de ecrã de Patas ou Garras",
-    "pawsclawsTopScore": "Desafia um amigo!"
+    "pawsclawsTopScore": "Desafia um amigo!",
+    "spaceAdventureTopScoreIntro": "Melhor Astronauta",
+    "spaceAdventureImgAltText": "Captura de ecrã de Aventura no espaço",
+    "spaceAdventureTopScore": "<INITIALS> - <POINTS> <POINTS_TEXT>",
+    "points": "pontos"
 }

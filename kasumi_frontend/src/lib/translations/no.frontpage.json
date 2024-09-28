@@ -13,5 +13,9 @@
     "time_plural": "sekunder",
     "pawsclawsTopScoreIntro": "Med venner?",
     "pawsclawsImgAltText": "Skjermbilde av Poter mot Klør",
-    "pawsclawsTopScore": "Utfordre en venn!"
+    "pawsclawsTopScore": "Utfordre en venn!",
+    "spaceAdventureTopScoreIntro": "Beste Astronaut",
+    "spaceAdventureImgAltText": "Skjermbilde av Romeventyr",
+    "spaceAdventureTopScore": "<INITIALS> - <POINTS> <POINTS_TEXT>",
+    "points": "poeng"
 }

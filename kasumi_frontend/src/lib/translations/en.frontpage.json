@@ -13,5 +13,10 @@
     "time_plural": "seconds",
     "pawsclawsTopScoreIntro": "With friends?",
     "pawsclawsImgAltText": "Screenshot of Paws vs Claws",
-    "pawsclawsTopScore": "Challenge a friend!"
+    "pawsclawsTopScore": "Challenge a friend!",
+    "spaceAdventureTopScoreIntro": "Top Astronaut",
+    "spaceAdventureImgAltText": "Screenshot of Space Adventure",
+    "spaceAdventureTopScore": "<INITIALS> - <POINTS> <POINTS_TEXT>",
+    "points": "points"
+
 }

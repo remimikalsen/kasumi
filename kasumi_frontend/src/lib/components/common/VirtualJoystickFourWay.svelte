@@ -4,6 +4,7 @@
 
     const dispatch = createEventDispatcher();
     let interval;
+    export let spaceKey = '';
 
     function startKeyRepeat(key) {
         stopKeyRepeat();
@@ -48,11 +49,18 @@
 </script>
 
 <div class="virtual-joystick">
+    {#if spaceKey}
+    <div class="space-key">
+        <button class="space" use:handleTouchEvents={'Space'}>{spaceKey}</button>
+    </div>
+    {/if}
+    <div class="directional-keys">
     <button use:handleTouchEvents={'ArrowUp'}>↑</button>
     <div>
-        <button use:handleTouchEvents={'ArrowLeft'}>←</button>
+        <button class="left" use:handleTouchEvents={'ArrowLeft'}>←</button>
         <button use:handleTouchEvents={'ArrowDown'}>↓</button>
-        <button use:handleTouchEvents={'ArrowRight'}>→</button>
+        <button class="right" use:handleTouchEvents={'ArrowRight'}>→</button>
+    </div>
     </div>
 </div>
 
@@ -65,12 +73,32 @@
        display: none;
     }
 
+    .virtual-joystick div {
+        display: flex;
+        margin: auto;
+    }
+
+    .virtual-joystick button:active {
+        background-color: #e04b5d;
+    }
+
+
 @media (pointer: coarse) {
     .virtual-joystick {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
         margin-top: 20px;
+    }
+
+    .virtual-joystick .space-key {
+        justify-content: bottom;
+    }
+
+    .virtual-joystick .directional-keys {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center; 
     }
 }
 
@@ -91,14 +119,8 @@
         cursor: pointer;
     }
 
-    .virtual-joystick div {
-        display: flex;
-        justify-content: center;
+    .virtual-joystick button.space {
+        width: 120px;
     }
-
-    .virtual-joystick button:active {
-        background-color: #e04b5d;
-    }
-
 
 </style>

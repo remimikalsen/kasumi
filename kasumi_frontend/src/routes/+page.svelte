@@ -19,15 +19,18 @@
 
     let dogrunLeaderboard = [];
     let pacmazeLeaderboard = [];
+    let spaceAdventureLeaderboard = [];
 
     async function loadLeaderboards() {
-        const [dogrunResponse, pacmazeResponse] = await Promise.all([
+        const [dogrunResponse, pacmazeResponse, spaceAdventureResponse] = await Promise.all([
             fetch('/api/dogrun/get_leaderboard'),
-            fetch('/api/pacmaze/get_leaderboard')
+            fetch('/api/pacmaze/get_leaderboard'),
+            fetch('/api/space-adventure/get_leaderboard')
         ]);
 
         const dogrunData = await dogrunResponse.json();
         const pacmazeData = await pacmazeResponse.json();
+        const spaceAdventureData = await spaceAdventureResponse.json();
 
         if (Array.isArray(dogrunData) && dogrunData.length > 0) {
             dogrunLeaderboard = [...dogrunData];
@@ -37,6 +40,10 @@
             pacmazeLeaderboard = [...pacmazeData];
         }        
         
+        if (Array.isArray(spaceAdventureData) && spaceAdventureData.length > 0) {
+            spaceAdventureLeaderboard = [...spaceAdventureData];
+        }        
+                
     }
 
     onMount(async () => {
@@ -86,6 +93,22 @@
                                 .replace('<BONE_TEXT>', dogrunLeaderboard[0]?.bones === 1 
                                     ? getLocalizedText(pageTexts, 'bone_singular') 
                                     : getLocalizedText(pageTexts, 'bone_plural'))}
+                        </p>
+                    </div>
+                {/if}
+            </div>
+            <div class="preview">
+                <a href="/spill/space-adventure" class="glowing">
+                    <img src="/images/front-page/space-adventure-preview.png" alt="{getLocalizedText(pageTexts, 'spaceAdventureAltText')}" />
+                </a>
+                {#if spaceAdventureLeaderboard.length > 0}
+                    <div class="score">
+                        <p class="topScore">{getLocalizedText(pageTexts, 'spaceAdventureTopScoreIntro')}</p>
+                        <p class="goldenLight">
+                            {@html getLocalizedText(pageTexts, 'spaceAdventureTopScore')
+                                .replace('<INITIALS>', `<span style="text-transform: uppercase;">${spaceAdventureLeaderboard[0]?.initials || ''}</span>`)
+                                .replace('<POINTS>', (spaceAdventureLeaderboard[0].points))
+                                .replace('<POINTS_TEXT>', getLocalizedText(pageTexts, 'points'))}
                         </p>
                     </div>
                 {/if}

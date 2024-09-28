@@ -4,6 +4,7 @@
 
     const dispatch = createEventDispatcher();
     let intervals = {};
+    export let spaceKey = '';
 
     function startKeyRepeat(key) {
         handleKey(key, 'pressed');
@@ -54,6 +55,11 @@
 </script>
 
 <div class="virtual-joystick">
+    {#if spaceKey}
+    <div>
+        <button class="space" use:handleTouchEvents={'Space'}>{spaceKey}</button>
+    </div>
+    {/if}    
     <div>
         <button class="up" use:handleTouchEvents={'ArrowUp'}>↑</button>
         <button use:handleTouchEvents={'ArrowLeft'}>←</button>
