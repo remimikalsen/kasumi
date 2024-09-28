@@ -108,9 +108,9 @@
         -ms-user-select: none;
         -moz-user-select: none;
         -webkit-tap-highlight-color: transparent; /* Remove tap highlight on touch devices */
-        width: 60px;
-        height: 60px;
-        font-size: 24px;
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
         margin: 5px;
         border-radius: 10px;
         background-color: #f05972;
@@ -120,7 +120,7 @@
     }
 
     .virtual-joystick button.space {
-        width: 120px;
+        width: 100px;
     }
 
 </style>

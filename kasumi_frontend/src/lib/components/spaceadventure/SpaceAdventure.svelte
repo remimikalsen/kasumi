@@ -1048,28 +1048,50 @@
     } 
 
     @media (max-width: 700px) {
-      .status {
-            flex-direction: column;
-        }
-  
-      div.status .status-right {
-        padding-top: 0;
-      }
-      div.status .sound {
-            display: flex;
-            flex-direction: row;
-            
-        }
-        
-        div.status .score {
-          text-align: center;
+ 
+      div.status .title {
+            display: none;            
         }
 
-        
-        div.weaponry {
-          flex-direction: column;
+        div.status div.sound {
+          flex-direction: row;
+          
         }
 
+        div.status div.sound .music,
+        div.status div.sound .sfx {
+          margin: 0;
+        }
+        
+        div.status div.weaponry {
+          margin: 0;
+        }
+
+        div.status div.status-left,
+        div.status div.status-right {
+          display: flex;
+          flex-direction: row;
+          padding: 0;
+        }
+
+        div.status div.status-left .score {
+          margin-left: 10px;
+          margin-top: 10px;
+        }
+
+        div.status div.weaponry-status div.ammo-bar {
+          width: 50px;
+        }        
+
+    div.status div.weaponry span.weapon-name,
+    div.status .weapon-status,
+    div.status div.status-left div.score span.title,
+    div.status .music .title,
+    div.status .sfx .title{
+       display: none;
+    }
+
+        
         div.buttons {
           display: flex;
           flex-direction: column;
@@ -1077,8 +1099,9 @@
           margin-top: 50px;
         }
 
-        div.buttons button {
-          width: 300px;
+        div.buttons button.pause,
+        div.buttons button.reset{
+          width: 250px;
           margin: 10px;
         }
 
