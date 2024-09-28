@@ -79,7 +79,7 @@
 
     if (typeof window !== 'undefined') {
       width = Math.min(800, window.innerWidth);
-      height = Math.min(600, window.innerHeight - 190); // Leave space for buttons on mobile
+      height = Math.min(600, window.innerHeight - 195); // Leave space for buttons on mobile
 
       ctx = canvas.getContext('2d');
       loadLeaderboard();
@@ -640,6 +640,12 @@
         cancelAnimationFrame(animationFrameId);
     }
     gameLoop();
+
+    // Scroll to the top of the game wrapper on mobile devices
+    if (window.innerWidth <= 800) { // Adjust the width threshold as needed
+        gameWrapper.scrollIntoView({ behavior: 'smooth' });
+    }    
+
 }
 
   function handleVisibilityChange() {
@@ -698,6 +704,12 @@
       z-index: 10;
   }
 
+  .start-game-overlay p,
+  .start-game-overlay p,
+  .game-over-overlay p.start_over {
+    margin-bottom: 40px;
+  }
+
   .blur {
       filter: blur(5px);
   }
@@ -707,7 +719,11 @@
       justify-content: center;
       margin-top: 30px;
   } 
-  div.buttons button{
+
+  div.game-over-overlay button,
+  div.start-game-overlay button,
+  div.start-game-overlay button,
+  div.buttons button {
     background-color: #ca3049;
     color: #e0e1dd;
     padding: 12px 24px;
@@ -1229,6 +1245,13 @@
 
 <div bind:this={pausedOverlay} class="pause-overlay { !isPaused ? 'hide' : ''}">
   <p>{@html getLocalizedText(pageTexts, "p_to_resume")}</p>
+
+  {#if !hasStarted}
+  <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start-game")}</button>
+  {:else}
+  <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "restart-game")}</button>
+  {/if}
+
 </div>
 
 <div bind:this={gameOverOverlay} class="game-over-overlay { !gameOver ? 'hide' : ''}">
@@ -1238,11 +1261,21 @@
   <p class="game_over_high_score_pretext">{getLocalizedText(pageTexts, "pretext_submit_highscore")}</p>
   <VirtualKeyboard onSubmit={handleSubmitInitials} />
   {:else}
-  <p>{getLocalizedText(pageTexts, "game_over_start_over")}</p>
+  <p class="start_over">{getLocalizedText(pageTexts, "game_over_start_over")}</p>
+  {#if !hasStarted}
+  <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start-game")}</button>
+  {:else}
+  <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "restart-game")}</button>
+  {/if}
   {/if}
 </div>
 
 <div bind:this={startOverlay} class="start-game-overlay { hasStarted ? 'hide' : ''}">
 <p>{getLocalizedText(pageTexts, "first_start_game")}</p>
+{#if !hasStarted}
+<button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start-game")}</button>
+{:else}
+<button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "restart-game")}</button>
+{/if}
 </div>
 {/if}
