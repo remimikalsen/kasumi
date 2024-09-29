@@ -499,6 +499,7 @@
         gameOver = true;
         showVirtualKeyboard = true;
         document.body.classList.remove('no-scroll');
+        window.removeEventListener('touchmove', preventScroll, { passive: false });
       }
     });
 
