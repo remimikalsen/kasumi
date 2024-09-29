@@ -19,7 +19,6 @@ router.post('/spaceadventure/submit_score', (req, res) => {
       res.sendStatus(200);
     }
   });
-  stmt.finalize();
 });
 
 // Endpoint to get the leaderboard
@@ -32,5 +31,23 @@ router.get('/spaceadventure/get_leaderboard', (req, res) => {
     }
   });
 });
+
+// Endpoint to clear initials with certain scores from leaderboard
+router.post('/spaceadventure/delete_score', (req, res) => {
+  const { initials, points } = req.body;
+
+  // Corrected SQL syntax for DELETE query
+  const stmt = db.prepare('DELETE FROM spaceadventure_leaderboard WHERE initials = ? AND points = ?');
+
+  // Executing the statement with provided parameters
+  stmt.run(initials, points, function(err) {
+    if (err) {
+      res.status(500).send('Database error');
+    } else {
+      res.status(200).send({ deletedRows: this.changes });
+    }
+  });
+});
+
 
 module.exports = router;

@@ -33,4 +33,21 @@ router.get('/dogrun/get_leaderboard', (req, res) => {
   });
 });
 
+// Endpoint to clear initials with certain scores from leaderboard
+router.post('/dogrun/delete_score', (req, res) => {
+  const { initials, bones } = req.body;
+
+  // Corrected SQL syntax for DELETE query
+  const stmt = db.prepare('DELETE FROM dogrun_leaderboard WHERE initials = ? AND bones = ?');
+
+  // Executing the statement with provided parameters
+  stmt.run(initials, bones, function(err) {
+    if (err) {
+      res.status(500).send('Database error');
+    } else {
+      res.status(200).send({ deletedRows: this.changes });
+    }
+  });
+});
+
 module.exports = router;

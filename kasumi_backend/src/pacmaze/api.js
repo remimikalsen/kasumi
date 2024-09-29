@@ -30,7 +30,6 @@ router.post('/pacmaze/submit_score', (req, res) => {
       res.sendStatus(200);
     }
   });
-  stmt.finalize();
 });
 
 // Endpoint to get the leaderboard
@@ -40,6 +39,24 @@ router.get('/pacmaze/get_leaderboard', (req, res) => {
       res.status(500).send('Database error');
     } else {
       res.json(rows);
+    }
+  });
+});
+
+
+// Endpoint to clear initials with certain scores from leaderboard
+router.post('/pacmaze/delete_score', (req, res) => {
+  const { initials, time } = req.body;
+
+  // Corrected SQL syntax for DELETE query
+  const stmt = db.prepare('DELETE FROM pacmaze_leaderboard WHERE initials = ? AND ROUND(time, 2) = ?');
+
+  // Executing the statement with provided parameters
+  stmt.run(initials, time, function(err) {
+    if (err) {
+      res.status(500).send('Database error');
+    } else {
+      res.status(200).send({ deletedRows: this.changes });
     }
   });
 });
