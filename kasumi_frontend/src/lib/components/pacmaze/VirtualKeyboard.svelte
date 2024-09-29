@@ -38,9 +38,7 @@
       flex-wrap: wrap;
       justify-content: center;
       margin-top: 0px;
-      width: 100%;
-      max-width: 400px;
-      min-width: 300px;
+      width: 400px;
     }
   
     button {
@@ -54,28 +52,26 @@
       display: block;
       text-align: center;
       margin-left: 20px;
-      width: 100%;
-      max-width: 400px;
-      min-width: 300px;
+      width: 400px;
       margin-top: 10px;
       margin-bottom: 10px;
       font-size: 1.5rem;
     }
-  
+
     p span {
       text-transform: uppercase;
     }
-  
+
     button.letter {
-      width: calc(10% - 10px); /* Adjust width dynamically */
+      width: 45px;
     }
-  
+
     button.remove {
-      width: calc(20% - 10px); /* Adjust width dynamically */
+      width: 100px;
     }
-  
+
     button.submit {
-      width: calc(30% - 10px); /* Adjust width dynamically */
+      width: 150px;
       margin-top: 20px;
       margin-bottom: 20px;
       background-color: #0b5d0b;
@@ -91,42 +87,18 @@
       text-transform: uppercase;
       letter-spacing: 1px;      
     }
-  
+
     button:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
     }
-  
+
     button:active {
       transform: translateY(2px);
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
       background-color: #f0b300;
     }
-  
-    @media (max-width: 400px) {
-      .keyboard {
-        width: 100%;
-      }
-  
-      p {
-        width: 100%;
-      }
-  
-      button {
-        font-size: calc(1.2rem * 0.75); /* Scale font size down */
-        padding: calc(10px * 0.75); /* Scale padding down */
-      }
-  
-      button.letter {
-        width: calc(10% - 7.5px); /* Adjust width dynamically */
-      }
-  
-      button.remove {
-        width: calc(20% - 7.5px); /* Adjust width dynamically */
-      }
-  
-      button.submit {
-        width: calc(30% - 7.5px); /* Adjust width dynamically */
-      }
-    }
+
+    
   </style>
+  

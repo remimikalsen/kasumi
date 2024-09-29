@@ -52,7 +52,7 @@
       display: block;
       text-align: center;
       margin-left: 20px;
-      width: 400px;
+      width: 90%px;
       margin-top: 10px;
       margin-bottom: 10px;
       font-size: 1.5rem;
@@ -98,7 +98,12 @@
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
       background-color: #f0b300;
     }
+    @media (max-width: 800px) {
+      .keyboard {
+        width: 90%;
+      }
 
+    }
     
   </style>
   

@@ -281,18 +281,18 @@
 
           if (gameWrapper && pausedOverlay) {
               const rect = gameWrapper.getBoundingClientRect();
-              pausedOverlay.style.top = `${rect.top + window.scrollY - addedBorders - 6}px`;
-              pausedOverlay.style.left = `${rect.left + window.scrollX - addedBorders - 6}px`;
-              pausedOverlay.style.width = `${rect.width + addedBorders*2 + 12}px`;
-              pausedOverlay.style.height = `${rect.height + addedBorders*2 + 12}px`;
+              pausedOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
+              pausedOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
+              pausedOverlay.style.width = `${rect.width + addedBorders*2}px`;
+              pausedOverlay.style.height = `${rect.height + addedBorders*2}px`;
           }
 
           if (gameWrapper && gameOverOverlay) {
               const rect = gameWrapper.getBoundingClientRect();
-              gameOverOverlay.style.top = `${rect.top + window.scrollY - addedBorders - 6}px`;
-              gameOverOverlay.style.left = `${rect.left + window.scrollX - addedBorders - 6}px`;
-              gameOverOverlay.style.width = `${rect.width + addedBorders*2 + 12}px`;
-              gameOverOverlay.style.height = `${rect.height + addedBorders*2 + 12}px`;
+              gameOverOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
+              gameOverOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
+              gameOverOverlay.style.width = `${rect.width + addedBorders*2}px`;
+              gameOverOverlay.style.height = `${rect.height + addedBorders*2}px`;
           }
 
           if (gameWrapper && startOverlay) {
@@ -726,7 +726,7 @@
       position: absolute;
       top: 0px;
       left: 0px;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.8);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -745,10 +745,6 @@
   .start-game-overlay p,
   .game-over-overlay p.start_over {
     margin-bottom: 40px;
-  }
-
-  .blur {
-      filter: blur(5px);
   }
 
   div.buttons {
@@ -1119,6 +1115,8 @@
           display: flex;
           justify-content: center;
         }
+
+        
         div.status div.sound {
           flex-direction: row;
           
@@ -1172,17 +1170,13 @@
         }
 
     }
-
-
-
-
 </style>
 
 {#if !isLoadingTexts}
 <div class="page-wrapper">
 
 <div class="left-column">
-  <div bind:this={gameWrapper} class="game-wrapper {isPaused || gameOver ? 'blur' : ''}">
+  <div bind:this={gameWrapper} class="game-wrapper">
   <div bind:this={statusDiv} class="status">
     <div class="status-left">
 
