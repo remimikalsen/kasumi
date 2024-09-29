@@ -12,7 +12,7 @@
     "instructions": "Dont' get hit by asteroids, and shoot them to get points. You must obliterate an asteroid to get points. You have limited ammo, and the game difficuly increases with time.",
     "instructions_steer": "Use the <strong>left</strong>, <strong>right</strong>, <strong>up</strong> and <strong>down</strong> arrows to move.",
     "instructions_shoot": "Press the <strong>space bar</strong> to shoot.",
-    "instructions_pause": "Press <strong>P</strong> to pause the game.",
+    "instructions_pause": "Press <strong>P</strong> or double click on the game window to pause.",
     "instructions_start_over": "Press <strong>R</strong> to start over.",
     "instructions_music": "Press <strong>M</strong> to toggle background music.",
     "instructions_sfx": "Press <strong>S</strong> to toggle sound effects.",

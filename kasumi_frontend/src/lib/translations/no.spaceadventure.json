@@ -12,7 +12,7 @@
     "instructions": "Ikke bli truffet av asteroider, og skyt dem for å få poeng. Du må ødelegge en asteroide for å få poeng. Du har begrenset ammunisjon, og spillets vanskelighetsgrad øker med tiden.",
     "instructions_steer": "Bruk <strong>venstre</strong>, <strong>høyre</strong>, <strong>opp</strong> og <strong>ned</strong> piltastene for å bevege deg.",
     "instructions_shoot": "Trykk på <strong>mellomromstasten</strong> for å skyte.",
-    "instructions_pause": "Trykk <strong>P</strong> for å pause spillet.",
+    "instructions_pause": "Trykk <strong>P</strong> eller dobbeltklikk på spillvinduet for å pause.",
     "instructions_start_over": "Trykk <strong>R</strong> for å starte på nytt.",
     "instructions_music": "Trykk <strong>M</strong> for å slå av/på bakgrunnsmusikk.",
     "instructions_sfx": "Trykk <strong>S</strong> for å slå av/på lydeffekter.",

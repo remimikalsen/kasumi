@@ -12,7 +12,7 @@
     "instructions": "Não sejas atingido pelos asteroides e dispara para ganhar pontos. Tens de destruir completamente um asteroide para ganhar pontos. Tens munição limitada e a dificuldade do jogo aumenta com o tempo.",
     "instructions_steer": "Usa as setas <strong>esquerda</strong>, <strong>direita</strong>, <strong>cima</strong> e <strong>baixo</strong> para te moveres.",
     "instructions_shoot": "Pressiona a <strong>barra de espaço</strong> para disparar.",
-    "instructions_pause": "Pressiona <strong>P</strong> para pausar o jogo.",
+    "instructions_pause": "Pressiona <strong>P</strong> ou faz duplo clique no ecrã do jogo para pausar.",
     "instructions_start_over": "Pressiona <strong>R</strong> para recomeçar.",
     "instructions_music": "Pressiona <strong>M</strong> para alternar a música de fundo.",
     "instructions_sfx": "Pressiona <strong>S</strong> para alternar os efeitos sonoros.",
