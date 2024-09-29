@@ -77,6 +77,10 @@
   let virtualJoystickDiv;
   let lastTap = 0;
 
+  const preventScroll = (e) => {
+    e.preventDefault();
+  };
+
   onMount(async () => {
     await fetchTexts();
 
@@ -96,7 +100,6 @@
       window.addEventListener('resize', updateOverlayPositions);
       document.addEventListener('visibilitychange', handleVisibilityChange);
       canvas.addEventListener('touchend', handleDoubleTap);
-      window.addEventListener('touchmove', preventScroll, { passive: false });
       updateOverlayPositions();
       initializeStars();
       canvas.focus();
@@ -117,6 +120,7 @@
       backgroundAudio.pause();
     }
 
+    window.removeEventListener('touchmove', preventScroll, { passive: false });
     document.body.classList.remove('no-scroll');
   });
 
@@ -236,6 +240,7 @@
         pauseBackgroundAudio();
         pauseStartTime = Date.now();
         document.body.classList.remove('no-scroll');
+        window.removeEventListener('touchmove', preventScroll, { passive: false });
     } else {
         playSound('start');
         playBackgroundAudio();
@@ -677,6 +682,7 @@
         await waitForScrollToEnd();
         gameWrapper.classList.add('fixed-game-wrapper');
         document.body.classList.add('no-scroll');
+        window.addEventListener('touchmove', preventScroll, { passive: false });
     } 
   }
 
