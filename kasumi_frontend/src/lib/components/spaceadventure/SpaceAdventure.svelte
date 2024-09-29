@@ -788,7 +788,7 @@
   div.buttons {
       display: flex;
       justify-content: center;
-      margin-top: 30px;
+      margin-top: 70px;
   } 
 
   div.game-over-overlay button,

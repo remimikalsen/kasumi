@@ -39,6 +39,7 @@
       justify-content: center;
       margin-top: 0px;
       width: 400px;
+      max-width: 400px;
     }
   
     button {

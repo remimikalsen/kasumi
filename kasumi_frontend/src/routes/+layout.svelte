@@ -22,9 +22,9 @@
         isLoading = false;
     }
 
-    $: documentTitleText = $documentTitle || '<title>';
-    $: pageHeaderText = $pageHeader || '<header>';
-    $: pageSubHeaderText = $pageSubHeader || '<subheader>';
+    $: documentTitleText = $documentTitle || 'Kasumi.me';
+    $: pageHeaderText = $pageHeader || 'Kasumi';
+    $: pageSubHeaderText = $pageSubHeader || 'Kaja og Sunniva sin hjemmeside';
     $: $activeLanguage, fetchTexts();
 
     onMount(fetchTexts);
