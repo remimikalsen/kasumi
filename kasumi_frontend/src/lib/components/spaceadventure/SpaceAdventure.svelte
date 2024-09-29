@@ -73,14 +73,15 @@
   let leaderboard;
   let showVirtualKeyboard = false;
   let playerInitials = '';
+  let statusDiv;
+  let virtualJoystickDiv;
+  let lastTap = 0;
 
   onMount(async () => {
     await fetchTexts();
 
     if (typeof window !== 'undefined') {
-      width = Math.min(800, window.innerWidth);
-      height = Math.min(600, window.innerHeight - 195); // Leave space for buttons on mobile
-
+      updateDimensions();
       ctx = canvas.getContext('2d');
       loadLeaderboard();
       ship = new Spacecraft(width, height);
@@ -88,6 +89,7 @@
       window.addEventListener('keyup', handleKeyUp);
       window.addEventListener('resize', updateOverlayPositions);
       document.addEventListener('visibilitychange', handleVisibilityChange);
+      canvas.addEventListener('touchend', handleDoubleTap);
       updateOverlayPositions();
       initializeStars();
       canvas.focus();
@@ -100,12 +102,29 @@
     if (typeof window !== 'undefined') {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('resize', updateDimensions);
+      canvas.removeEventListener('touchend', handleDoubleTap);
     }
 
     if (backgroundAudio) {
       backgroundAudio.pause();
     }
   });
+
+
+  function updateDimensions() {
+    const statusHeight = statusDiv ? statusDiv.getBoundingClientRect().height : 0;
+    const joystickHeight = virtualJoystickDiv ? virtualJoystickDiv.getBoundingClientRect().height : 0;
+    const totalHeight = statusHeight + joystickHeight;
+
+    width = Math.min(800, window.innerWidth);
+    height = Math.min(600, window.innerHeight - totalHeight);
+
+    if (canvas) {
+      canvas.width = width;
+      canvas.height = height;
+    }
+  }
 
   async function fetchTexts() {
       isLoadingTexts = true;
@@ -256,10 +275,7 @@
   }
 
   function updateOverlayPositions() {
-          if (canvas) {
-            canvas.width = width;
-            canvas.height = height;
-          }
+          updateDimensions();
 
           let addedBorders = 0;
 
@@ -644,6 +660,7 @@
     // Scroll to the top of the game wrapper on mobile devices
     if (window.innerWidth <= 800) { // Adjust the width threshold as needed
         gameWrapper.scrollIntoView({ behavior: 'smooth' });
+        gameWrapper.classList.add('fixed-game-wrapper');
     }    
 
 }
@@ -656,9 +673,24 @@
       }
   }
 
+  function handleDoubleTap(event) {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    if (tapLength < 300 && tapLength > 0) {
+      togglePause();
+    }
+    lastTap = currentTime;
+  }  
+
 </script>
 
 <style>
+
+   .fixed-game-wrapper {
+      position: sticky;
+      top: 0;
+      z-index: 1000; /* Ensure it stays on top */
+    }
 
   .left-column,
   .right-column {
@@ -702,7 +734,12 @@
       color: white;
       font-size: 1.2rem;
       z-index: 10;
-  }
+      user-se1lect: none;  /* Prevent text selection */
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      -moz-user-select: none;
+      -webkit-tap-highlight-color: transparent; /* Remove tap highlight on touch devices */
+}
 
   .start-game-overlay p,
   .start-game-overlay p,
@@ -723,6 +760,7 @@
   div.game-over-overlay button,
   div.start-game-overlay button,
   div.start-game-overlay button,
+  div.pause-overlay button,
   div.buttons button {
     background-color: #ca3049;
     color: #e0e1dd;
@@ -1030,6 +1068,10 @@
         font-family: monospace;
         }
 
+    p.pause_title {
+      margin-bottom: 40px;
+    }
+
     p.game_over_title {
       font-size: 3rem;
       font-weight: bold;
@@ -1069,6 +1111,14 @@
             display: none;            
         }
 
+        div.left-column,
+        div.right-column {
+          padding: 0;
+        }
+        div.keyboard-holder {
+          display: flex;
+          justify-content: center;
+        }
         div.status div.sound {
           flex-direction: row;
           
@@ -1133,7 +1183,7 @@
 
 <div class="left-column">
   <div bind:this={gameWrapper} class="game-wrapper {isPaused || gameOver ? 'blur' : ''}">
-  <div class="status">
+  <div bind:this={statusDiv} class="status">
     <div class="status-left">
 
         <div class="weaponry">
@@ -1185,7 +1235,9 @@
   </div>
   </div>
   <canvas bind:this={canvas} width={width} height={height}></canvas>
-  <VirtualJoystick on:key={handleVirtualKey} spaceKey="{getLocalizedText(pageTexts, "fire")}" />
+  <div class="keyboard-holder" bind:this={virtualJoystickDiv}>
+    <VirtualJoystick on:key={handleVirtualKey} spaceKey="{getLocalizedText(pageTexts, "fire")}" />
+  </div>
   </div>
   <div class="buttons">
     <button class="pause" on:click={togglePause} disabled={gameOver || !hasStarted}>{isPaused ? getLocalizedText(pageTexts, "resume") : getLocalizedText(pageTexts, "pause")}</button>
@@ -1244,14 +1296,8 @@
 </div>
 
 <div bind:this={pausedOverlay} class="pause-overlay { !isPaused ? 'hide' : ''}">
-  <p>{@html getLocalizedText(pageTexts, "p_to_resume")}</p>
-
-  {#if !hasStarted}
-  <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start-game")}</button>
-  {:else}
-  <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "restart-game")}</button>
-  {/if}
-
+  <p class="pause_title">{@html getLocalizedText(pageTexts, "p_to_resume")}</p>
+  <button class="pause" on:click={togglePause} disabled={gameOver || !hasStarted}>{isPaused ? getLocalizedText(pageTexts, "resume") : getLocalizedText(pageTexts, "pause")}</button>
 </div>
 
 <div bind:this={gameOverOverlay} class="game-over-overlay { !gameOver ? 'hide' : ''}">

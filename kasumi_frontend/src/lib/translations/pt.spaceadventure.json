@@ -29,10 +29,10 @@
     "restart-game": "Recomeçar",
     "resume": "Continuar",
     "pause": "Pausar",
-    "p_to_resume": "Pressiona <strong>P</strong> para continuar",
+    "p_to_resume": "Jogo pausado.",
     "game_over": "Fim de jogo",
     "your_score": "A tua pontuação",
     "pretext_submit_highscore": "Tenta alcançar as pontuações mais altas!",
-    "first_start_game": "Pressiona 'Começar Jogo' para começar.",
+    "primeiro_comecar_jogo": "Pronto para uma aventura espacial?",
     "game_over_start_over": "Pressiona 'Recomeçar' para tentar novamente."
 }

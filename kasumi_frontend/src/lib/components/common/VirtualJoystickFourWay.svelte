@@ -89,7 +89,6 @@
         flex-direction: row;
         align-items: center;
         margin-top: 10px;
-        margin-bottom: 10px;
     }
 
     .virtual-joystick .space-key {
@@ -104,7 +103,7 @@
 }
 
     .virtual-joystick button {
-        user-select: none;  /* Prevent text selection */
+        user-se1lect: none;  /* Prevent text selection */
         -webkit-user-select: none;
         -ms-user-select: none;
         -moz-user-select: none;

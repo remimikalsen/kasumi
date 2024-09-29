@@ -29,10 +29,10 @@
     "restart-game": "Start på nytt",
     "resume": "Fortsett",
     "pause": "Pause",
-    "p_to_resume": "Trykk <strong>P</strong> for å fortsette",
+    "p_to_resume": "Spillet er satt på pause.",
     "game_over": "Spillet er over",
     "your_score": "Din poengsum",
     "pretext_submit_highscore": "Ta en sjanse på toppscore!",
-    "first_start_game": "Trykk 'Start spill' for å begynne.",
+    "first_start_game": "Klar for et romeventyr?",
     "game_over_start_over": "Trykk 'Start på nytt' for å prøve igjen."
 }

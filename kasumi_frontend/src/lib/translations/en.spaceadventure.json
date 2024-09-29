@@ -29,10 +29,10 @@
     "restart-game": "Start over",
     "resume": "Resume",
     "pause": "Pause",
-    "p_to_resume": "Press <strong>P</strong> to resume",
+    "p_to_resume": "Game paused.",
     "game_over": "Game over",
     "your_score": "Your score",
     "pretext_submit_highscore": "Take a shot at the high scores!",
-    "first_start_game": "Press 'Start Game' to begin.",
+    "first_start_game": "Ready for a space adventure?",
     "game_over_start_over": "Press 'Start Over' to try again."
 }
