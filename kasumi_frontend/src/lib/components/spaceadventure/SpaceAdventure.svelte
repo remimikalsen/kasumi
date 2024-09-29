@@ -8,6 +8,7 @@
   import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
   import VirtualKeyboard from '$lib/components/common/VirtualKeyboard.svelte';
   import VirtualJoystick from '$lib/components/common/VirtualJoystickFourWay2.svelte';
+  import { env } from '$env/dynamic/public';  
 
   const pageTexts = 'spaceadventure';
   let isLoadingTexts = true;
@@ -149,8 +150,12 @@
   $: $activeLanguage, fetchTexts();
 
   async function fetchLeaderboard() {
-      const response = await fetch('/api/space-adventure/get_leaderboard');
-      return await response.json();
+    const response = await fetch('/api/space-adventure/get_leaderboard', {
+        headers: {
+            'Authorization': `Bearer ${env.PUBLIC_API_KEY}`
+        }
+    });
+    return await response.json();
   }
 
 
@@ -617,6 +622,7 @@
           { name: 'overheat', url: '/spaceadventure/sounds/overheat.mp3' },
           { name: 'rock-explode', url: '/spaceadventure/sounds/rock-explode.mp3' },
           { name: 'bonus', url: '/spaceadventure/sounds/bonus.mp3' },
+          { name: 'bonus-end', url: '/spaceadventure/sounds/bonus.mp3' },
           { name: 'monster-wave', url: '/spaceadventure/sounds/monster-wave.mp3' },
         ]); 
         playSound('start');       
@@ -639,7 +645,8 @@
       await fetch('/api/space-adventure/submit_score', {
       method: 'POST',
       headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${env.PUBLIC_API_KEY}`
       },
       body: JSON.stringify({ initials, points })
       });

@@ -13,6 +13,7 @@
         import Message from '$lib/components/common/Message.svelte';
         import VirtualKeyboard from '$lib/components/common/VirtualKeyboard.svelte';
         import VirtualJoystick from '@lib/components/common/VirtualJoystickArcade.svelte';
+        import { env } from '$env/dynamic/public';
         
         let showNextLevelMessage = false;
         let showCongratulations = false;
@@ -136,7 +137,8 @@
             await fetch('/api/dogrun/submit_score', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${env.PUBLIC_API_KEY}`
             },
             body: JSON.stringify({ initials, bones })
             });
@@ -158,7 +160,11 @@
 
 
         async function fetchLeaderboard() {
-            const response = await fetch('/api/dogrun/get_leaderboard');
+            const response = await fetch('/api/dogrun/get_leaderboard', {
+                headers: {
+                    'Authorization': `Bearer ${env.PUBLIC_API_KEY}`
+                }
+            });
             return await response.json();
         }
 

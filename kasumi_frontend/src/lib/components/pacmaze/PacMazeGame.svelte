@@ -8,7 +8,7 @@
   import VirtualJoystick from '$lib/components/common/VirtualJoystickFourWay.svelte';
   import Message from '$lib/components/common/Message.svelte';
   import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';  
-    import { page } from '$app/stores';
+  import { env } from '$env/dynamic/public';
 
   let showNextLevelMessage = false;
   let nextLevelButton;
@@ -325,14 +325,19 @@
     await fetch('/api/pacmaze/submit_score', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${env.PUBLIC_API_KEY}`
       },
       body: JSON.stringify({ initials, time })
     });
   } 
 
   async function fetchLeaderboard() {
-    const response = await fetch('/api/pacmaze/get_leaderboard');
+    const response = await fetch('/api/pacmaze/get_leaderboard', {
+        headers: {
+            'Authorization': `Bearer ${env.PUBLIC_API_KEY}`
+        }
+    });
     return await response.json();
   }
 

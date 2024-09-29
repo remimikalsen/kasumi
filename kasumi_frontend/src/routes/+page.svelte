@@ -22,10 +22,14 @@
     let spaceAdventureLeaderboard = [];
 
     async function loadLeaderboards() {
+        const headers = {
+            'Authorization': `Bearer ${env.PUBLIC_API_KEY}`
+        };
+
         const [dogrunResponse, pacmazeResponse, spaceAdventureResponse] = await Promise.all([
-            fetch('/api/dogrun/get_leaderboard'),
-            fetch('/api/pacmaze/get_leaderboard'),
-            fetch('/api/space-adventure/get_leaderboard')
+            fetch('/api/dogrun/get_leaderboard', { headers }),
+            fetch('/api/pacmaze/get_leaderboard', { headers }),
+            fetch('/api/space-adventure/get_leaderboard', { headers })
         ]);
 
         const dogrunData = await dogrunResponse.json();
