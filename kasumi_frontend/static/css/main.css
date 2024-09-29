@@ -246,6 +246,12 @@ div.game-rules button svg {
     height: 40px;
 }
 
+
+.no-scroll {
+    overflow: hidden;
+}
+
+
 /* Responsive Adjustments */
 @media (max-width: 800px) {
 

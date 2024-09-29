@@ -80,6 +80,12 @@
   onMount(async () => {
     await fetchTexts();
 
+    const preventScroll = (e) => {
+      if (hasStarted && !gameOver) {
+        e.preventDefault();
+      }
+    };
+
     if (typeof window !== 'undefined') {
       updateDimensions();
       ctx = canvas.getContext('2d');
@@ -90,11 +96,11 @@
       window.addEventListener('resize', updateOverlayPositions);
       document.addEventListener('visibilitychange', handleVisibilityChange);
       canvas.addEventListener('touchend', handleDoubleTap);
+      window.addEventListener('touchmove', preventScroll, { passive: false });
       updateOverlayPositions();
       initializeStars();
       canvas.focus();
     }
-
 
   });
 
@@ -103,12 +109,15 @@
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('resize', updateDimensions);
-      canvas.removeEventListener('touchend', handleDoubleTap);
+      canvas.removeEventListener('touchend', handleDoubleTap);  
+      window.removeEventListener('touchmove', preventScroll);
     }
 
     if (backgroundAudio) {
       backgroundAudio.pause();
     }
+
+    document.body.classList.remove('no-scroll');
   });
 
 
@@ -134,8 +143,6 @@
   }
 
   $: $activeLanguage, fetchTexts();
-
-
 
   async function fetchLeaderboard() {
       const response = await fetch('/api/space-adventure/get_leaderboard');
@@ -218,7 +225,7 @@
     }, 100);
   }
 
-  function togglePause() {
+  async function togglePause() {
     if (!hasStarted) {
         return;
     }
@@ -228,12 +235,14 @@
         playSound('pause');
         pauseBackgroundAudio();
         pauseStartTime = Date.now();
+        document.body.classList.remove('no-scroll');
     } else {
         playSound('start');
         playBackgroundAudio();
         totalPauseTime += Date.now() - pauseStartTime;
         lastPauseTime = Date.now() - pauseStartTime;
         gameLoop();
+        scrollAndFreeze();
     }
     canvas.focus();
   }
@@ -484,6 +493,7 @@
         playSound('explode');
         gameOver = true;
         showVirtualKeyboard = true;
+        document.body.classList.remove('no-scroll');
       }
     });
 
@@ -628,7 +638,7 @@
       });
   }         
 
-  function resetGame() {
+  async function resetGame() {
     if (!hasStarted) {
         runFirstTime();
         playBackgroundAudio();
@@ -657,13 +667,18 @@
     }
     gameLoop();
 
-    // Scroll to the top of the game wrapper on mobile devices
-    if (window.innerWidth <= 800) { // Adjust the width threshold as needed
-        gameWrapper.scrollIntoView({ behavior: 'smooth' });
-        gameWrapper.classList.add('fixed-game-wrapper');
-    }    
+    scrollAndFreeze();  
 
 }
+
+  async function scrollAndFreeze() {
+    if (window.innerWidth <= 800) { // Adjust the width threshold as needed
+        gameWrapper.scrollIntoView({ behavior: 'smooth' });
+        await waitForScrollToEnd();
+        gameWrapper.classList.add('fixed-game-wrapper');
+        document.body.classList.add('no-scroll');
+    } 
+  }
 
   function handleVisibilityChange() {
       if (document.hidden) {
@@ -681,6 +696,22 @@
     }
     lastTap = currentTime;
   }  
+
+  function waitForScrollToEnd() {
+    return new Promise((resolve) => {
+      let isScrolling;
+      const onScroll = () => {
+        window.clearTimeout(isScrolling);
+        isScrolling = setTimeout(() => {
+          window.removeEventListener('scroll', onScroll);
+          resolve();
+        }, 100); // Adjust the timeout as needed
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    });
+  }
+
 
 </script>
 
@@ -1092,6 +1123,10 @@
       font-weight: bold;
     }
 
+    .game-over-overlay .leaderboard {
+      margin-top: 50px;
+    }
+
     @media (max-width: 1300px) {
         .page-wrapper {
             flex-direction: column;
@@ -1307,6 +1342,30 @@
   {:else}
   <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "restart-game")}</button>
   {/if}
+  {#if leaderboard && leaderboard.length > 0}
+  <div class="leaderboard" tabindex="-1">
+      <h2>{getLocalizedText(pageTexts, "high_score")}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th class="rank">{getLocalizedText(pageTexts, "rank")}</th>
+            <th class="initials">{getLocalizedText(pageTexts, "initials")}</th>
+            <th class="points">{getLocalizedText(pageTexts, "leaderboard_score")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each leaderboard as { initials, points }, i}
+            <tr>
+              <td class="rank">{i + 1}.</td>
+              <td class="initials">{initials}</td>
+              <td class="points">{String(points).padStart(5, '0')}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+  </div>
+  {/if}
+
   {/if}
 </div>
 
