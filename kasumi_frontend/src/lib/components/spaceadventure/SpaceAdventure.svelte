@@ -7,7 +7,7 @@
   import Icon from '@iconify/svelte';
   import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
   import VirtualKeyboard from '$lib/components/common/VirtualKeyboard.svelte';
-  import VirtualJoystick from '$lib/components/common/VirtualJoystickFourWay.svelte';
+  import VirtualJoystick from '$lib/components/common/VirtualJoystickFourWay2.svelte';
 
   const pageTexts = 'spaceadventure';
   let isLoadingTexts = true;
@@ -220,13 +220,14 @@
     keysPressed[e.code] = false;
   }
   
-  function handleVirtualKey(event) {
+  function handleVirtualKeyDown(event) {
     const { key } = event.detail;
-    console.log("handleVirtualKey" + key);
     keysPressed[key] = true;
-    setTimeout(() => {
+  }
+
+  function handleVirtualKeyUp(event) {
+      const { key } = event.detail;
       keysPressed[key] = false;
-    }, 100);
   }
 
   async function togglePause() {
@@ -1272,7 +1273,7 @@
   </div>
   <canvas bind:this={canvas} width={width} height={height}></canvas>
   <div class="keyboard-holder" bind:this={virtualJoystickDiv}>
-    <VirtualJoystick on:key={handleVirtualKey} spaceKey="{getLocalizedText(pageTexts, "fire")}" />
+    <VirtualJoystick on:keydown={handleVirtualKeyDown} on:keyup={handleVirtualKeyUp} spaceKey="{getLocalizedText(pageTexts, "fire")}" />
   </div>
   </div>
   <div class="buttons">
