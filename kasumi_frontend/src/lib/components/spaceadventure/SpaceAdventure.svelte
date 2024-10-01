@@ -77,6 +77,7 @@
   let statusDiv;
   let virtualJoystickDiv;
   let lastTap = 0;
+  let lastClick = 0;
 
   const preventScroll = (e) => {
     e.preventDefault();
@@ -101,6 +102,7 @@
       window.addEventListener('resize', updateOverlayPositions);
       document.addEventListener('visibilitychange', handleVisibilityChange);
       canvas.addEventListener('touchend', handleDoubleTap);
+      canvas.addEventListener('mousedown', handleDoubleClick);
       updateOverlayPositions();
       initializeStars();
       canvas.focus();
@@ -113,7 +115,8 @@
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('resize', updateDimensions);
-      canvas.removeEventListener('touchend', handleDoubleTap);  
+      canvas.removeEventListener('touchend', handleDoubleTap);
+      canvas.removeEventListener('mousedown', handleDoubleClick);
       window.removeEventListener('touchmove', preventScroll);
     }
 
@@ -711,6 +714,17 @@
     }
     lastTap = currentTime;
   }  
+  
+
+  function handleDoubleClick(event) {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastClick;
+
+    if (tapLength < 300 && tapLength > 0) {
+      togglePause();
+    }
+    lastClick = currentTime;
+  } 
 
   function waitForScrollToEnd() {
     return new Promise((resolve) => {
@@ -1137,7 +1151,7 @@
       font-size: 1.8rem;
       font-weight: bold;
     }
-
+    
     .game-over-overlay .leaderboard {
       margin-top: 50px;
     }
