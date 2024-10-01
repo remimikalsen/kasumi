@@ -16,7 +16,6 @@
   let nextLevelButton;
   let showCongratulations = false;
   let showGameOverMessage = false;
-  let showVirtualJoystick = false;
   let currentMessage = '';
   let currentLevel = 1;
   let leaderboard = [];
@@ -207,7 +206,6 @@
     targetPosition = { x: gridSize - 2, y: gridSize - 2 };
 
     currentLevel = level;
-    showVirtualJoystick = true;
     startTime = new Date();
     winCondition = false;
     // Clear any existing interval before starting a new one
@@ -333,7 +331,6 @@
   function checkWinCondition() {
     if (playerPosition.x === targetPosition.x && playerPosition.y === targetPosition.y) {
 
-      showVirtualJoystick = false;
       winCondition = true;
 
       levelTime = (new Date() - startTime - levelPauseTime) / 1000; // Calculate level time
@@ -653,9 +650,8 @@
     </div>
   {/if}
 
-  {#if showVirtualJoystick}
-    <VirtualJoystick on:key={handleVirtualKey} />
-  {/if}
+  <VirtualJoystick on:key={handleVirtualKey} />
+  
   </div>
 
   {#if hasStarted && !showGameOverMessage && !showCongratulations}

@@ -111,6 +111,7 @@
         margin-top: 0px;
         z-index: 1;
         box-sizing: border-box;
+        z-index: 10000;
     }
 
     .dropdown-option {
@@ -124,6 +125,7 @@
         background-color: transparent;
         width: 100%;
         color: #e0e1dd;
+        z-index: 10000;
     }
 
     .dropdown-option:hover {
