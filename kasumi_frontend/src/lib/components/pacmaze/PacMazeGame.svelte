@@ -360,11 +360,10 @@
     ghosts.forEach(ghost => {
       if (playerPosition.x === ghost.position.x && playerPosition.y === ghost.position.y) {
         showGameOverMessage = true;
-        showVirtualJoystick = false;
         currentMessage = getLocalizedText(pageTexts, "game_over");
-        gameWrapper.style.paddingTop = "unset";
-        gameWrapper.style.paddingBottom = "unset";
-        gameWrapper.height = "unset";
+        //gameWrapper.style.paddingTop = "unset";
+        //gameWrapper.style.paddingBottom = "unset";
+        //gameWrapper.height = "unset";
         document.body.classList.remove('no-scroll');
         window.removeEventListener('touchmove', preventScroll, { passive: false });
         updateOverlayPositions();
@@ -441,9 +440,9 @@
     } else {
       pauseStartTime = new Date();
       clearInterval(ghostInterval);
-      gameWrapper.style.paddingTop = "unset";
-      gameWrapper.style.paddingBottom = "unset";
-      gameWrapper.height = "unset";
+      //gameWrapper.style.paddingTop = "unset";
+      //gameWrapper.style.paddingBottom = "unset";
+      //gameWrapper.height = "unset";
       document.body.classList.remove('no-scroll');
       window.removeEventListener('touchmove', preventScroll, { passive: false });
       updateOverlayPositions();
@@ -490,7 +489,7 @@
             gameWrapper.height = "unset";
           }
 
-          let addedBorders = 0;
+          let addedBorders = 10;
           
           if (gameWrapper && pausedOverlay) {
               
@@ -787,7 +786,7 @@ h2.level-denomination {
 .game-wrapper {
       display: flex;
       flex-direction: column;
-      padding-left: 5px;
+      padding-left: 0;
       align-items: center;
       justify-content: center;
 }
@@ -795,24 +794,6 @@ h2.level-denomination {
 .game-wrapper p.total-time {
   margin-top: 0px;
   margin-bottom: 20px;
-}
-
-@media (max-width: 800px) {
-  .container {
-    flex-direction: column; /* Stack the columns on smaller screens */
-    padding: 10px;
-  }
-
-  .left-column,
-  .right-column {
-    flex: 0 1 auto; 
-    display: flex;
-    flex-direction: column; /* Stack content vertically */
-    /*justify-content: center;*/ /* Center content vertically */
-    align-items: center; /* Center content horizontally */
-    padding: 20px;
-  }
-
 }
 
 .level {
@@ -920,10 +901,8 @@ h2.level-denomination {
 .leaderboard tr:first-child td {
   color: #ffd700; /* Golden color */
   text-shadow: 
-    0 0 5px #ffd700,  /* Inner glow */
     0 0 10px #ffd700, /* Slightly outer glow */
-    0 0 20px #ffd700, /* Further outer glow */
-    0 0 40px #ff8c00;
+    0 0 20px #ffd700;
   font-weight: bold;
 }
 
@@ -931,10 +910,8 @@ h2.level-denomination {
 .leaderboard tr:nth-child(2) td {
   color: #c0c0c0; /* Silver color */
   text-shadow: 
-    0 0 5px #c0c0c0,  /* Inner glow */
     0 0 10px #c0c0c0, /* Slightly outer glow */
-    0 0 20px #ffffff, /* Further outer glow with a lighter shade */
-    0 0 40px #ffffff;
+    0 0 20px #ffffff;
   font-weight: bold;
 }
 
@@ -942,10 +919,8 @@ h2.level-denomination {
 .leaderboard tr:nth-child(3) td {
   color: #cd7f32; /* Bronze color */
   text-shadow: 
-    0 0 5px #cd7f32,  /* Inner glow */
     0 0 10px #cd7f32, /* Slightly outer glow */
-    0 0 20px #b87333, /* Further outer glow with a darker bronze shade */
-    0 0 40px #b87333;
+    0 0 20px #b87333;
   font-weight: bold;
 }
 
@@ -954,7 +929,7 @@ h2.level-denomination {
   text-align: center;
 }
 .leaderboard .initials {
-  width: 40%;
+  width: 35%;
   text-align: center;
 }
 
@@ -963,7 +938,7 @@ h2.level-denomination {
 }
 
 .leaderboard .time {
-  width: 30%;
+  width: 35%;
   text-align: center;
 }
 
@@ -1030,6 +1005,37 @@ h2.level-denomination {
 
   .hide {
   display: none;
+  }
+
+
+  @media (max-width: 800px) {
+  .container {
+    width: 100%;
+    flex-direction: column; /* Stack the columns on smaller screens */
+    padding: 0;
+    margin: 0;
+  }
+
+  .left-column,
+  .right-column {
+    flex: 0 1 auto; 
+    display: flex;
+    flex-direction: column; /* Stack content vertically */
+    /*justify-content: center;*/ /* Center content vertically */
+    align-items: center; /* Center content horizontally */
+    padding: 0;
+  }
+
+  .level {
+    margin: 0;
+    margin-left: 3px;
+  }
+
+  .game-wrapper {
+    width: 100%;
+  }
+
+
 }
 
 
