@@ -1,5 +1,5 @@
     <script>
-        import { onMount, tick } from 'svelte';
+        import { onMount, tick, onDestroy } from 'svelte';
         import { bonesCollected, bonesCollectedLevel, currentLevel, bonus, lives } from '$lib/stores/dogRun.js';
         import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
         import { levels } from '$lib/config/dogRunLevels.js'; 
@@ -20,12 +20,14 @@
         let showErrorMessage = false;
         let showGameOverMessage = false;
         let showVirtualKeyboard = false;
-        let showVirtualJoystick = true;
         let showFailureMessage = false;
         let showBonusAnimation = false;
         let winnerFound = false;
         let pulsateScore = false;
         let pulsateFail = false;
+        let hasStarted = false;
+        let lastClick;
+        let lastTap;
 
 
         let gameContainer; // Reference to the game container
@@ -61,7 +63,6 @@
         let bones = [];
         
         let dogState = 'normal';
-        let showGame = false;
         let currentMessage = '';
         let gamePaused = false;
 
@@ -69,6 +70,8 @@
         let playerInitials = '';
 
         let pausedOverlay;
+        let startOverlay;
+        let winnerOverlay;
         let bonusOverlay;
         let gameWrapper;
 
@@ -78,9 +81,9 @@
 
         let instructionsVisible = false;
 
-        $: gameStopped = !showGame || showFailureMessage || showNextLevelMessage || showCongratulations || showErrorMessage || showGameOverMessage || winnerFound || isLoadingTexts;
+        $: gameStopped = !hasStarted || showFailureMessage || showNextLevelMessage || showCongratulations || showErrorMessage || showGameOverMessage || winnerFound || isLoadingTexts;
 
-        $: if (showGame) {
+        $: if (hasStarted) {
             // If the game is active, focus on the gameContainer and calculate the width
             tick().then(() => {
                 if (gameContainer) {
@@ -99,20 +102,25 @@
         }
         $: $activeLanguage, fetchTexts();
 
+        $: if (gameWrapper && gameContainer && startOverlay) {   
+            gameContainer.addEventListener('touchend', handleDoubleTap);
+            gameContainer.addEventListener('mousedown', handleDoubleClick);
+            updateOverlayPositions();
+        }
+
         onMount(() => {
 
             fetchTexts();
-
-
             generateLevel($currentLevel);
             loadLeaderboard();  // Load the leaderboard when the component is mounted
             lives.set(initialLives);
             bonus.set($lives * lifeBonus);
             // Automatically focus the game container when the component is mounted
             //gameContainer.focus();
-
+            
             window.addEventListener('keydown', handleShortcutKeyDown);
             window.addEventListener('resize', updateOverlayPositions);
+            document.addEventListener('visibilitychange', handleVisibilityChange);
             const gameLoop = setInterval(() => {
                 if (!gameOver && !gamePaused) {
                     update();
@@ -125,12 +133,25 @@
             }
         });
 
+
+        onDestroy(() => {
+            window.removeEventListener('keydown', handleShortcutKeyDown);
+            window.removeEventListener('resize', updateOverlayPositions);
+
+            gameContainer.removeEventListener('touchend', handleDoubleTap);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('touchmove', preventScroll, { passive: false });
+            gameContainer.removeEventListener('mousedown', handleDoubleClick);
+            document.body.classList.remove('no-scroll');
+        });
+
         async function handleSubmitInitials(initials) {
             playerInitials = initials;
             await storeScore(playerInitials, $bonesCollected);  // Store the score in the database
             await loadLeaderboard();  // Load the updated leaderboard after the score is stored
             showVirtualKeyboard = false;
             showCongratulations = false;
+            hasStarted = false;
         }
 
         async function storeScore(initials, bones) {
@@ -177,31 +198,45 @@
             }
         }
 
+        function startGame() {
+            hasStarted = true;
+            startOver();
+        }
+
         function startOver() {
             $currentLevel = 1; 
             bonesCollected.set(0);
             bonesCollectedLevel.set(0);
             lives.set(initialLives);
             bonus.set($lives * lifeBonus);
-            showGame = false;
-            showGame = true;
             winnerFound = false;
             gamePaused = false;
+            showCongratulations = false;
+            showVirtualKeyboard = false;
             generateLevel($currentLevel);
+            scrollAndFreeze();
+            gameContainer.focus();
         }
 
         function nextLevel() {
             currentLevel.update(n => n + 1); 
             generateLevel($currentLevel);
+            scrollAndFreeze();
             gameContainer.focus();
         }
 
         function togglePause() {
             pressedKeys = new Set();
             gamePaused = !gamePaused;
-            updateOverlayPositions();
-            gameContainer.focus();
-            
+
+            if (!gamePaused) {
+                scrollAndFreeze();
+            } else {
+                document.body.classList.remove('no-scroll');
+                window.removeEventListener('touchmove', preventScroll, { passive: false });
+            }
+
+            gameContainer.focus();            
         }
 
         function toggleInstructions() {
@@ -210,6 +245,7 @@
 
 
         function updateOverlayPositions() {
+            
             //console.log(gamePaused);
             //console.log(gameWrapper);
             //console.log(pausedOverlay); 
@@ -225,18 +261,34 @@
             if (gameWrapper && bonusOverlay) {
                 //console.log("Updating overlay position");
                 const rect = gameWrapper.getBoundingClientRect();
-                bonusOverlay.style.top = `${rect.top + window.scrollY-20}px`;
-                bonusOverlay.style.left = `${rect.left + window.scrollX-20}px`;
-                bonusOverlay.style.width = `${rect.width+40}px`;
-                bonusOverlay.style.height = `${rect.height+40}px`;
+                bonusOverlay.style.top = `${rect.top + window.scrollY}px`;
+                bonusOverlay.style.left = `${rect.left + window.scrollX}px`;
+                bonusOverlay.style.width = `${rect.width}px`;
+                bonusOverlay.style.height = `${rect.height}px`;
             }
+            let addedBorders = 0;
+            
+            if (gameWrapper && startOverlay) {  
+              const rect = gameWrapper.getBoundingClientRect();
+              startOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
+              startOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
+              startOverlay.style.width = `${rect.width + addedBorders*2}px`;
+              startOverlay.style.height = `${rect.height + addedBorders*2}px`;
+          }            
+
+          if (gameWrapper && winnerOverlay) {
+              const rect = gameWrapper.getBoundingClientRect();
+              winnerOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
+              winnerOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
+              winnerOverlay.style.width = `${rect.width + addedBorders*2}px`;
+              winnerOverlay.style.height = `${rect.height + addedBorders*2}px`;
+          }            
 
         }        
 
         function generateLevel(level) {
             if (level < 1 || level > levels.length) {
                 showErrorMessage = true;
-                showGame = false;
                 currentMessage = `Invalid current level: ${level}`;
             }
 
@@ -245,7 +297,6 @@
 
             if (!levelData) {
                 showErrorMessage = true;
-                showGame = false;
                 currentMessage = `Level data is undefined for level: ${level}`;
             }
 
@@ -282,7 +333,6 @@
             // Adjust the goal's y to match the ground height
             goal.y = groundHeight - goal.y;
             
-            showVirtualJoystick = true;
             velocityY = 0;
             cameraOffsetX = 0;
             dogSpeed = 0;
@@ -291,7 +341,6 @@
             gameOver = false;
             jumping = false;
             directionChanged = false;
-            showGame = true;
             showNextLevelMessage = false;
             showCongratulations = false;
             showErrorMessage = false;
@@ -302,15 +351,14 @@
 
         function update() {
             
-            if (!showGame) {
+            if (gameStopped) {
                 return;
             }
+
             //killswitch = true;
             velocityY += gravity;
             dog.y += velocityY;
             
-
-
             // Determine the dog's state based on velocity and direction
             
             if (velocityY < gravity) {
@@ -512,7 +560,6 @@
         }
 
         async function handleLevelCompletion() {
-            showVirtualJoystick = false;
             updateOverlayPositions();
 
             if (gameStopped) {
@@ -529,7 +576,6 @@
                 currentMessage = getLocalizedText(pageTexts, "level_complete").replace("<LEVEL>", $currentLevel).replace("<LEVELS>", levels.length);
             } else {
                 winnerFound = true;
-                $currentLevel = 1;
                 if ($bonus > 0) {
                     showBonusAnimation = true;
                     await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for the bonus animation to complete
@@ -546,7 +592,6 @@
                     triggerPulsateScore();
                     await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for the pulsate animation to complete
                     showBonusAnimation = false;
-                    showGame = false;
                     showCongratulations = true;
                     showVirtualKeyboard = true;
                     currentMessage = getLocalizedText(pageTexts, "game_complete_with_bonus")
@@ -555,18 +600,25 @@
                 } else {
                     showCongratulations = true;
                     showVirtualKeyboard = true;
-                    showGame = false;
                     currentMessage = getLocalizedText(pageTexts, "game_complete_without_bonus")
                         .replace("<BONES>", $bonesCollected)
                         .replace("<BONE_TEXT>", getLocalizedText(pageTexts, $bonesCollected === 1 ? "bone_singular" : "bone_plural"));
                 }
+
+                gameWrapper.style.paddingTop = "unset";
+                gameWrapper.style.paddingBottom = "unset";
+                gameWrapper.height = "unset";      
+                document.body.classList.remove('no-scroll');
+                updateOverlayPositions();
+                window.removeEventListener('touchmove', preventScroll, { passive: false });
             }
         }
 
         function acknowledgeFailure() {
             showFailureMessage = false;
-            showGame = false;
             generateLevel($currentLevel);
+            scrollAndFreeze();
+            gameContainer.focus();
         }
 
         // Function to wait for the bonus animation to complete
@@ -579,8 +631,6 @@
         }
 
         async function handleGameOver() {
-
-            showVirtualJoystick = false;
 
             if (gameStopped) {
                 return;
@@ -605,11 +655,101 @@
                 }                
             } else {
                 showGameOverMessage = true;
+
+                document.body.classList.remove('no-scroll');
+                updateOverlayPositions();
+                window.removeEventListener('touchmove', preventScroll, { passive: false });
+                gameWrapper.scrollIntoView({ behavior: 'smooth' });
+
+
                 $currentLevel = 1;
                 bonesCollected.set(0);
                 bonesCollectedLevel.set(0);
             }
         }    
+
+
+
+    async function scrollAndFreeze() {
+    //updateDimensions();
+
+    if (window.innerWidth <= 800) { // Adjust the width threshold as needed
+
+        gameWrapper.height = Array.from(gameWrapper.children).reduce((totalHeight, child) => {
+          const style = window.getComputedStyle(child);
+          const marginTop = parseFloat(style.marginTop);
+          const marginBottom = parseFloat(style.marginBottom);
+          return totalHeight + child.offsetHeight + marginTop + marginBottom;
+        }, 0);
+        let pad = (window.innerHeight - gameWrapper.height)/2;
+        gameWrapper.style.paddingTop = pad+'px';
+        gameWrapper.style.paddingBottom = pad+'px';
+
+        gameWrapper.scrollIntoView({ behavior: 'smooth' });
+        await waitForScrollToEnd();
+        document.body.classList.add('no-scroll');
+        window.addEventListener('touchmove', preventScroll, { passive: false });
+    } else {
+      gameWrapper.style.paddingTop = "unset";
+      gameWrapper.style.paddingBottom = "unset";
+      gameWrapper.height = "unset";      
+      document.body.classList.remove('no-scroll');
+      updateOverlayPositions();
+      window.removeEventListener('touchmove', preventScroll, { passive: false });
+    }
+  }
+
+
+  function waitForScrollToEnd() {
+    return new Promise((resolve) => {
+      let isScrolling;
+      const onScroll = () => {
+        window.clearTimeout(isScrolling);
+        isScrolling = setTimeout(() => {
+          window.removeEventListener('scroll', onScroll);
+          resolve();
+        }, 100); // Adjust the timeout as needed
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    });
+  }
+
+
+  const preventScroll = (e) => {
+    e.preventDefault();
+  };  
+    
+  function handleDoubleTap(event) {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+
+    if (tapLength < 300 && tapLength > 0) {
+      togglePause();
+    }
+    lastTap = currentTime;
+  } 
+
+  function handleDoubleClick(event) {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastClick;
+
+    if (tapLength < 300 && tapLength > 0) {
+      togglePause();
+    }
+    lastClick = currentTime;
+  } 
+
+
+  function handleVisibilityChange() {
+      if (document.hidden) {
+          if (!gamePaused) {
+          togglePause();
+          }
+      }
+  }  
+
+
     </script>
 
     <style>
@@ -619,7 +759,7 @@
             justify-content: center;
             align-items: stretch;
             width: 100%;
-            height: 90%;
+            height: 100%;
         }
 
         .game-wrapper {
@@ -959,8 +1099,9 @@
             }
         }    
         
-        .paused-overlay {
+          .paused-overlay {
             position: absolute;
+            flex-direction: column;
             top: 0;
             left: 0;
             width: 100%;
@@ -975,6 +1116,60 @@
             z-index: 2000;
             text-shadow: 4px 4px 10px #1b263b, 4px 4px 10px #1b263b, 4px 4px 20px #1b263b, 4px 4px 30px #1b263b, 4px 4px 30px #1b263b;
         }   
+
+  .start-overlay {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      font-size: 1.2rem;
+      z-index: 10;
+      user-se1lect: none;  /* Prevent text selection */
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      -moz-user-select: none;
+      -webkit-tap-highlight-color: transparent; /* Remove tap highlight on touch devices */
+}
+
+
+  .start-overlay p {
+    margin-bottom: 40px;
+    font-size: 1.7rem;
+  }
+
+  
+  .paused-overlay button {
+    margin-top: 40px;
+  }
+
+  
+  div.start-overlay button {
+    background-color: #ca3049;
+    color: #e0e1dd;
+    padding: 12px 24px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    margin-left: 15px;
+    margin-right: 15px;
+    letter-spacing: 1px;
+    user-select: none;  /* Prevent text selection */
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+  }
+
+        .start-overlay-hidden,
         .paused-overlay-hidden {
             display: none;
         }     
@@ -1028,17 +1223,25 @@
                 0 0 20px #ffd700, /* Further outer glow */
                 0 0 40px #ff8c00;
         }
-
+        .hidden,
         .bonus-overlay-hidden {
             display: none;
         }        
 
         @media (max-width: 1400px) {
             .container {
-                flex-direction: column; 
-                margin-top: 40px;
+                flex-direction: column;
             }
 
+            .game-wrapper {
+            }
+
+            .left-column,
+            .right-column {
+                width: 100%;
+                padding: 0;
+            }
+            
             .game-container,
             .game-info {
                 min-width: 300px;
@@ -1048,14 +1251,25 @@
                 margin-bottom: 0;
             }
 
+            .game-info .level,
+            .game-info .score {
+                margin: 0 5px;
+            }
+            .game-info .score {
+                width: 150px;
+            }
+
+            .button-container button {
+                margin: 10px;
+            }
+
         }        
     </style>
 {#if !isLoadingTexts}    
 <div class="container" tabindex="-1">
 <div class="left-column" tabindex="-1">
 
-{#if showGame}
-    <div bind:this={gameWrapper} class="game-wrapper { gamePaused ? 'blur' : ''}" tabindex="-1">
+    <div bind:this={gameWrapper} class="game-wrapper { gamePaused ? 'blur' : ''}{showCongratulations ? 'hidden' : ''}" tabindex="-1">
             <div class="game-info">
                 <div class="level">{getLocalizedText(pageTexts, "stats_level")}: {$currentLevel}</div>
                 <div class="score { pulsateScore ? 'pulsate-score' : ''} {pulsateFail ? 'pulsate-fail' : ''}">{getLocalizedText(pageTexts, "stats_bones")}: {$bonesCollected + $bonesCollectedLevel}</div>
@@ -1115,13 +1329,18 @@
                 {/each}
                 <Goal x={goal.x - cameraOffsetX} y={goal.y} />
                 </div>
-                {#if showVirtualJoystick}
                 <VirtualJoystick on:key={handleVirtualKey} />
-                {/if}
     </div>
     <div bind:this={pausedOverlay} class="paused-overlay {!gamePaused ? 'paused-overlay-hidden' : ''}" >
         {getLocalizedText(pageTexts, "press_to_continue")}
+        <button class="pause-button" on:click={togglePause}>{gamePaused ? getLocalizedText(pageTexts, "resume") : getLocalizedText(pageTexts, "pause")}</button>
     </div>
+
+    <div bind:this={startOverlay} class="start-overlay {hasStarted ? 'start-overlay-hidden' : ''}" >
+        <p>{getLocalizedText(pageTexts, "start_game")}</p>
+        <button class="start-button" on:click={startGame}>{getLocalizedText(pageTexts, "start")}</button>
+    </div>
+    
     <div bind:this={bonusOverlay} class="bonus-overlay {showBonusAnimation ? '' : 'bonus-overlay-hidden'}">
         {
           getLocalizedText(pageTexts, "bonus_for_lives")
@@ -1129,25 +1348,28 @@
             .replace("<LIFE_TEXT>", getLocalizedText(pageTexts, $lives === 1 ? "life_singular" : "life_plural"))            
         }
     </div>    
-{/if}
-{#if showCongratulations}
-<Message type="winner" congrats_title={getLocalizedText(pageTexts, "congrats_title")} message={currentMessage} />
-{/if}
 
-{#if showVirtualKeyboard}
-<VirtualKeyboard onSubmit={handleSubmitInitials} />
-{/if}
+    {#if showCongratulations}
+    <Message type="winner" congrats_title={getLocalizedText(pageTexts, "congrats_title")} message={currentMessage} />
+    {/if}
+    {#if showVirtualKeyboard}
+        <VirtualKeyboard onSubmit={handleSubmitInitials} />
+        <button class="reset-button" on:click={startGame}>{getLocalizedText(pageTexts, "start_over")}</button>
+    {/if}
+
 
 {#if showErrorMessage}
 <Message type="error" message={currentMessage} />
 {/if}
 
+{#if hasStarted && !showCongratulations}    
 <div class="button-container">
-    {#if showGame && !showFailureMessage && !showGameOverMessage}
+    {#if !showFailureMessage && !showGameOverMessage}
     <button class="pause-button" on:click={togglePause}>{gamePaused ? getLocalizedText(pageTexts, "resume") : getLocalizedText(pageTexts, "pause")}</button>
     {/if}
     <button class="reset-button" on:click={startOver}>{getLocalizedText(pageTexts, "start_over")}</button>
 </div>
+{/if}
 
 </div>
 <div class="right-column" tabindex="-1">
