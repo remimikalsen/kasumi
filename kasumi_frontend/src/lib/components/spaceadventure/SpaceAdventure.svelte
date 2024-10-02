@@ -118,6 +118,7 @@
       canvas.removeEventListener('touchend', handleDoubleTap);
       canvas.removeEventListener('mousedown', handleDoubleClick);
       window.removeEventListener('touchmove', preventScroll);
+      cancelAnimationFrame(animationFrameId);
     }
 
     if (backgroundAudio) {
@@ -1151,7 +1152,7 @@
       font-size: 1.8rem;
       font-weight: bold;
     }
-    
+
     .game-over-overlay .leaderboard {
       margin-top: 50px;
     }

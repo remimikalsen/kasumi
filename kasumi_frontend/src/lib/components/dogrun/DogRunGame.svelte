@@ -389,11 +389,8 @@
         function update(deltatime) {
             
             if (gameStopped || deltatime < targetFrameDuration) {
-                console.log("Deltatime skip:" + deltatime);
                 return;
-            } else {
-                console.log("Deltatime:" + deltatime);
-            }
+            } 
 
             //killswitch = true;
             velocityY += gravity;
@@ -1188,7 +1185,10 @@
     margin-top: 40px;
   }
 
-  
+  .reset-button-congratulations {
+    margin-top: 20px;
+  }
+
   div.start-overlay button {
     background-color: #ca3049;
     color: #e0e1dd;
@@ -1395,7 +1395,7 @@
     {/if}
     {#if showVirtualKeyboard}
         <VirtualKeyboard onSubmit={handleSubmitInitials} />
-        <button class="reset-button" on:click={startGame}>{getLocalizedText(pageTexts, "start_over")}</button>
+        <button class="reset-button reset-button-congratulations" on:click={startOver}>{getLocalizedText(pageTexts, "start_over")}</button>
     {/if}
 
 
