@@ -1,5 +1,5 @@
     <script>
-        import { onMount, tick, onDestroy } from 'svelte';
+        import { onMount, onDestroy } from 'svelte';
         import { bonesCollected, bonesCollectedLevel, currentLevel, bonus, lives } from '$lib/stores/dogRun.js';
         import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
         import { levels } from '$lib/config/dogRunLevels.js'; 
@@ -53,7 +53,6 @@
         let groundAdjustment = 2;
 
         const initialLives = 3;
-        //let lives;
         const lifeBonus = 2; // Bonus per life remaining at end of game
         let dog = {};
         let goal = {};
@@ -75,24 +74,21 @@
         let bonusOverlay;
         let gameWrapper;
 
+        let isLoading = true;
+
+        let lastFrameTime = 0;
+        const targetFPS = 70;
+        const targetFrameDuration = 1000 / targetFPS;
+        let animationFrameId;
+        let pauseStartTime = 0;
+
         const pageTexts = 'dogrun';
         //const commonTexts = 'common';
         let isLoadingTexts = true;
 
         let instructionsVisible = false;
 
-        $: gameStopped = !hasStarted || showFailureMessage || showNextLevelMessage || showCongratulations || showErrorMessage || showGameOverMessage || winnerFound || isLoadingTexts;
-
-        $: if (hasStarted) {
-            // If the game is active, focus on the gameContainer and calculate the width
-            tick().then(() => {
-                if (gameContainer) {
-                    gameContainer.focus();
-                    screenWidth = gameContainer.clientWidth;
-                    //console.log("Screen width: ", screenWidth);
-                }
-            });
-        }
+        $: gameStopped = !hasStarted || showFailureMessage || showNextLevelMessage || showCongratulations || showErrorMessage || showGameOverMessage || winnerFound || isLoadingTexts || gamePaused;
 
         async function fetchTexts() {
             isLoadingTexts = true;
@@ -102,42 +98,33 @@
         }
         $: $activeLanguage, fetchTexts();
 
-        $: if (gameWrapper && gameContainer && startOverlay) {   
+        $: if (gameContainer) {   
+            screenWidth = gameContainer.clientWidth;
             gameContainer.addEventListener('touchend', handleDoubleTap);
             gameContainer.addEventListener('mousedown', handleDoubleClick);
             updateOverlayPositions();
         }
 
-        onMount(() => {
+        onMount(async () => {
+            await fetchTexts();
 
-            fetchTexts();
-            generateLevel($currentLevel);
-            loadLeaderboard();  // Load the leaderboard when the component is mounted
             lives.set(initialLives);
-            bonus.set($lives * lifeBonus);
-            // Automatically focus the game container when the component is mounted
-            //gameContainer.focus();
-            
+            currentLevel.set(1);
+
+            await generateLevel($currentLevel);
+            await loadLeaderboard();  // Load the leaderboard when the component is mounted
+
             window.addEventListener('keydown', handleShortcutKeyDown);
             window.addEventListener('resize', updateOverlayPositions);
             document.addEventListener('visibilitychange', handleVisibilityChange);
-            const gameLoop = setInterval(() => {
-                if (!gameOver && !gamePaused) {
-                    update();
-                }
-            }, 10);
-            return () => {
-                clearInterval(gameLoop);
-                window.removeEventListener('keydown', handleShortcutKeyDown);
-                window.removeEventListener('resize', updateOverlayPositions);
-            }
+            
+            isLoading = false;
         });
 
-
         onDestroy(() => {
+            cancelAnimationFrame(animationFrameId);
             window.removeEventListener('keydown', handleShortcutKeyDown);
             window.removeEventListener('resize', updateOverlayPositions);
-
             gameContainer.removeEventListener('touchend', handleDoubleTap);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('touchmove', preventScroll, { passive: false });
@@ -145,13 +132,52 @@
             document.body.classList.remove('no-scroll');
         });
 
+
+        function loop(timestamp) {
+            if (!lastFrameTime) {
+                lastFrameTime = timestamp;
+            }
+            const deltaTime = timestamp - lastFrameTime;
+
+            if (deltaTime >= targetFrameDuration) {
+                lastFrameTime = timestamp;
+                update(deltaTime); // Pass deltaTime to the update function
+            }
+
+            if (!gameStopped) {
+                animationFrameId = requestAnimationFrame(loop);
+            }
+        }   
+
+        function startLoop() {
+            if (gamePaused) {
+                const pausedDuration = performance.now() - pauseStartTime;
+                lastFrameTime += pausedDuration;
+                gamePaused = false; // Corrected from 'paused = false'
+            } else {
+                lastFrameTime = 0; // Reset the last frame time
+            }
+            animationFrameId = requestAnimationFrame(loop); // Use the renamed loop function
+        }
+
         async function handleSubmitInitials(initials) {
             playerInitials = initials;
             await storeScore(playerInitials, $bonesCollected);  // Store the score in the database
             await loadLeaderboard();  // Load the updated leaderboard after the score is stored
-            showVirtualKeyboard = false;
+            
+            $currentLevel = 1;
+            bonesCollected.set(0);
+            bonesCollectedLevel.set(0);
+            lives.set(initialLives);
+            bonus.set($lives * lifeBonus);
+            winnerFound = false;
+            gamePaused = false;
             showCongratulations = false;
+            showVirtualKeyboard = false;
             hasStarted = false;
+
+            await generateLevel($currentLevel);
+            updateOverlayPositions();
         }
 
         async function storeScore(initials, bones) {
@@ -198,9 +224,11 @@
             }
         }
 
-        function startGame() {
+        async function startGame() {
             hasStarted = true;
-            startOver();
+            await scrollAndFreeze();
+            gameContainer.focus();            
+            startLoop();
         }
 
         async function startOver() {
@@ -213,26 +241,32 @@
             gamePaused = false;
             showCongratulations = false;
             showVirtualKeyboard = false;
-            generateLevel($currentLevel);
-            await tick(); // Wait for the DOM to update
+            dogState = 'normal';
+            await generateLevel($currentLevel);
             await scrollAndFreeze();
             gameContainer.focus();
+            startLoop();
         }
 
-        function nextLevel() {
+        async function nextLevel() {
             currentLevel.update(n => n + 1); 
-            generateLevel($currentLevel);
-            scrollAndFreeze();
+            dogState = 'normal';
+            await generateLevel($currentLevel);
+            await scrollAndFreeze();
             gameContainer.focus();
+            startLoop();
         }
 
-        function togglePause() {
+        async function togglePause() {
             pressedKeys = new Set();
-            gamePaused = !gamePaused;
 
-            if (!gamePaused) {
-                scrollAndFreeze();
+            if (gamePaused) {
+                await scrollAndFreeze();
+                startLoop();
             } else {
+                gamePaused = true;
+                pauseStartTime = performance.now();
+                cancelAnimationFrame(animationFrameId);                
                 document.body.classList.remove('no-scroll');
                 window.removeEventListener('touchmove', preventScroll, { passive: false });
             }
@@ -287,7 +321,7 @@
 
         }        
 
-        function generateLevel(level) {
+        async function generateLevel(level) {
             if (level < 1 || level > levels.length) {
                 showErrorMessage = true;
                 currentMessage = `Invalid current level: ${level}`;
@@ -330,6 +364,7 @@
             // Adjust the dog's y to be relative to the ground height
             dog.y = groundHeight - dog.y;
             
+            
             goal = { ...levelData.goal };
             // Adjust the goal's y to match the ground height
             goal.y = groundHeight - goal.y;
@@ -337,6 +372,7 @@
             velocityY = 0;
             cameraOffsetX = 0;
             dogSpeed = 0;
+            dogState = 'normal';
             speed = defaultSpeed;
             reachedGoal = false;
             gameOver = false;
@@ -350,10 +386,13 @@
             showFailureMessage = false;
         }
 
-        function update() {
+        function update(deltatime) {
             
-            if (gameStopped) {
+            if (gameStopped || deltatime < targetFrameDuration) {
+                console.log("Deltatime skip:" + deltatime);
                 return;
+            } else {
+                console.log("Deltatime:" + deltatime);
             }
 
             //killswitch = true;
@@ -473,7 +512,7 @@
         }
 
         function handleShortcutKeyDown(event) {
-            if (event.key === 'p' && !gameStopped) {
+            if (event.key === 'p' && (!gameStopped || gamePaused)) {
                 togglePause();
             } else if (event.key === 't' && showFailureMessage) {
                 acknowledgeFailure();
@@ -615,11 +654,13 @@
             }
         }
 
-        function acknowledgeFailure() {
+        async function acknowledgeFailure() {
             showFailureMessage = false;
-            generateLevel($currentLevel);
-            scrollAndFreeze();
+            dogState = 'normal';
+            await generateLevel($currentLevel);
+            await scrollAndFreeze();
             gameContainer.focus();
+            startLoop();
         }
 
         // Function to wait for the bonus animation to complete
@@ -1265,7 +1306,7 @@
 
         }        
     </style>
-{#if !isLoadingTexts}    
+{#if !isLoading}    
 <div class="container" tabindex="-1">
 <div class="left-column" tabindex="-1">
 

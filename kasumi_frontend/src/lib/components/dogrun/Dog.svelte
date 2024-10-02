@@ -7,30 +7,44 @@
     export const collisionTolerance = 0;
   
     let dogImage;
+    const images = [
+      '/images/dogrun/dog/walk-left.png',
+      '/images/dogrun/dog/walk-right.png',
+      '/images/dogrun/dog/jump-right.png',
+      '/images/dogrun/dog/jump-left.png',
+      '/images/dogrun/dog/land-right.png',
+      '/images/dogrun/dog/land-left.png',
+      '/images/dogrun/dog/sitting.png'
+    ];
+
+    images.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
   
     $: {
       switch (state) {
         case 'turning-left':
-          dogImage = '/images/dogrun/dog/walk-left.png';
+          dogImage = images[0];
           break;
         case 'turning-right':
-          dogImage = '/images/dogrun/dog/walk-right.png';
+          dogImage = images[1];
           break;
         case 'jumping-right':
-          dogImage = '/images/dogrun/dog/jump-right.png';
+          dogImage = images[2];
           break;
         case 'jumping-left':
-          dogImage = '/images/dogrun/dog/jump-left.png';
+          dogImage = images[3];
           break;
         case 'landing-right':
-          dogImage = '/images/dogrun/dog/land-right.png';
+          dogImage = images[4];
           break;
         case 'landing-left':
-          dogImage = '/images/dogrun/dog/land-left.png';
+          dogImage = images[5];
           break;
         case 'normal':
         default:
-          dogImage = '/images/dogrun/dog/sitting.png';
+          dogImage = images[6];
           break;
       }
     }
