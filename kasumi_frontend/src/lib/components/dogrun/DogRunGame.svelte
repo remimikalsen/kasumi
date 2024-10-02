@@ -214,6 +214,7 @@
             showCongratulations = false;
             showVirtualKeyboard = false;
             generateLevel($currentLevel);
+            await tick(); // Wait for the DOM to update
             await scrollAndFreeze();
             gameContainer.focus();
         }
@@ -684,7 +685,6 @@
         let pad = (window.innerHeight - gameWrapper.height)/2;
         gameWrapper.style.paddingTop = pad+'px';
         gameWrapper.style.paddingBottom = pad+'px';
-
         gameWrapper.scrollIntoView({ behavior: 'smooth' });
         await waitForScrollToEnd();
         document.body.classList.add('no-scroll');
