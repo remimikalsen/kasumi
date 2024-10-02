@@ -708,7 +708,7 @@
         isScrolling = setTimeout(() => {
           window.removeEventListener('scroll', onScroll);
           resolve();
-        }, 100); // Adjust the timeout as needed
+        }, 200); // Adjust the timeout as needed
       };
       window.addEventListener('scroll', onScroll, { passive: true });
       onScroll();
