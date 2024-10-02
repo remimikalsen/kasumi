@@ -203,7 +203,7 @@
             startOver();
         }
 
-        function startOver() {
+        async function startOver() {
             $currentLevel = 1; 
             bonesCollected.set(0);
             bonesCollectedLevel.set(0);
@@ -214,7 +214,7 @@
             showCongratulations = false;
             showVirtualKeyboard = false;
             generateLevel($currentLevel);
-            scrollAndFreeze();
+            await scrollAndFreeze();
             gameContainer.focus();
         }
 
