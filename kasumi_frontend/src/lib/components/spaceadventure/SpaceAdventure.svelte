@@ -1064,6 +1064,8 @@
 
         .leaderboard h2 {
             color: #f05972;
+            margin: 10px auto;
+            max-width: 290px;
         }
 
         .leaderboard table {

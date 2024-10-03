@@ -334,7 +334,6 @@
       winCondition = true;
 
       levelTime = (new Date() - startTime - levelPauseTime) / 1000; // Calculate level time
-      console.log('yey');
       totalTime += levelTime; // Add level time to total time
       levelPauseTime = 0;
       levelTime = 0;
@@ -878,6 +877,8 @@ h2.level-denomination {
 .leaderboard h2 {
   color: #f05972;
   font-family: 'Courier New', Courier, monospace;
+  margin: 10px auto;
+  max-width: 290px;
 }
 
 .leaderboard table {

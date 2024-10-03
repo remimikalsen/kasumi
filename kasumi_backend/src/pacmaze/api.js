@@ -34,7 +34,13 @@ router.post('/pacmaze/submit_score', (req, res) => {
 
 // Endpoint to get the leaderboard
 router.get('/pacmaze/get_leaderboard', (req, res) => {
-  db.all('SELECT * FROM pacmaze_leaderboard ORDER BY time ASC LIMIT 10', [], (err, rows) => {
+  db.all(`
+    SELECT initials, MIN(time) as time 
+    FROM pacmaze_leaderboard 
+    GROUP BY initials 
+    ORDER BY time ASC 
+    LIMIT 10
+  `, [], (err, rows) => {
     if (err) {
       res.status(500).send('Database error');
     } else {

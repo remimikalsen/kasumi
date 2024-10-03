@@ -1,10 +1,10 @@
 {
     "headerTitle": "Aventura no espaço",
     "headerSubTitle": "Destrói os asteroides!",
-    "high_score": "Pontuação máxima!",
+    "high_score": "Melhores jogadores",
     "rank": "Lugar",
     "fire": "Disparar",
-    "initials": "Iniciais",
+    "initials": "Jogador",
     "leaderboard_score": "Pontos",
     "points": "Pontos",
     "instructions_title": "Instruções",

@@ -23,7 +23,13 @@ router.post('/spaceadventure/submit_score', (req, res) => {
 
 // Endpoint to get the leaderboard
 router.get('/spaceadventure/get_leaderboard', (req, res) => {
-  db.all('SELECT * FROM spaceadventure_leaderboard ORDER BY points DESC LIMIT 10', [], (err, rows) => {
+  db.all(`
+    SELECT initials, MAX(points) as points 
+    FROM spaceadventure_leaderboard 
+    GROUP BY initials 
+    ORDER BY points DESC 
+    LIMIT 10
+  `, [], (err, rows) => {
     if (err) {
       res.status(500).send('Database error');
     } else {

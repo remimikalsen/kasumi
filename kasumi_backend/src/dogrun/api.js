@@ -24,7 +24,13 @@ router.post('/dogrun/submit_score', (req, res) => {
 
 // Endpoint to get the leaderboard
 router.get('/dogrun/get_leaderboard', (req, res) => {
-  db.all('SELECT * FROM dogrun_leaderboard ORDER BY bones DESC LIMIT 10', [], (err, rows) => {
+  db.all(`
+    SELECT initials, MAX(bones) as bones 
+    FROM dogrun_leaderboard 
+    GROUP BY initials 
+    ORDER BY bones DESC 
+    LIMIT 10
+  `, [], (err, rows) => {
     if (err) {
       res.status(500).send('Database error');
     } else {

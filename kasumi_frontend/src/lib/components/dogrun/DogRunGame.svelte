@@ -110,6 +110,7 @@
 
             lives.set(initialLives);
             currentLevel.set(1);
+            bonus.set($lives * lifeBonus);
 
             await generateLevel($currentLevel);
             await loadLeaderboard();  // Load the leaderboard when the component is mounted
@@ -906,8 +907,10 @@
 
         .leaderboard h2 {
             color: #f05972;
+            margin: 10px auto;
+            max-width: 290px;
         }
-
+        
         .leaderboard table {
         width: 100%;
         border-collapse: collapse;  

@@ -1,10 +1,10 @@
 {
     "headerTitle": "Space Adventure",
     "headerSubTitle": "Crush the asteroids!",
-    "high_score": "Top score!",
+    "high_score": "Top players",
     "rank": "Rank",
     "fire": "Fire",
-    "initials": "Initials",
+    "initials": "Player",
     "leaderboard_score": "Score",
     "points": "Points",
     "instructions_title": "Instructions",
