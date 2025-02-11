@@ -9,6 +9,7 @@ services:
       - PUBLIC_VARIANT=original
       - PUBLIC_DEFAULT_LANG=no
       - PUBLIC_AVAILABLE_LANGS=["no", "en", "pt"]
+      - PUBLIC_ANALYTICS_SCRIPT=
       - NODE_ENV=production
     ports:
       - "8084:3000"
