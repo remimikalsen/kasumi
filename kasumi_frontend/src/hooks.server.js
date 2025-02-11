@@ -1,7 +1,7 @@
-import { env } from '$env/dynamic/public';
+import { env } from '$env/dynamic/private';
 
 export const handle = async ({ event, resolve }) => {
-    const plausibleScript = env.PUBLIC_ANALYTICS_SCRIPT || '';
+    const plausibleScript = env.ANALYTICS_SCRIPT || '';
   
     const response = await resolve(event, {
       transformPageChunk: ({ html, done }) => {
