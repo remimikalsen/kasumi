@@ -11,13 +11,15 @@ Welcome to the Kasumi Project! This README will guide you through the setup and 
 - [License](#license)
 
 ## Introduction
-Kasumi is a project designed to introduce my kids to programming - and show them how a computer game can be made. Currently, Kasumi iw a simple, multi-lingual web page, that consists of a front page and two games, DogRun and PacMaze. Each game has their own high score system.
+Kasumi is a project designed to introduce my kids to programming - and show them how a computer game can be made. Currently, Kasumi iw a simple, multi-lingual web page, that consists of a front page and a few games, Space Adventure, DogRun, PacMaze and Paws vs Claws. Each game has their own high score system.
 
-DogRun and PacMaze are both featured on the front page, with the currently highest score also featured along with a screenshot of each game.
+All games are featured on the front page, with the currently highest score also featured along with a screenshot of each game.
 
 ## Featuring games
+- Space Adventure: Blast the asteroids and see how long you last!
 - DogRun: Save the dog from the dog catchers, avoid holes and collect bones on the way to its home.
 - PacMaze: Guide the scared kid through the maze, away from the ghosts and safely to its home.
+- Paws vs Claws: A variation of tic-tac-toe, but with dogs, cats, dragons, frogs and more.
 
 ## Installation
 Docker with docker compose are pre-requirements.
