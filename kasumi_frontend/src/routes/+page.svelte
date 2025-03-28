@@ -103,7 +103,7 @@
             </div>
             <div class="preview">
                 <a href="/spill/space-adventure" class="glowing">
-                    <img src="/images/front-page/space-adventure-preview.png" alt="{getLocalizedText(pageTexts, 'spaceAdventureAltText')}" />
+                    <img src="/images/front-page/space-adventure-preview.png" alt="{getLocalizedText(pageTexts, 'spaceAdventureImgAltText')}" />
                 </a>
                 {#if spaceAdventureLeaderboard.length > 0}
                     <div class="score">
