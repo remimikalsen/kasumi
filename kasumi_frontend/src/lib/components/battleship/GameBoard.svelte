@@ -255,6 +255,26 @@
             clientY = event.changedTouches?.[0]?.clientY || 0;
         }
         
+        // Convert mouse position to grid coordinates
+        const mouseGridX = Math.floor((clientX - rect.left) / 40);
+        const mouseGridY = Math.floor((clientY - rect.top) / 40);
+        
+        // Calculate ship's start position based on drag offset
+        const shipStartX = mouseGridX - dragOffsetRelativeToShipStart.x;
+        const shipStartY = mouseGridY - dragOffsetRelativeToShipStart.y;
+        
+        // Check if ANY cell of the ship would be on the board
+        let anyPartOnBoard = false;
+        for (let i = 0; i < selectedShip.length; i++) {
+            const cellX = currentOrientation === 'horizontal' ? shipStartX + i : shipStartX;
+            const cellY = currentOrientation === 'vertical' ? shipStartY + i : shipStartY;
+            
+            if (cellX >= 0 && cellX < BOARD_SIZE && cellY >= 0 && cellY < BOARD_SIZE) {
+                anyPartOnBoard = true;
+                break;
+            }
+        }
+        
         // Check if mouse/touch is over the board
         const isOverBoard = 
             clientX >= rect.left && 
@@ -263,14 +283,6 @@
             clientY <= rect.bottom;
         
         if (isOverBoard) {
-            // Convert mouse position to cell coordinates
-            const cellX = Math.floor((clientX - rect.left) / 40);
-            const cellY = Math.floor((clientY - rect.top) / 40);
-            
-            // Adjust coordinates to get the ship's starting position based on which cell was clicked
-            const shipStartX = cellX - dragOffsetRelativeToShipStart.x;
-            const shipStartY = cellY - dragOffsetRelativeToShipStart.y;
-            
             // Check if the ship can be placed at the target position
             if (shipStartX >= 0 && shipStartX < BOARD_SIZE && 
                 shipStartY >= 0 && shipStartY < BOARD_SIZE &&
@@ -284,14 +296,18 @@
                 placeShip(dragStartPosition.x, dragStartPosition.y);
             }
             // If not previously placed and invalid placement, just keep it unplaced
-        } else {
-            // Dropped outside board - return to ship container (unplaced)
+        } else if (!anyPartOnBoard) {
+            // Only unplace the ship if NO part of it is over the board
             if (selectedShip) {
                 // Ensure the ship is marked as unplaced
                 selectedShip.placed = false;
                 selectedShip.position = undefined;
                 selectedShip.orientation = undefined;
             }
+        } else if (dragStartWasPlaced && dragStartPosition && dragStartOrientation) {
+            // Ship is partially on board and was previously placed - return to original position
+            currentOrientation = dragStartOrientation;
+            placeShip(dragStartPosition.x, dragStartPosition.y);
         }
 
         // Clear dragging state
@@ -543,13 +559,13 @@
                 <div class="row">
                     {#each row as cell, x}
                         <div 
-                            class="cell {cell} {previewCells.some(p => p.x === x && p.y === y) ? `preview ${previewState}` : ''}"
+                            class="cell {cell} {previewCells.some(p => p.x === x && p.y === y) ? `preview ${previewState}` : ''} {cell === 'ship' && isReady ? 'locked' : ''}"
                             on:mousedown={(e) => handleBoardCellMouseDown(e, x, y)}
                             on:touchstart={(e) => handleBoardCellMouseDown(e, x, y)}
                         >
                             {#if cell === 'ship'}
                                 {@const ship = shipGrid[y][x]}
-                                {#if ship && isShipCenter(ship, x, y) && ship.length > 1}
+                                {#if ship && isShipCenter(ship, x, y) && ship.length > 1 && !isReady}
                                     <button 
                                         class="rotate-button"
                                         on:click={(e) => handleRotateClick(e, ship)}
@@ -719,7 +735,11 @@
         cursor: grab;
     }
 
-    .cell.ship:active {
+    .cell.ship.locked {
+        cursor: default;
+    }
+
+    .cell.ship:active:not(.locked) {
         cursor: grabbing;
     }
 
