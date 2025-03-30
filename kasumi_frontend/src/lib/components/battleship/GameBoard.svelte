@@ -199,7 +199,22 @@
             clientY = event.touches[0].clientY;
         }
         
-        // Convert mouse position to cell coordinates
+        // Check if the cursor is near the board (even if not directly over it)
+        const extendedBorderSize = 200; // Allow preview when cursor is within this many pixels of the board
+        const isNearBoard = 
+            clientX >= rect.left - extendedBorderSize && 
+            clientX <= rect.right + extendedBorderSize && 
+            clientY >= rect.top - extendedBorderSize && 
+            clientY <= rect.bottom + extendedBorderSize;
+            
+        if (!isNearBoard) {
+            // Clear preview if far from the board
+            previewCells = [];
+            previewState = null;
+            return;
+        }
+        
+        // Convert mouse position to cell coordinates (can be negative or beyond board size)
         const cellX = Math.floor((clientX - rect.left) / 40);
         const cellY = Math.floor((clientY - rect.top) / 40);
         
@@ -207,13 +222,8 @@
         const shipStartX = cellX - dragOffsetRelativeToShipStart.x;
         const shipStartY = cellY - dragOffsetRelativeToShipStart.y;
         
-        if (shipStartX >= 0 && shipStartX < BOARD_SIZE && shipStartY >= 0 && shipStartY < BOARD_SIZE) {
-            updatePreview(shipStartX, shipStartY);
-        } else {
-            // Clear preview if outside the board
-            previewCells = [];
-            previewState = null;
-        }
+        // Always update preview even if starting position is off board
+        updatePreview(shipStartX, shipStartY);
     }
 
     function handleShipDragEnd(event: MouseEvent | TouchEvent) {
@@ -350,19 +360,30 @@
         const length = selectedShip.length;
         let isValid = true;
         
+        // First check if any part of the ship would be off the board
         for (let i = 0; i < length; i++) {
             const newX = currentOrientation === 'horizontal' ? x + i : x;
             const newY = currentOrientation === 'vertical' ? y + i : y;
             
-            if (newX < BOARD_SIZE && newY < BOARD_SIZE) {
+            if (newX < 0 || newX >= BOARD_SIZE || newY < 0 || newY >= BOARD_SIZE) {
+                isValid = false;
+                // Don't break - we still want to collect valid cells for the preview
+            }
+        }
+        
+        // Then add all cells that are within the board to the preview
+        for (let i = 0; i < length; i++) {
+            const newX = currentOrientation === 'horizontal' ? x + i : x;
+            const newY = currentOrientation === 'vertical' ? y + i : y;
+            
+            // Only add cells that are actually on the board
+            if (newX >= 0 && newX < BOARD_SIZE && newY >= 0 && newY < BOARD_SIZE) {
                 previewCells.push({ x: newX, y: newY });
                 
-                // Allow overlapping with the same ship being moved
+                // Also check for overlapping ships
                 if (board[newY][newX] === 'ship' && shipGrid[newY][newX] !== selectedShip) {
                     isValid = false;
                 }
-            } else {
-                isValid = false;
             }
         }
         
@@ -692,7 +713,7 @@
         font-size: 1.2rem;
         cursor: pointer;
         transition: background-color 0.2s;
-        width: 400px;
+        width: 422px;
         margin: 0 auto;
         display: block;
     }
