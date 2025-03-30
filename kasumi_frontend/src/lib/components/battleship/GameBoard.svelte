@@ -13,6 +13,8 @@
         position?: { x: number; y: number };
         orientation?: 'horizontal' | 'vertical';
         id: string;
+        hits?: number;
+        sunk?: boolean;
     };
 
     type CellState = 'empty' | 'ship' | 'hit' | 'miss';
@@ -57,6 +59,8 @@
     let dragStartWasPlaced = false;
 
     function handleShipDragStart(event: MouseEvent | TouchEvent, ship: Ship) {
+        if (isReady) return;
+        
         event.preventDefault();
         event.stopPropagation();
         
@@ -123,6 +127,8 @@
     }
 
     function handleBoardCellMouseDown(event: MouseEvent | TouchEvent, x: number, y: number) {
+        if (isReady) return;
+        
         event.preventDefault();
         event.stopPropagation();
         
@@ -139,7 +145,7 @@
             const cellY = y - ship.position.y;
             
             // Store this offset for both ghost positioning and placement calculations
-            dragOffsetRelativeToShipStart = { 
+            dragOffsetRelativeToShipStart = {
                 x: cellX,
                 y: cellY
             };
@@ -172,6 +178,8 @@
 
     function handleShipDragMove(event: MouseEvent | TouchEvent) {
         if (!isDragging || !selectedShip) return;
+        if (isReady) return;
+        
         event.preventDefault();
         
         // Update mouse position for ghost image
@@ -182,7 +190,7 @@
             mousePosition.x = event.touches[0].clientX;
             mousePosition.y = event.touches[0].clientY;
         }
-
+        
         const boardElement = document.querySelector('.board');
         if (!boardElement) return;
 
@@ -228,6 +236,8 @@
 
     function handleShipDragEnd(event: MouseEvent | TouchEvent) {
         if (!isDragging || !selectedShip) return;
+        if (isReady) return;
+        
         event.preventDefault();
 
         const boardElement = document.querySelector('.board');
@@ -286,12 +296,9 @@
 
         // Clear dragging state
         isDragging = false;
+        selectedShip = null;
         previewCells = [];
         previewState = null;
-        dragOffsetRelativeToShipStart = { x: 0, y: 0 };
-        dragStartPosition = undefined;
-        dragStartOrientation = undefined;
-        dragStartWasPlaced = false;
         
         // Force update of all relevant arrays
         board = [...board];
@@ -300,11 +307,13 @@
     }
 
     function handleRotateClick(event: MouseEvent | TouchEvent, ship: Ship) {
+        if (isReady) return;
+        
         event.preventDefault();
         event.stopPropagation();
         
         if (!ship || !ship.position || !ship.orientation) return;
-        
+
         // Save original position and orientation
         const originalPosition = {...ship.position};
         const originalOrientation = ship.orientation;
@@ -448,7 +457,7 @@
     function handleReady() {
         if (!allShipsPlaced) return;
         isReady = true;
-        dispatch('ready', { ships, board });
+        dispatch('ready', { ships, board, shipGrid });
     }
 
     // Function to check if a cell is the center of a ship
@@ -467,11 +476,47 @@
         if (!ship.position) return false;
         return x === ship.position.x && y === ship.position.y;
     }
+
+    // Function to receive a shot from the opponent
+    export function receiveShot(x: number, y: number): 'hit' | 'miss' | 'sunk' {
+        if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) {
+            return 'miss';
+        }
+        
+        let result: 'hit' | 'miss' | 'sunk' = 'miss';
+        
+        if (board[y][x] === 'ship') {
+            board[y][x] = 'hit';
+            
+            // Find the ship that was hit
+            const ship = shipGrid[y][x];
+            if (ship) {
+                ship.hits = (ship.hits || 0) + 1;
+                
+                // Check if the ship is sunk
+                if (ship.hits === ship.length) {
+                    ship.sunk = true;
+                    result = 'sunk';
+                } else {
+                    result = 'hit';
+                }
+            }
+        } else if (board[y][x] === 'empty') {
+            board[y][x] = 'miss';
+        }
+        
+        // Force UI update
+        board = [...board];
+        ships = [...ships];
+        
+        return result;
+    }
 </script>
 
 <div class="game-board">
     <div class="game-info">
         <h2>{username}'s Fleet</h2>
+        {#if !isReady}
         <div class="ships-container">
             {#if allShipsPlaced}
                 <p class="fleet-deployed">Your entire fleet has been deployed!</p>
@@ -489,6 +534,7 @@
                 {/each}
             {/if}
         </div>
+        {/if}
     </div>
 
     <div class="board-container">
@@ -518,6 +564,17 @@
                                         {ship.id}
                                     </span>
                                 {/if}
+                            {/if}
+                            
+                            {#if cell === 'hit'}
+                                {@const ship = shipGrid[y][x]}
+                                {#if ship && ship.sunk}
+                                    <div class="hit-marker sunk">S</div>
+                                {:else}
+                                    <div class="hit-marker">H</div>
+                                {/if}
+                            {:else if cell === 'miss'}
+                                <div class="miss-marker">X</div>
                             {/if}
                         </div>
                     {/each}
@@ -745,5 +802,33 @@
 
     .rotate-button:hover {
         background-color: rgba(46, 204, 113, 1);
+    }
+
+    .hit-marker, .miss-marker {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 18px;
+        pointer-events: none;
+    }
+    
+    .hit-marker {
+        color: #2ecc71;
+    }
+
+    .hit-marker.sunk {
+        color: #ffffff;
+        background-color: #e74c3c;
+    }
+
+    .miss-marker {
+        color: #e74c3c;
     }
 </style> 
