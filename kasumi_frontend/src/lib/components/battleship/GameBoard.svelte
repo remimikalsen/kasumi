@@ -51,6 +51,11 @@
     $: placedShips = ships.filter(ship => ship.placed);
     $: unplacedShips = ships.filter(ship => !ship.placed);
 
+    // Add these variables to track original position
+    let dragStartPosition: { x: number; y: number } | undefined = undefined;
+    let dragStartOrientation: 'horizontal' | 'vertical' | undefined = undefined;
+    let dragStartWasPlaced = false;
+
     function handleShipDragStart(event: MouseEvent | TouchEvent, ship: Ship) {
         event.preventDefault();
         event.stopPropagation();
@@ -58,6 +63,11 @@
         isDragging = true;
         selectedShip = ship;
         currentOrientation = ship.orientation || 'horizontal';
+        
+        // Record the starting position and state
+        dragStartPosition = ship.position ? {...ship.position} : undefined;
+        dragStartOrientation = ship.orientation;
+        dragStartWasPlaced = ship.placed;
         
         // Calculate drag offset for ghost image positioning AND set the relative offset
         if (event instanceof MouseEvent) {
@@ -119,6 +129,11 @@
         // Check if there's a ship at this position
         const ship = shipGrid[y][x];
         if (ship && ship.position) {
+            // Record the starting position and state
+            dragStartPosition = {...ship.position};
+            dragStartOrientation = ship.orientation;
+            dragStartWasPlaced = ship.placed;
+            
             // Calculate the clicked cell's offset from the ship's start position
             const cellX = x - ship.position.x;
             const cellY = y - ship.position.y;
@@ -220,43 +235,57 @@
             clientY = event.changedTouches?.[0]?.clientY || 0;
         }
         
-        // Convert mouse position to cell coordinates
-        const cellX = Math.floor((clientX - rect.left) / 40);
-        const cellY = Math.floor((clientY - rect.top) / 40);
+        // Check if mouse/touch is over the board
+        const isOverBoard = 
+            clientX >= rect.left && 
+            clientX <= rect.right && 
+            clientY >= rect.top && 
+            clientY <= rect.bottom;
         
-        // Adjust coordinates to get the ship's starting position based on which cell was clicked
-        const shipStartX = cellX - dragOffsetRelativeToShipStart.x;
-        const shipStartY = cellY - dragOffsetRelativeToShipStart.y;
-
-        // Save original position if it exists (for returning ship if placement fails)
-        const originalPosition = selectedShip.position ? {...selectedShip.position} : null;
-        const originalOrientation = selectedShip.orientation;
-        const wasPlaced = selectedShip.placed;
-
-        if (shipStartX >= 0 && shipStartX < BOARD_SIZE && shipStartY >= 0 && shipStartY < BOARD_SIZE) {
-            const canPlace = canPlaceShip(shipStartX, shipStartY);
-            if (canPlace) {
+        if (isOverBoard) {
+            // Convert mouse position to cell coordinates
+            const cellX = Math.floor((clientX - rect.left) / 40);
+            const cellY = Math.floor((clientY - rect.top) / 40);
+            
+            // Adjust coordinates to get the ship's starting position based on which cell was clicked
+            const shipStartX = cellX - dragOffsetRelativeToShipStart.x;
+            const shipStartY = cellY - dragOffsetRelativeToShipStart.y;
+            
+            // Check if the ship can be placed at the target position
+            if (shipStartX >= 0 && shipStartX < BOARD_SIZE && 
+                shipStartY >= 0 && shipStartY < BOARD_SIZE &&
+                canPlaceShip(shipStartX, shipStartY)) {
+                
+                // Valid placement - place the ship
                 placeShip(shipStartX, shipStartY);
-            } else if (wasPlaced && originalPosition) {
-                // If the ship was previously placed and new placement failed, 
-                // put it back where it was
-                currentOrientation = originalOrientation || 'horizontal';
-                placeShip(originalPosition.x, originalPosition.y);
+            } else if (dragStartWasPlaced && dragStartPosition && dragStartOrientation) {
+                // Invalid placement on board - return to original position
+                currentOrientation = dragStartOrientation;
+                placeShip(dragStartPosition.x, dragStartPosition.y);
             }
-            // If invalid placement and ship wasn't placed before, just keep it unplaced
-        } else if (wasPlaced && originalPosition) {
-            // If dragged out of board but was previously placed, 
-            // put it back where it was
-            currentOrientation = originalOrientation || 'horizontal';
-            placeShip(originalPosition.x, originalPosition.y);
+            // If not previously placed and invalid placement, just keep it unplaced
+        } else {
+            // Dropped outside board - return to ship container (unplaced)
+            if (selectedShip) {
+                // Ensure the ship is marked as unplaced
+                selectedShip.placed = false;
+                selectedShip.position = undefined;
+                selectedShip.orientation = undefined;
+            }
         }
 
+        // Clear dragging state
         isDragging = false;
         previewCells = [];
         previewState = null;
         dragOffsetRelativeToShipStart = { x: 0, y: 0 };
+        dragStartPosition = undefined;
+        dragStartOrientation = undefined;
+        dragStartWasPlaced = false;
         
-        // Force UI update
+        // Force update of all relevant arrays
+        board = [...board];
+        shipGrid = [...shipGrid];
         ships = [...ships];
     }
 
@@ -275,27 +304,43 @@
         const newOrientation = originalOrientation === 'horizontal' ? 'vertical' : 'horizontal';
         currentOrientation = newOrientation;
         
+        // Temporarily hide the ship
         removeShip(ship);
-
+        
         // Check if can place with new orientation
         const canRotate = canPlaceShip(originalPosition.x, originalPosition.y);
         
         if (canRotate) {
-            // Place with new orientation
+            // If rotation is possible, place with new orientation
             placeShip(originalPosition.x, originalPosition.y);
+            ships = [...ships]; // Force UI update
         } else {
-            // Revert to original orientation
-            currentOrientation = originalOrientation;
-            placeShip(originalPosition.x, originalPosition.y);
+            // Show invalid preview cells
+            updatePreview(originalPosition.x, originalPosition.y);
+            
+            // Wait a moment to show the invalid preview before restoring
+            setTimeout(() => {
+                // Clear preview
+                previewCells = [];
+                previewState = null;
+                
+                // Revert to original orientation
+                currentOrientation = originalOrientation;
+                
+                // Restore ship to original position and orientation
+                placeShip(originalPosition.x, originalPosition.y);
+                
+                // Force UI update
+                ships = [...ships];
+                board = [...board];
+                shipGrid = [...shipGrid];
+            }, 500);
         }
         
-        // Force UI update
-        ships = [...ships];
-        
-        // Important: reset the selection to prevent conflicts
+        // Important: reset the selection to prevent conflicts - wait until after animation
         setTimeout(() => {
             selectedShip = null;
-        }, 0);
+        }, 600);
     }
 
     function updatePreview(x: number, y: number) {
@@ -463,10 +508,14 @@
     {#if isDragging && selectedShip}
         <div class="drag-ghost" 
             style="
-                left: {mousePosition.x - dragOffset.x}px; 
-                top: {mousePosition.y - dragOffset.y}px; 
+                left: {mousePosition.x - 20}px; 
+                top: {mousePosition.y - 20}px; 
                 width: {currentOrientation === 'horizontal' ? selectedShip.length * 40 : 40}px;
                 height: {currentOrientation === 'vertical' ? selectedShip.length * 40 : 40}px;
+                transform: translate(
+                    {currentOrientation === 'horizontal' ? -dragOffsetRelativeToShipStart.x * 40 : 0}px,
+                    {currentOrientation === 'vertical' ? -dragOffsetRelativeToShipStart.y * 40 : 0}px
+                );
             "
         >
             <span>{selectedShip.id}</span>
