@@ -15,6 +15,7 @@
     let gameMessage = 'Place your ships on the board';
     let gameOver = false;
     let winningStreak = 0;
+    let lastGameResult: 'win' | 'loss' | null = null;
     
     // Component references
     let opponentBoardComponent: OpponentBoard;
@@ -71,6 +72,7 @@
                 gameOver = true;
                 gameActive = false;
                 winningStreak++;
+                lastGameResult = 'win';
                 gameMessage = "Victory! You sunk all enemy ships!";
             } else if (move.result === 'hit') {
                 gameMessage = "Hit! Fire again!";
@@ -113,7 +115,7 @@
                                 if (gameState.status === 'opponent_won') {
                                     gameOver = true;
                                     gameActive = false;
-                                    winningStreak = 0;
+                                    lastGameResult = 'loss';
                                     gameMessage = "Defeat! Your fleet has been destroyed.";
                                 } else if (lastCpuMove.result === 'hit') {
                                     gameMessage = "The enemy hit your ship! Your turn.";
@@ -133,18 +135,42 @@
     }
     
     async function handleRematch() {
+        // Update win streak based on last game result
+        if (lastGameResult === 'loss') {
+            winningStreak = Math.max(0, winningStreak - 1);
+        }
+        
         // Reset game state
         gameOver = false;
         gameActive = false;
         playerReady = false;
         opponentReady = false;
+        lastGameResult = null;
         gameMessage = 'Place your ships on the board';
         
         // Create new game
         gameState = await cpuGameService.createGame(username);
+        
+        // Reset the player board component to allow ship placement again
+        if (playerBoardComponent) {
+            playerBoardComponent.resetBoard();
+        }
+        
+        // Reset the opponent board component
+        if (opponentBoardComponent) {
+            opponentBoardComponent.resetBoard();
+        }
     }
     
     function handleDone() {
+        // Reset all game state
+        gameOver = false;
+        gameActive = false;
+        playerReady = false;
+        opponentReady = false;
+        winningStreak = 0;
+        lastGameResult = null;
+        
         // Navigate back to battleship front page
         goto('/spill/battleship');
     }
@@ -153,9 +179,6 @@
 <div class="battleship-game">
     <div class="game-status">
         <h2>{gameMessage}</h2>
-        {#if winningStreak > 1}
-            <p class="winning-streak">You've won {winningStreak} games in a row!</p>
-        {/if}
     </div>
     
     <div class="game-boards">
@@ -166,6 +189,9 @@
                 on:ready={handlePlayerReady}
                 bind:this={playerBoardComponent}
             />
+            {#if winningStreak > 0}
+                <p class="winning-streak">Win streak: {winningStreak}</p>
+            {/if}
         </div>
         
         {#if playerReady}
@@ -198,7 +224,7 @@
     .battleship-game {
         display: flex;
         flex-direction: column;
-        gap: 2rem;
+        gap: 0.5rem;
         width: 100%;
         max-width: 1200px;
         margin: 0 auto;
@@ -206,13 +232,16 @@
     
     .game-status {
         text-align: center;
-        margin-bottom: 1rem;
-    }
+        margin-bottom: 0rem;
+        font-size: 0.8rem;
+        color: #e94560;
+    }    
     
     .winning-streak {
         font-weight: bold;
         color: #2ecc71;
         margin-top: 0.5rem;
+        text-align: center;
     }
     
     .game-boards {
@@ -260,6 +289,7 @@
         .game-boards {
             flex-direction: row;
             justify-content: center;
+            align-items: flex-start;
             gap: 2rem;
         }
     }

@@ -58,6 +58,32 @@
     let dragStartOrientation: 'horizontal' | 'vertical' | undefined = undefined;
     let dragStartWasPlaced = false;
 
+    // Add a resetBoard method to reset the game state
+    export function resetBoard() {
+        // Reset all ships to unplaced state
+        ships = ships.map(ship => ({
+            ...ship,
+            placed: false,
+            position: undefined,
+            orientation: undefined,
+            hits: 0,
+            sunk: false
+        }));
+        
+        // Reset the board cells
+        board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill('empty'));
+        
+        // Reset the ship grid
+        shipGrid = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+        
+        // Reset other state variables
+        isReady = false;
+        allShipsPlaced = false;
+        
+        // Force UI update
+        ships = [...ships];
+    }
+
     function handleShipDragStart(event: MouseEvent | TouchEvent, ship: Ship) {
         if (isReady) return;
         
@@ -631,6 +657,17 @@
 />
 
 <style>
+
+    h2 {
+        margin: 0;
+        color: #ffd700;
+        text-shadow: 
+            0 0 7px #ffd700,
+            0 0 14px #ffd700;
+        font-weight: bold;
+        font-size: 2rem;
+    }
+
     .game-board {
         display: flex;
         flex-direction: column;
@@ -655,14 +692,21 @@
         justify-content: center;
         align-items: center;
         padding: 1rem;
-        background-color: #f7f9fc;
-        border-radius: 5px;
         width: 400px;
-        min-height: 60px;
+        min-height: 90px;
+        background-color: #1b263b;
+        color: #e0e1dd;
+        border-radius: 5px;
+        border-style: solid;
+        border-color: #f05972;
+        border-width: 2px;
+        box-shadow: 0 0px 12px rgba(237, 74, 213, 0.6);
+
     }
 
+
     .fleet-deployed {
-        color: #000000;
+        color: #e0e1dd;
         font-weight: normal;
         margin: 0;
         font-size: 1.1rem;

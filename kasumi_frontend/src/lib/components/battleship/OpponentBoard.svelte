@@ -48,6 +48,29 @@
         shipGrid = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
     }
     
+    // Function to reset the board state
+    export function resetBoard() {
+        // Reset ships to default state
+        ships = [
+            { type: 'battleship', length: 5, placed: false, id: 'B1' },
+            { type: 'frigate', length: 3, placed: false, id: 'F1' },
+            { type: 'corvette', length: 2, placed: false, id: 'C1' },
+            { type: 'corvette', length: 2, placed: false, id: 'C2' },
+            { type: 'uboat', length: 1, placed: false, id: 'U1' },
+            { type: 'uboat', length: 1, placed: false, id: 'U2' },
+            { type: 'uboat', length: 1, placed: false, id: 'U3' },
+            { type: 'uboat', length: 1, placed: false, id: 'U4' }
+        ];
+        
+        // Reset board and shipGrid
+        board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill('empty'));
+        shipGrid = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+        
+        // Reset state flags
+        isReady = false;
+        allShipsPlaced = false;
+    }
+    
     // Function to sync the board with game state
     export function syncWithGameState(gameState: any) {
         // If we have a game state with opponent board, use that
@@ -197,6 +220,17 @@
 </div>
 
 <style>
+
+    h2 {
+        margin: 0;
+        color: #e94560;
+        text-shadow: 
+            0 0 7px #e94560,
+            0 0 14px #e94560;
+        font-weight: bold;
+        font-size: 2rem;
+    }
+
     .game-board {
         display: flex;
         flex-direction: column;

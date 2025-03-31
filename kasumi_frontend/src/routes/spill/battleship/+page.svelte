@@ -40,8 +40,6 @@
 </script>
 
 <div class="battleship-container">
-    <h1>Battleship</h1>
-    
     {#if !gameStarted}
         <div class="game-setup">
             <h2>Enter your initials to play</h2>
@@ -88,7 +86,6 @@
         margin-bottom: 2rem;
         width: 100%;
         max-width: 400px;
-        background-color: #f7f9fc;
         padding: 2rem;
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -100,16 +97,5 @@
         color: #7f8c8d;
     }
     
-    /* Style overrides for the VirtualKeyboard component */
-    :global(.game-setup p) {
-        color: #2c3e50 !important;
-        font-weight: bold;
-        font-size: 1.6rem;
-    }
-    
-    :global(.game-setup p span) {
-        color: #1b263b;
-        font-weight: bold;
-        text-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-    }
+
 </style> 
