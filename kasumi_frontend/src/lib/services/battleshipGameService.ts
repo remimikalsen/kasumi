@@ -1,4 +1,6 @@
 // Types for the Battleship game
+import { battleshipConfig } from '$lib/config/battleshipConfig.js';
+
 export type ShipType = 'battleship' | 'frigate' | 'corvette' | 'uboat';
 export type CellState = 'empty' | 'ship' | 'hit' | 'miss';
 export type Orientation = 'horizontal' | 'vertical';
@@ -34,6 +36,7 @@ export interface GameState {
     currentTurn: 'player' | 'opponent';
     status: 'setup' | 'active' | 'player_won' | 'opponent_won';
     moves: GameMove[];
+    lastMoveTime?: number; // Track when the last move was made for timeout
 }
 
 // Interface for the game service - both CPU and human opponents will implement this
@@ -50,6 +53,9 @@ export interface IGameService {
     
     // Game state
     getGameState(gameId: string): Promise<GameState>;
+    
+    // Handle bonus shot timeout
+    timeoutBonusShot(gameId: string): Promise<GameState>;
 }
 
 // CPU implementation of the game service
@@ -61,18 +67,29 @@ export class CpuGameService implements IGameService {
         return Math.random().toString(36).substring(2, 15);
     }
     
-    // Generate random ship placement for the CPU
+    // Generate random ship placement for the CPU using battleshipConfig
     private generateCpuShips(): Ship[] {
-        const ships: Ship[] = [
-            { type: 'battleship', length: 5, placed: true, id: 'B1', hits: 0, sunk: false },
-            { type: 'frigate', length: 3, placed: true, id: 'F1', hits: 0, sunk: false },
-            { type: 'corvette', length: 2, placed: true, id: 'C1', hits: 0, sunk: false },
-            { type: 'corvette', length: 2, placed: true, id: 'C2', hits: 0, sunk: false },
-            { type: 'uboat', length: 1, placed: true, id: 'U1', hits: 0, sunk: false },
-            { type: 'uboat', length: 1, placed: true, id: 'U2', hits: 0, sunk: false },
-            { type: 'uboat', length: 1, placed: true, id: 'U3', hits: 0, sunk: false },
-            { type: 'uboat', length: 1, placed: true, id: 'U4', hits: 0, sunk: false }
-        ];
+        const ships: Ship[] = [];
+        
+        // Use the ship types defined in battleshipConfig
+        Object.entries(battleshipConfig.shipTypes).forEach(([type, details]) => {
+            const shipType = type as ShipType;
+            const { length, count } = details;
+            
+            // Create the specified number of each ship type
+            for (let i = 1; i <= count; i++) {
+                const ship: Ship = {
+                    type: shipType,
+                    length: length,
+                    placed: true,
+                    id: `${shipType.charAt(0).toUpperCase()}${i}`, // e.g., "B1", "F1", "C1"
+                    hits: 0,
+                    sunk: false
+                };
+                ships.push(ship);
+            }
+        });
+        
         return ships;
     }
     
@@ -82,7 +99,7 @@ export class CpuGameService implements IGameService {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Simple strategy: try random positions until a valid move is found
-        const BOARD_SIZE = 10;
+        const BOARD_SIZE = battleshipConfig.boardSize;
         let validMove = false;
         let x = 0;
         let y = 0;
@@ -131,34 +148,44 @@ export class CpuGameService implements IGameService {
         const move: GameMove = { position, result, shipId };
         gameState.moves.push(move);
         
-        // Update turn
-        gameState.currentTurn = 'player';
+        // Update turn based on the bonus shot configuration
+        gameState.lastMoveTime = Date.now();
+        
+        // If bonus shot is disabled or it was a miss, give turn to player
+        if (!battleshipConfig.bonusShotWhenHit || result === 'miss') {
+            gameState.currentTurn = 'player';
+        }
+        
+        // Otherwise, CPU gets another turn, but the frontend will check timeout
         
         // Check for game end
         if (gameState.playerBoard.ships.every(ship => ship.sunk)) {
             gameState.status = 'opponent_won';
+            gameState.currentTurn = 'player'; // Set to player so game over is detected
         }
     }
     
     // Implementation of IGameService
     async createGame(playerName: string): Promise<GameState> {
         const gameId = this.generateGameId();
+        const BOARD_SIZE = battleshipConfig.boardSize;
         
         const gameState: GameState = {
             gameId,
             playerBoard: {
                 ships: [],
-                board: Array(10).fill(null).map(() => Array(10).fill('empty')),
-                shipGrid: Array(10).fill(null).map(() => Array(10).fill(null))
+                board: Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill('empty')),
+                shipGrid: Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null))
             },
             opponentBoard: {
                 ships: [],
-                board: Array(10).fill(null).map(() => Array(10).fill('empty')),
-                shipGrid: Array(10).fill(null).map(() => Array(10).fill(null))
+                board: Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill('empty')),
+                shipGrid: Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null))
             },
             currentTurn: 'player',
             status: 'setup',
-            moves: []
+            moves: [],
+            lastMoveTime: Date.now()
         };
         
         this.games.set(gameId, gameState);
@@ -197,13 +224,14 @@ export class CpuGameService implements IGameService {
         
         // Start the game
         gameState.status = 'active';
+        gameState.lastMoveTime = Date.now();
         
         // Return the updated game state
         return gameState;
     }
     
     private placeShipsRandomly(ships: Ship[]): { board: CellState[][], shipGrid: (Ship | null)[][] } {
-        const BOARD_SIZE = 10;
+        const BOARD_SIZE = battleshipConfig.boardSize;
         let board: CellState[][] = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill('empty'));
         let shipGrid: (Ship | null)[][] = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
         
@@ -241,7 +269,7 @@ export class CpuGameService implements IGameService {
     }
     
     private canPlaceShip(ship: Ship, x: number, y: number, orientation: 'horizontal' | 'vertical', board: CellState[][]): boolean {
-        const BOARD_SIZE = 10;
+        const BOARD_SIZE = battleshipConfig.boardSize;
         const length = ship.length;
         
         // Check if ship fits on the board
@@ -288,9 +316,9 @@ export class CpuGameService implements IGameService {
         
         // Debug state of the game board
         console.log("Current game board state:");
-        for (let y = 0; y < 10; y++) {
+        for (let y = 0; y < battleshipConfig.boardSize; y++) {
             let row = '';
-            for (let x = 0; x < 10; x++) {
+            for (let x = 0; x < battleshipConfig.boardSize; x++) {
                 const cell = gameState.opponentBoard.board[y][x];
                 const ship = gameState.opponentBoard.shipGrid[y][x];
                 const shipId = ship ? ship.id : ' ';
@@ -356,6 +384,7 @@ export class CpuGameService implements IGameService {
         // Record the move
         const move: GameMove = { position, result, shipId };
         gameState.moves.push(move);
+        gameState.lastMoveTime = Date.now();
         
         console.log('Move result:', result);
         
@@ -364,20 +393,90 @@ export class CpuGameService implements IGameService {
             gameState.status = 'player_won';
             console.log('Player won!');
         } else {
-            // Update turn and let CPU make its move
-            gameState.currentTurn = 'opponent';
-            
-            // CPU makes a move (async, doesn't block this response)
-            this.makeCpuMove(gameState);
+            // Update turn based on the result and bonus shot setting
+            if (!battleshipConfig.bonusShotWhenHit || result === 'miss') {
+                // If bonus shots are disabled or it was a miss, give turn to opponent
+                gameState.currentTurn = 'opponent';
+                
+                // CPU makes a move (async, doesn't block this response)
+                this.makeCpuMove(gameState);
+            }
+            // If it was a hit and bonus shots are enabled, keep turn as player
         }
         
         return move;
+    }
+    
+    async timeoutBonusShot(gameId: string): Promise<GameState> {
+        const gameState = this.games.get(gameId);
+        if (!gameState) {
+            throw new Error('Game not found');
+        }
+        
+        // Only process timeout if the game is active
+        if (gameState.status === 'active') {
+            // Check if it's player's turn and they had a bonus shot
+            if (gameState.currentTurn === 'player' && 
+                gameState.moves.length > 0 && 
+                (gameState.moves[gameState.moves.length - 1].result === 'hit' || 
+                 gameState.moves[gameState.moves.length - 1].result === 'sunk')) {
+                
+                // Player timed out on bonus shot, switch to CPU
+                console.log('Player bonus shot timed out');
+                gameState.currentTurn = 'opponent';
+                gameState.lastMoveTime = Date.now();
+                
+                // CPU makes a move
+                this.makeCpuMove(gameState);
+            }
+            // Similarly handle CPU timeout if needed
+            else if (gameState.currentTurn === 'opponent' && 
+                    gameState.moves.length > 0 && 
+                    (gameState.moves[gameState.moves.length - 1].result === 'hit' || 
+                     gameState.moves[gameState.moves.length - 1].result === 'sunk')) {
+                
+                // CPU timed out on bonus shot, switch to player
+                console.log('CPU bonus shot timed out');
+                gameState.currentTurn = 'player';
+                gameState.lastMoveTime = Date.now();
+            }
+        }
+        
+        return gameState;
     }
     
     async getGameState(gameId: string): Promise<GameState> {
         const gameState = this.games.get(gameId);
         if (!gameState) {
             throw new Error('Game not found');
+        }
+        
+        // Check if we need to trigger a turn change due to timeout
+        if (gameState.status === 'active' && 
+            gameState.lastMoveTime && 
+            battleshipConfig.bonusShotWhenHit && 
+            Date.now() - gameState.lastMoveTime > battleshipConfig.bonusShotTimeout) {
+            
+            // Check if a timeout should occur (for either player or CPU)
+            if (gameState.currentTurn === 'player' && 
+                gameState.moves.length > 0 && 
+                (gameState.moves[gameState.moves.length - 1].result === 'hit' || 
+                 gameState.moves[gameState.moves.length - 1].result === 'sunk')) {
+                
+                // Player timed out on bonus shot, switch to CPU
+                console.log('Player bonus shot timed out');
+                gameState.currentTurn = 'opponent';
+                gameState.lastMoveTime = Date.now();
+                
+                // CPU makes a move
+                this.makeCpuMove(gameState);
+            } 
+            else if (gameState.currentTurn === 'opponent') {
+                // CPU timed out on bonus shot, switch to player
+                console.log('CPU bonus shot timed out');
+                gameState.currentTurn = 'player';
+                gameState.lastMoveTime = Date.now();
+            }
         }
         
         return gameState;
