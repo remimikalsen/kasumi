@@ -1,6 +1,5 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import { battleshipConfig } from '$lib/config/battleshipConfig.js';
     const dispatch = createEventDispatcher();
     
     export let isCPU: boolean = true;
@@ -156,7 +155,7 @@
     }
 </script>
 
-<div class="game-board">
+<div class="game-board {debugMode ? 'debug-mode' : ''}">
     <div class="game-info">
         <h2>Opponent's Fleet</h2>
     </div>
@@ -244,15 +243,28 @@
         transition: background-color 0.2s;
     }
     
-    .cell.clickable {
-        cursor: pointer;
+    /* Clickable states: prioritize these rules */
+    /* Crosshair and green tint for cells that are clickable and haven't been bombed yet */
+    .cell.clickable:not(.hit):not(.miss):hover {
+        cursor: crosshair;
+        background-color: rgba(46, 204, 112, 0.85);
     }
     
-    .cell.clickable:hover {
-        background-color: #bdc3c7;
+    /* Not-allowed cursor and red tint for cells that have been bombed already */
+    .cell.clickable.hit:hover,
+    .cell.clickable.miss:hover {
+        cursor: not-allowed;
+        background-color: rgba(231, 76, 60, 0.3);
+    }
+    
+    /* Default not-allowed cursor when game hasn't started */
+    .cell:not(.clickable):hover {
+        cursor: not-allowed;
+        background-color: rgba(231, 76, 60, 0.3);
     }
 
-    .cell.ship {
+    /* Only show ship background when in debug mode */
+    :global(.debug-mode) .cell.ship {
         background-color: #2c3e50;
     }
 

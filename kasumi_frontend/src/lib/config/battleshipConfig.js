@@ -1,8 +1,8 @@
 import { env } from '$env/dynamic/public';
 
 export const battleshipConfig = {
-  // Debug mode to show the CPU's board during gameplay
-  showCpuBoard: env.PUBLIC_BATTLESHIP_DEBUG_CPU === 'true',
+  // Debug mode to show the CPU's ships during gameplay
+  debugCpuBoard: env.PUBLIC_BATTLESHIP_DEBUG_CPU?.toLowerCase() === 'true',
   
   // Other game settings
   boardSize: 10,

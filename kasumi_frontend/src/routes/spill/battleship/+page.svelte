@@ -52,7 +52,7 @@
     {/if}
     
     <div class="env-info">
-        <p>Debug CPU board: {battleshipConfig.showCpuBoard ? 'Enabled' : 'Disabled'}</p>
+        <p>Debug CPU board: {battleshipConfig.debugCpuBoard ? 'Enabled' : 'Disabled'}</p>
     </div>
 </div>
 

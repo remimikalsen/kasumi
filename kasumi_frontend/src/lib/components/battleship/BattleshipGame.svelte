@@ -69,6 +69,7 @@
             // Update game message based on move result
             if (gameState.status === 'player_won') {
                 gameOver = true;
+                gameActive = false;
                 winningStreak++;
                 gameMessage = "Victory! You sunk all enemy ships!";
             } else if (move.result === 'hit') {
@@ -85,39 +86,42 @@
             if (gameState.currentTurn === 'opponent' && gameState.status === 'active') {
                 setTimeout(async () => {
                     // Get updated game state after CPU move
-                    gameState = await cpuGameService.getGameState(gameState.gameId);
+                    gameState = await cpuGameService.getGameState(gameState?.gameId ?? '');
                     
                     // Find the latest CPU move
-                    const cpuMoves = gameState.moves.filter(m => 
-                        m.position.x >= 0 && 
-                        m.position.x < 10 && 
-                        m.position.y >= 0 && 
-                        m.position.y < 10
-                    );
-                    
-                    if (cpuMoves.length > 0) {
-                        const lastCpuMove = cpuMoves[cpuMoves.length - 1];
+                    if (gameState) {
+                        const cpuMoves = gameState.moves.filter(m => 
+                            m.position.x >= 0 && 
+                            m.position.x < 10 && 
+                            m.position.y >= 0 && 
+                            m.position.y < 10
+                        );
                         
-                        // Only process if this is a CPU move (not the player's move)
-                        if (gameState.currentTurn === 'player') {
-                            const cpuTarget = lastCpuMove.position;
+                        if (cpuMoves.length > 0) {
+                            const lastCpuMove = cpuMoves[cpuMoves.length - 1];
                             
-                            // Update player's board with the CPU's shot
-                            if (playerBoardComponent) {
-                                playerBoardComponent.receiveShot(cpuTarget.x, cpuTarget.y);
-                            }
-                            
-                            // Update message with CPU's move result
-                            if (gameState.status === 'opponent_won') {
-                                gameOver = true;
-                                winningStreak = 0;
-                                gameMessage = "Defeat! Your fleet has been destroyed.";
-                            } else if (lastCpuMove.result === 'hit') {
-                                gameMessage = "The enemy hit your ship! Your turn.";
-                            } else if (lastCpuMove.result === 'miss') {
-                                gameMessage = "The enemy missed! Your turn.";
-                            } else if (lastCpuMove.result === 'sunk') {
-                                gameMessage = `The enemy sunk your ${lastCpuMove.shipId}! Your turn.`;
+                            // Only process if this is a CPU move (not the player's move)
+                            if (gameState.currentTurn === 'player') {
+                                const cpuTarget = lastCpuMove.position;
+                                
+                                // Update player's board with the CPU's shot
+                                if (playerBoardComponent) {
+                                    playerBoardComponent.receiveShot(cpuTarget.x, cpuTarget.y);
+                                }
+                                
+                                // Update message with CPU's move result
+                                if (gameState.status === 'opponent_won') {
+                                    gameOver = true;
+                                    gameActive = false;
+                                    winningStreak = 0;
+                                    gameMessage = "Defeat! Your fleet has been destroyed.";
+                                } else if (lastCpuMove.result === 'hit') {
+                                    gameMessage = "The enemy hit your ship! Your turn.";
+                                } else if (lastCpuMove.result === 'miss') {
+                                    gameMessage = "The enemy missed! Your turn.";
+                                } else if (lastCpuMove.result === 'sunk') {
+                                    gameMessage = `The enemy sunk your ${lastCpuMove.shipId}! Your turn.`;
+                                }
                             }
                         }
                     }
@@ -164,7 +168,7 @@
             />
         </div>
         
-        {#if battleshipConfig.showCpuBoard || playerReady}
+        {#if playerReady}
             <div class="opponent-board">
                 <OpponentBoard 
                     isCPU={true}
@@ -172,7 +176,7 @@
                     on:ready={handleOpponentReady}
                     on:fire={handleFireShot}
                     bind:this={opponentBoardComponent}
-                    debugMode={battleshipConfig.showCpuBoard}
+                    debugMode={battleshipConfig.debugCpuBoard}
                 />
             </div>
         {/if}
