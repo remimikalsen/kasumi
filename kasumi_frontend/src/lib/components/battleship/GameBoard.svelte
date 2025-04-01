@@ -6,13 +6,14 @@
 
     export let username: string;
     export let isCPU: boolean;
+    
+    // Export these properties so they can be accessed from the parent component
+    export let ships: Ship[] = generateShipsFromConfig();
+    export let board: CellState[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill('empty'));
+    export let shipGrid: (Ship | null)[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill(null));
 
     const BOARD_SIZE = battleshipConfig.boardSize;
     
-    // Generate ships using the utility function from battleshipGameService
-    let ships: Ship[] = generateShipsFromConfig();
-
-    let board: CellState[][] = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill('empty'));
     let selectedShip: Ship | null = null;
     let isDragging = false;
     let currentOrientation: Orientation = 'horizontal';
@@ -25,9 +26,6 @@
     // For ship placement preview
     let previewCells: Position[] = [];
     let previewState: 'valid' | 'invalid' | null = null;
-
-    // Add a shipGrid to track which ship is in each cell
-    let shipGrid: (Ship | null)[][] = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
 
     // Force UI to update reactively when ships array changes
     //$: placedShips = ships.filter(ship => ship.placed);
@@ -500,14 +498,46 @@
     }
 
     // Function to receive a shot from the opponent
-    export function receiveShot(x: number, y: number): 'hit' | 'miss' | 'sunk' {
-
-        let result: 'hit' | 'miss' | 'sunk' = 'miss';
-
+    export function receiveShot(
+        x: number, 
+        y: number, 
+        serverResult?: 'hit' | 'miss' | 'sunk',
+        serverShipId?: string
+    ): 'hit' | 'miss' | 'sunk' {
+        // Bounds checking
         if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) {
-            return result;
+            return 'miss';
+        }
+
+        // If we have a server result, trust it
+        if (serverResult) {
+            // Update the board state based on the server result
+            if (serverResult === 'hit' || serverResult === 'sunk') {
+                board[y][x] = 'hit';
+                
+                // Find the ship that was hit
+                const ship = shipGrid[y][x];
+                if (ship) {
+                    ship.hits = (ship.hits || 0) + 1;
+                    
+                    // If the server says the ship is sunk, mark it as sunk
+                    if (serverResult === 'sunk') {
+                        ship.sunk = true;
+                    }
+                }
+            } else if (serverResult === 'miss') {
+                board[y][x] = 'miss';
+            }
+            
+            // Force UI update
+            board = [...board];
+            ships = [...ships];
+            
+            return serverResult;
         }
         
+        // Local calculation (used when server result is not provided)
+        let result: 'hit' | 'miss' | 'sunk' = 'miss';
         
         if (board[y][x] === 'ship') {
             board[y][x] = 'hit';
@@ -515,7 +545,6 @@
             // Find the ship that was hit
             const ship = shipGrid[y][x];
             if (ship) {
-                console.log('Player ship hit:', ship);
                 ship.hits = (ship.hits || 0) + 1;
                 
                 // Check if the ship is sunk
@@ -527,7 +556,6 @@
                 }
             }
         } else if (board[y][x] === 'empty') {
-            console.log('Player ship missed');
             board[y][x] = 'miss';
         }
         

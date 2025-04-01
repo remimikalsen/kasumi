@@ -8,15 +8,12 @@
     export let inPlayMode: boolean = false;
     export let debugMode: boolean = false;
     
+    // Export these properties so they can be accessed from the parent component
+    export let ships: Ship[] = generateShipsFromConfig();
+    export let board: CellState[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill('empty'));
+    export let shipGrid: (Ship | null)[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill(null));
+    
     const BOARD_SIZE = battleshipConfig.boardSize;
-
-    // Generate ships using the utility function from battleshipGameService
-    let ships: Ship[] = generateShipsFromConfig();
-    
-    let board: CellState[][] = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill('empty'));
-    
-    // Add a shipGrid to track which ship is in each cell
-    let shipGrid: (Ship | null)[][] = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
     
     let isReady = false;
     let allShipsPlaced = false;

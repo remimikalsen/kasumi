@@ -95,18 +95,23 @@
         const playerBoard = event.detail;
         playerReady = true;
         
-        // Save the player's ships to the game state
-        cpuGameService.placeShips(gameState.gameId, playerBoard.ships)
-            .then(newState => {
-                gameState = newState;
-                gameActive = true;
-                gameMessage = "Game started! Your turn - click on the opponent's board to fire.";
-                
-                // Sync opponent board with game state
-                if (opponentBoardComponent) {
-                    opponentBoardComponent.syncWithGameState(gameState);
-                }
-            });
+        // Save the player's ships and full board state to the game state
+        cpuGameService.placeShips(
+            gameState.gameId, 
+            playerBoard.ships, 
+            playerBoard.board, 
+            playerBoard.shipGrid
+        ).then(newState => {
+            gameState = newState;
+            gameActive = true;
+            gameMessage = "Game started! Your turn - click on the opponent's board to fire.";
+            
+            // Sync opponent board with game state
+            if (opponentBoardComponent) {
+                opponentBoardComponent.syncWithGameState(gameState);
+            }
+
+        });
     }
     
     function handleOpponentReady(event: CustomEvent) {
@@ -220,77 +225,95 @@
         // Get updated game state after CPU move
         if (!gameState) return;
         
-        gameState = await cpuGameService.getGameState(gameState.gameId);
-        
-        // Find the latest CPU move
-        if (gameState) {
-            const cpuMoves = gameState.moves.filter(m => 
-                m.position.x >= 0 && 
-                m.position.x < 10 && 
-                m.position.y >= 0 && 
-                m.position.y < 10
-            );
+        try {
+            // Get the latest game state
+            gameState = await cpuGameService.getGameState(gameState.gameId);
             
-            if (cpuMoves.length > 0) {
-                const lastCpuMove = cpuMoves[cpuMoves.length - 1];
+            // Find the latest CPU move
+            if (gameState) {
+                const cpuMoves = gameState.moves.filter(m => 
+                    m.position.x >= 0 && 
+                    m.position.x < 10 && 
+                    m.position.y >= 0 && 
+                    m.position.y < 10
+                );
                 
-                // Only process if this is a CPU move (not the player's move)
-                if (lastCpuMove.result) {
-                    const cpuTarget = lastCpuMove.position;
-
-                    console.log('CPU move:', lastCpuMove);
+                if (cpuMoves.length > 0) {
+                    const lastCpuMove = cpuMoves[cpuMoves.length - 1];
                     
-                    // Update player's board with the CPU's shot
-                    if (playerBoardComponent) {
-                        playerBoardComponent.receiveShot(cpuTarget.x, cpuTarget.y);
-                    }
-                    
-                    // Update message with CPU's move result
-                    if (gameState.status === 'opponent_won') {
-                        gameOver = true;
-                        gameActive = false;
-                        lastGameResult = 'loss';
-                        gameMessage = "Defeat! Your fleet has been destroyed.";
-                    } else if (lastCpuMove.result === 'hit') {
-                        gameMessage = "The enemy hit your ship!";
+                    // Only process if this is a CPU move (not the player's move)
+                    if (lastCpuMove.result) {
+                        const cpuTarget = lastCpuMove.position;
                         
-                        // If bonus shots are enabled and CPU still has the turn, it gets another shot
-                        if (battleshipConfig.bonusShotWhenHit && gameState.currentTurn === 'opponent') {
-                            gameMessage += " Enemy is firing again!";
-                            // Wait for the CPU to make another move
-                            setTimeout(async () => {
-                                await handleCpuMoveCompletion();
-                            }, 1500);
+                        // Update player's board with the CPU's shot
+                        if (playerBoardComponent) {
+                            try {
+                                // Call receiveShot but use the server result as source of truth
+                                playerBoardComponent.receiveShot(
+                                    cpuTarget.x, 
+                                    cpuTarget.y, 
+                                    lastCpuMove.result, 
+                                    lastCpuMove.shipId
+                                );
+                                
+                                console.log('Applied CPU shot to player board: ', 
+                                    `x=${cpuTarget.x}, y=${cpuTarget.y}, result=${lastCpuMove.result}`);
+                            } catch (error) {
+                                console.error('Error processing CPU shot:', error);
+                            }
                         } else {
-                            gameMessage += " Your turn.";
+                            console.error('Player board component not available');
                         }
-                    } else if (lastCpuMove.result === 'miss') {
-                        gameMessage = "The enemy missed! Your turn.";
-                    } else if (lastCpuMove.result === 'sunk') {
-                        const shipName = getShipNameFromId(lastCpuMove.shipId);
-                        gameMessage = `The enemy sunk your ${shipName}!`;
                         
-                        // If bonus shots are enabled and CPU still has the turn, it gets another shot
-                        if (battleshipConfig.bonusShotWhenHit && gameState.currentTurn === 'opponent') {
-                            gameMessage += " Enemy is firing again!";
-                            // Wait for the CPU to make another move
-                            setTimeout(async () => {
-                                await handleCpuMoveCompletion();
-                            }, 1500);
-                        } else {
-                            gameMessage += " Your turn.";
+                        // Update message with CPU's move result
+                        if (gameState.status === 'opponent_won') {
+                            gameOver = true;
+                            gameActive = false;
+                            lastGameResult = 'loss';
+                            gameMessage = "Defeat! Your fleet has been destroyed.";
+                        } else if (lastCpuMove.result === 'hit') {
+                            gameMessage = "The enemy hit your ship!";
+                            
+                            // If bonus shots are enabled and CPU still has the turn, it gets another shot
+                            if (battleshipConfig.bonusShotWhenHit && gameState.currentTurn === 'opponent') {
+                                gameMessage += " Enemy is firing again!";
+                                // Wait for the CPU to make another move
+                                setTimeout(async () => {
+                                    await handleCpuMoveCompletion();
+                                }, 1500);
+                            } else {
+                                gameMessage += " Your turn.";
+                            }
+                        } else if (lastCpuMove.result === 'miss') {
+                            gameMessage = "The enemy missed! Your turn.";
+                        } else if (lastCpuMove.result === 'sunk') {
+                            const shipName = getShipNameFromId(lastCpuMove.shipId);
+                            gameMessage = `The enemy sunk your ${shipName}!`;
+                            
+                            // If bonus shots are enabled and CPU still has the turn, it gets another shot
+                            if (battleshipConfig.bonusShotWhenHit && gameState.currentTurn === 'opponent') {
+                                gameMessage += " Enemy is firing again!";
+                                // Wait for the CPU to make another move
+                                setTimeout(async () => {
+                                    await handleCpuMoveCompletion();
+                                }, 1500);
+                            } else {
+                                gameMessage += " Your turn.";
+                            }
                         }
+                    } 
+                    // Check if CPU is still in its turn (got a bonus shot)
+                    else if (gameState.currentTurn === 'opponent') {
+                        // CPU has a bonus shot and is still deciding, wait more...
+                        gameMessage = "Enemy is preparing to fire again...";
+                        setTimeout(async () => {
+                            await handleCpuMoveCompletion();
+                        }, 1500);
                     }
-                } 
-                // Check if CPU is still in its turn (got a bonus shot)
-                else if (gameState.currentTurn === 'opponent') {
-                    // CPU has a bonus shot and is still deciding, wait more...
-                    gameMessage = "Enemy is preparing to fire again...";
-                    setTimeout(async () => {
-                        await handleCpuMoveCompletion();
-                    }, 1500);
                 }
             }
+        } catch (error) {
+            console.error('Error in handleCpuMoveCompletion:', error);
         }
     }
     

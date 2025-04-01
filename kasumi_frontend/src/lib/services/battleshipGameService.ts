@@ -76,7 +76,7 @@ export interface IGameService {
     joinGame(gameId: string, playerName: string): Promise<GameState>;
     
     // Ship placement
-    placeShips(gameId: string, ships: Ship[]): Promise<GameState>;
+    placeShips(gameId: string, ships: Ship[], board?: CellState[][], shipGrid?: (Ship | null)[][]): Promise<GameState>;
     
     // Game moves
     makeMove(gameId: string, position: Position): Promise<GameMove>;
@@ -155,6 +155,7 @@ export class CpuGameService implements IGameService {
         
         // Record the move
         const move: GameMove = { position, result, shipId };
+        console.log('CPU move result:', move);
         gameState.moves.push(move);
         
         // Update timestamp for when the move was made
@@ -205,7 +206,7 @@ export class CpuGameService implements IGameService {
         return this.createGame(playerName);
     }
     
-    async placeShips(gameId: string, ships: Ship[]): Promise<GameState> {
+    async placeShips(gameId: string, ships: Ship[], board?: CellState[][], shipGrid?: (Ship | null)[][]): Promise<GameState> {
         const gameState = this.games.get(gameId);
         if (!gameState) {
             throw new Error('Game not found');
@@ -213,6 +214,12 @@ export class CpuGameService implements IGameService {
         
         // Save player's ships
         gameState.playerBoard.ships = ships;
+        
+        // If board and shipGrid are provided, save those too
+        if (board && shipGrid) {
+            gameState.playerBoard.board = board;
+            gameState.playerBoard.shipGrid = shipGrid;
+        }
 
         // Generate CPU ships if not already placed
         if (gameState.opponentBoard.ships.length === 0) {
@@ -222,12 +229,6 @@ export class CpuGameService implements IGameService {
             gameState.opponentBoard.ships = cpuShips;
             gameState.opponentBoard.board = board;
             gameState.opponentBoard.shipGrid = shipGrid;
-            
-            // Log the CPU ship positions for debugging
-            console.log("CPU ships placed at:");
-            for (const ship of cpuShips) {
-                console.log(`${ship.id}: position (${ship.position?.x},${ship.position?.y}), orientation: ${ship.orientation}, length: ${ship.length}`);
-            }
         }
         
         // Start the game
@@ -321,20 +322,7 @@ export class CpuGameService implements IGameService {
         if (!gameState) {
             throw new Error('Game not found');
         }
-        
-        // Debug state of the game board
-        console.log("Current game board state:");
-        for (let y = 0; y < battleshipConfig.boardSize; y++) {
-            let row = '';
-            for (let x = 0; x < battleshipConfig.boardSize; x++) {
-                const cell = gameState.opponentBoard.board[y][x];
-                const ship = gameState.opponentBoard.shipGrid[y][x];
-                const shipId = ship ? ship.id : ' ';
-                row += `${cell[0]}(${shipId}) `;
-            }
-            console.log(row);
-        }
-        
+        playerBoardComponent        
         if (gameState.status !== 'active') {
             throw new Error('Game is not active');
         }
@@ -351,11 +339,6 @@ export class CpuGameService implements IGameService {
             throw new Error('Cell already targeted');
         }
         
-        // Log debug info to help diagnose issues
-        console.log('Player firing at:', x, y);
-        console.log('Cell state:', cell);
-        console.log('Ship at position:', gameState.opponentBoard.shipGrid[y][x]);
-        
         // Process the move
         let result: 'hit' | 'miss' | 'sunk' = 'miss';
         let shipId: string | undefined = undefined;
@@ -370,23 +353,17 @@ export class CpuGameService implements IGameService {
                 shipId = ship.id;
                 ship.hits = (ship.hits || 0) + 1;
                 
-                console.log('Ship hit:', ship.type, ship.id);
-                console.log('Ship hits:', ship.hits, 'of', ship.length);
-                
                 // Check if the ship is sunk
                 if (ship.hits === ship.length) {
                     ship.sunk = true;
                     result = 'sunk';
-                    console.log('Ship sunk!');
                 } else {
                     result = 'hit';
-                    console.log('Ship hit but not sunk');
                 }
             }
         } else {
             // It's a miss
             gameState.opponentBoard.board[y][x] = 'miss';
-            console.log('Shot missed');
         }
         
         // Record the move
@@ -399,7 +376,6 @@ export class CpuGameService implements IGameService {
         // Check for game end
         if (gameState.opponentBoard.ships.every(ship => ship.sunk)) {
             gameState.status = 'player_won';
-            console.log('Player won!');
         } else {
             // Update turn based on the result and bonus shot setting
             if (!battleshipConfig.bonusShotWhenHit || result === 'miss') {
