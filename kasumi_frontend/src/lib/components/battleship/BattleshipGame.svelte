@@ -99,8 +99,10 @@
     function handlePlayerReady(event: CustomEvent) {
         if (!gameState) return;
         
-        const playerBoard = event.detail;
         playerReady = true;
+        
+        // Get the player's board state using the method
+        const playerBoard = playerBoardComponent.getBoardState();
         
         // Save the player's ships and full board state to the game state
         cpuGameService.placeShips(
@@ -117,7 +119,6 @@
             if (opponentBoardComponent) {
                 opponentBoardComponent.syncWithGameState(gameState);
             }
-
         });
     }
     
@@ -235,6 +236,16 @@
         try {
             // Get the latest game state
             gameState = await cpuGameService.getGameState(gameState.gameId);
+            console.log('Current game state:', gameState.status, 'Player turn:', gameState.currentTurn);
+            
+            // Check if the game has ended
+            if (gameState.status === 'opponent_won') {
+                gameOver = true;
+                gameActive = false;
+                lastGameResult = 'loss';
+                gameMessage = "Defeat! Your fleet has been destroyed.";
+                return;
+            }
             
             // Find the latest CPU move
             if (gameState) {
@@ -265,6 +276,17 @@
                                 
                                 console.log('Applied CPU shot to player board: ', 
                                     `x=${cpuTarget.x}, y=${cpuTarget.y}, result=${lastCpuMove.result}`);
+                                
+                                // Check again if all ships are sunk using the method
+                                const allShipsSunk = playerBoardComponent.areAllShipsSunk();
+                                if (allShipsSunk && gameState.status === 'active') {
+                                    console.log('All ships sunk according to component!');
+                                    // Update game state to reflect the win
+                                    gameState = await cpuGameService.getGameState(gameState.gameId);
+                                    if (gameState.status !== 'opponent_won') {
+                                        console.warn('Game should be over but state does not reflect it!');
+                                    }
+                                }
                             } catch (error) {
                                 console.error('Error processing CPU shot:', error);
                             }

@@ -107,12 +107,15 @@ export class CpuGameService implements IGameService {
         // Simulate CPU "thinking" with a delay
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Simple strategy: try random positions until a valid move is found
+        // Get the board size
         const BOARD_SIZE = battleshipConfig.boardSize;
-        let validMove = false;
-        let x = 0;
-        let y = 0;
         
+        // Initialize target position variables with defaults
+        let x: number = -1;
+        let y: number = -1;
+        let validMove = false;
+        
+        // Use random targeting to select a valid position
         while (!validMove) {
             x = Math.floor(Math.random() * BOARD_SIZE);
             y = Math.floor(Math.random() * BOARD_SIZE);
@@ -130,7 +133,7 @@ export class CpuGameService implements IGameService {
         let result: 'hit' | 'miss' | 'sunk' = 'miss';
         let shipId: string | undefined = undefined;
         
-        if (cell === 'ship') {
+        if (gameState.playerBoard.shipGrid[y][x]) {
             // It's a hit
             gameState.playerBoard.board[y][x] = 'hit';
             
@@ -141,11 +144,13 @@ export class CpuGameService implements IGameService {
                 ship.hits = (ship.hits || 0) + 1;
                 
                 // Check if the ship is sunk
-                if (ship.hits === ship.length) {
+                if (ship.hits >= ship.length) {
                     ship.sunk = true;
                     result = 'sunk';
+                    console.log(`CPU sunk player ship ${ship.id}!`);
                 } else {
                     result = 'hit';
+                    console.log(`CPU hit player ship ${ship.id}, ${ship.hits}/${ship.length} hits`);
                 }
             }
         } else {
@@ -161,8 +166,11 @@ export class CpuGameService implements IGameService {
         // Update timestamp for when the move was made
         gameState.lastMoveTime = Date.now();
         
-        // Check for game end
-        if (gameState.playerBoard.ships.every(ship => ship.sunk)) {
+        // Check if all player ships are sunk
+        const allShipsSunk = gameState.playerBoard.ships.every(ship => ship.sunk === true);
+        
+        if (allShipsSunk) {
+            console.log('All player ships sunk! CPU wins!');
             gameState.status = 'opponent_won';
             gameState.currentTurn = 'player'; // Set to player so game over is detected
             return; // Exit if game is over

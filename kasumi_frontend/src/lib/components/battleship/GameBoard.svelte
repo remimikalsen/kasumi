@@ -474,10 +474,16 @@
         allShipsPlaced = ships.every(ship => ship.placed);
     }
 
-    function handleReady() {
-        if (!allShipsPlaced) return;
-        isReady = true;
-        dispatch('ready', { ships, board, shipGrid });
+    // Function to handle the "Ready" button click
+    function handleReadyClick() {
+        if (allShipsPlaced) {
+            // Let the parent component know all ships are placed and ready
+            isReady = true;
+            // Dispatch event to parent with the board state
+            dispatch('ready');
+        } else {
+            alert("Please place all ships before starting the game.");
+        }
     }
 
     // Function to check if a cell is the center of a ship
@@ -523,6 +529,29 @@
                     // If the server says the ship is sunk, mark it as sunk
                     if (serverResult === 'sunk') {
                         ship.sunk = true;
+                        console.log(`Ship ${ship.id} sunk by server result!`);
+                    } else {
+                        // Don't automatically mark as sunk for just a hit
+                        ship.sunk = false;
+                        
+                        // Check if all cells of the ship are actually hit
+                        let allCellsHit = true;
+                        if (ship.position && ship.orientation) {
+                            for (let i = 0; i < ship.length; i++) {
+                                const cellX = ship.orientation === 'horizontal' ? ship.position.x + i : ship.position.x;
+                                const cellY = ship.orientation === 'vertical' ? ship.position.y + i : ship.position.y;
+                                
+                                if (board[cellY][cellX] !== 'hit') {
+                                    allCellsHit = false;
+                                    break;
+                                }
+                            }
+                            
+                            if (allCellsHit) {
+                                ship.sunk = true;
+                                console.log(`Ship ${ship.id} sunk because all cells are hit!`);
+                            }
+                        }
                     }
                 }
             } else if (serverResult === 'miss') {
@@ -532,6 +561,12 @@
             // Force UI update
             board = [...board];
             ships = [...ships];
+            
+            // Log ship status for debugging
+            console.log('Ship status after CPU shot:');
+            ships.forEach(ship => {
+                console.log(`${ship.id}: hits=${ship.hits}/${ship.length}, sunk=${ship.sunk}`);
+            });
             
             return serverResult;
         }
@@ -545,17 +580,36 @@
             // Find the ship that was hit
             const ship = shipGrid[y][x];
             if (ship) {
+                console.log('Player ship hit:', ship);
                 ship.hits = (ship.hits || 0) + 1;
                 
-                // Check if the ship is sunk
-                if (ship.hits === ship.length) {
-                    ship.sunk = true;
-                    result = 'sunk';
+                // Check if all cells of the ship are hit
+                let allCellsHit = true;
+                if (ship.position && ship.orientation) {
+                    for (let i = 0; i < ship.length; i++) {
+                        const cellX = ship.orientation === 'horizontal' ? ship.position.x + i : ship.position.x;
+                        const cellY = ship.orientation === 'vertical' ? ship.position.y + i : ship.position.y;
+                        
+                        if (board[cellY][cellX] !== 'hit') {
+                            allCellsHit = false;
+                            break;
+                        }
+                    }
+                    
+                    if (allCellsHit) {
+                        ship.sunk = true;
+                        result = 'sunk';
+                        console.log(`Ship ${ship.id} was sunk!`);
+                    } else {
+                        ship.sunk = false;
+                        result = 'hit';
+                    }
                 } else {
                     result = 'hit';
                 }
             }
         } else if (board[y][x] === 'empty') {
+            console.log('Player ship missed');
             board[y][x] = 'miss';
         }
         
@@ -565,6 +619,37 @@
         
         return result;
     }
+
+    // Function to check if all ships are sunk
+    export function areAllShipsSunk(): boolean {
+        return ships.every(ship => ship.sunk === true);
+    }
+
+    // Function to get the current board state for saving to game state
+    export function getBoardState() {
+        return {
+            ships: [...ships],
+            board: [...board],
+            shipGrid: [...shipGrid]
+        };
+    }
+    
+    // Function to check if a ship is actually sunk
+    function isShipSunk(ship: Ship): boolean {
+        if (!ship || !ship.position || !ship.orientation) return false;
+        
+        for (let i = 0; i < ship.length; i++) {
+            const x = ship.orientation === 'horizontal' ? ship.position.x + i : ship.position.x;
+            const y = ship.orientation === 'vertical' ? ship.position.y + i : ship.position.y;
+            
+            if (board[y][x] !== 'hit') {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
 </script>
 
 <div class="game-board">
@@ -655,7 +740,7 @@
     {/if}
 
     {#if allShipsPlaced && !isReady}
-        <button class="ready-button" on:click={handleReady}>
+        <button class="ready-button" on:click={handleReadyClick}>
             I'm ready!
         </button>
     {/if}
