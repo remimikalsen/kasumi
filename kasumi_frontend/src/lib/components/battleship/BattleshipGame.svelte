@@ -3,7 +3,7 @@
     import GameBoard from './GameBoard.svelte';
     import OpponentBoard from './OpponentBoard.svelte';
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
-    import { cpuGameService, type GameState, type GameMove, type Position } from '$lib/services/battleshipGameService';
+    import { cpuGameService, type GameState, type Position, type GameMove } from '$lib/services/battleshipGameService';
     import { goto } from '$app/navigation';
 
     export let username: string = "Player";
@@ -23,6 +23,23 @@
     // Component references
     let opponentBoardComponent: OpponentBoard;
     let playerBoardComponent: GameBoard;
+    
+    // Helper function to get ship name from prefix
+    function getShipNameFromPrefix(prefix: string): string {
+        for (const [type, details] of Object.entries(battleshipConfig.shipTypes)) {
+            if (details.prefix === prefix) {
+                return type.charAt(0).toUpperCase() + type.slice(1);
+            }
+        }
+        return "Ship";
+    }
+    
+    // Helper function to get ship name from ID
+    function getShipNameFromId(shipId: string | undefined): string {
+        if (!shipId) return "Ship";
+        const prefix = shipId.charAt(0);
+        return getShipNameFromPrefix(prefix);
+    }
     
     onMount(async () => {
         // Create a new game when the component is mounted
@@ -124,14 +141,13 @@
                 lastGameResult = 'win';
                 gameMessage = "Victory! You sunk all enemy ships!";
             } else if (move.result === 'hit' || move.result === 'sunk') {
-                // If bonus shots are enabled and it's a hit, set a timer for the bonus shot
-                if (battleshipConfig.bonusShotWhenHit) {
+                // If bonus shots are enabled and it's still player's turn
+                if (battleshipConfig.bonusShotWhenHit && gameState.currentTurn === 'player') {
                     if (move.result === 'hit') {
                         gameMessage = "Hit! Fire again!";
                     } else {
-                        gameMessage = `You sunk their ${move.shipId?.charAt(0) === 'B' ? 'Battleship' : 
-                                           move.shipId?.charAt(0) === 'F' ? 'Frigate' :
-                                           move.shipId?.charAt(0) === 'C' ? 'Corvette' : 'U-boat'}! Fire again!`;
+                        const shipName = getShipNameFromId(move.shipId);
+                        gameMessage = `You sunk their ${shipName}! Fire again!`;
                     }
                     
                     // Set up timeout for bonus shot
@@ -142,8 +158,10 @@
                     countdownIntervalId = setInterval(() => {
                         timeRemaining -= 1000;
                         if (timeRemaining <= 0) {
-                            clearInterval(countdownIntervalId);
-                            countdownIntervalId = null;
+                            if (countdownIntervalId) {
+                                clearInterval(countdownIntervalId);
+                                countdownIntervalId = null;
+                            }
                         } else {
                             updateBonusShotMessage();
                         }
@@ -168,13 +186,12 @@
                         }
                     }, battleshipConfig.bonusShotTimeout) as unknown as number;
                 } else {
-                    // If bonus shots are disabled
+                    // If bonus shots are disabled or it's now CPU's turn
                     if (move.result === 'hit') {
                         gameMessage = "Hit! Waiting for opponent...";
                     } else {
-                        gameMessage = `You sunk their ${move.shipId?.charAt(0) === 'B' ? 'Battleship' : 
-                                           move.shipId?.charAt(0) === 'F' ? 'Frigate' :
-                                           move.shipId?.charAt(0) === 'C' ? 'Corvette' : 'U-boat'}! Waiting for opponent...`;
+                        const shipName = getShipNameFromId(move.shipId);
+                        gameMessage = `You sunk their ${shipName}! Waiting for opponent...`;
                     }
                 }
             } else if (move.result === 'miss') {
@@ -218,8 +235,10 @@
                 const lastCpuMove = cpuMoves[cpuMoves.length - 1];
                 
                 // Only process if this is a CPU move (not the player's move)
-                if (gameState.currentTurn === 'player') {
+                if (lastCpuMove.result) {
                     const cpuTarget = lastCpuMove.position;
+
+                    console.log('CPU move:', lastCpuMove);
                     
                     // Update player's board with the CPU's shot
                     if (playerBoardComponent) {
@@ -233,16 +252,40 @@
                         lastGameResult = 'loss';
                         gameMessage = "Defeat! Your fleet has been destroyed.";
                     } else if (lastCpuMove.result === 'hit') {
-                        gameMessage = "The enemy hit your ship! Your turn.";
+                        gameMessage = "The enemy hit your ship!";
+                        
+                        // If bonus shots are enabled and CPU still has the turn, it gets another shot
+                        if (battleshipConfig.bonusShotWhenHit && gameState.currentTurn === 'opponent') {
+                            gameMessage += " Enemy is firing again!";
+                            // Wait for the CPU to make another move
+                            setTimeout(async () => {
+                                await handleCpuMoveCompletion();
+                            }, 1500);
+                        } else {
+                            gameMessage += " Your turn.";
+                        }
                     } else if (lastCpuMove.result === 'miss') {
                         gameMessage = "The enemy missed! Your turn.";
                     } else if (lastCpuMove.result === 'sunk') {
-                        gameMessage = `The enemy sunk your ${lastCpuMove.shipId}! Your turn.`;
+                        const shipName = getShipNameFromId(lastCpuMove.shipId);
+                        gameMessage = `The enemy sunk your ${shipName}!`;
+                        
+                        // If bonus shots are enabled and CPU still has the turn, it gets another shot
+                        if (battleshipConfig.bonusShotWhenHit && gameState.currentTurn === 'opponent') {
+                            gameMessage += " Enemy is firing again!";
+                            // Wait for the CPU to make another move
+                            setTimeout(async () => {
+                                await handleCpuMoveCompletion();
+                            }, 1500);
+                        } else {
+                            gameMessage += " Your turn.";
+                        }
                     }
                 } 
                 // Check if CPU is still in its turn (got a bonus shot)
                 else if (gameState.currentTurn === 'opponent') {
                     // CPU has a bonus shot and is still deciding, wait more...
+                    gameMessage = "Enemy is preparing to fire again...";
                     setTimeout(async () => {
                         await handleCpuMoveCompletion();
                     }, 1500);

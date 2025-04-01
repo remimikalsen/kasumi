@@ -1,13 +1,16 @@
 // Types for the Battleship game
 import { battleshipConfig } from '$lib/config/battleshipConfig.js';
 
-export type ShipType = 'battleship' | 'frigate' | 'corvette' | 'uboat';
+// Export types derived from battleshipConfig
+export type ShipType = keyof typeof battleshipConfig.shipTypes;
+export type ShipPrefix = typeof battleshipConfig.shipTypes[ShipType]['prefix'];
 export type CellState = 'empty' | 'ship' | 'hit' | 'miss';
 export type Orientation = 'horizontal' | 'vertical';
 export type Position = { x: number; y: number };
 
 export interface Ship {
     type: ShipType;
+    prefix: ShipPrefix;
     length: number;
     placed: boolean;
     position?: Position;
@@ -37,6 +40,33 @@ export interface GameState {
     status: 'setup' | 'active' | 'player_won' | 'opponent_won';
     moves: GameMove[];
     lastMoveTime?: number; // Track when the last move was made for timeout
+}
+
+// Utility function to generate ships based on battleshipConfig
+export function generateShipsFromConfig(isPlaced: boolean = false): Ship[] {
+    const ships: Ship[] = [];
+    
+    // Generate ships from battleshipConfig
+    Object.entries(battleshipConfig.shipTypes).forEach(([type, details]) => {
+        const shipType = type as ShipType;
+        const { length, count, prefix } = details;
+        
+        // Create the specified number of each ship type
+        for (let i = 1; i <= count; i++) {
+            const ship: Ship = {
+                type: shipType,
+                prefix,
+                length,
+                placed: isPlaced,
+                id: `${prefix}${i}`, // e.g., "B1", "F1", "C1"
+                hits: 0,
+                sunk: false
+            };
+            ships.push(ship);
+        }
+    });
+    
+    return ships;
 }
 
 // Interface for the game service - both CPU and human opponents will implement this
@@ -69,28 +99,7 @@ export class CpuGameService implements IGameService {
     
     // Generate random ship placement for the CPU using battleshipConfig
     private generateCpuShips(): Ship[] {
-        const ships: Ship[] = [];
-        
-        // Use the ship types defined in battleshipConfig
-        Object.entries(battleshipConfig.shipTypes).forEach(([type, details]) => {
-            const shipType = type as ShipType;
-            const { length, count } = details;
-            
-            // Create the specified number of each ship type
-            for (let i = 1; i <= count; i++) {
-                const ship: Ship = {
-                    type: shipType,
-                    length: length,
-                    placed: true,
-                    id: `${shipType.charAt(0).toUpperCase()}${i}`, // e.g., "B1", "F1", "C1"
-                    hits: 0,
-                    sunk: false
-                };
-                ships.push(ship);
-            }
-        });
-        
-        return ships;
+        return generateShipsFromConfig(true);
     }
     
     // Helper to create a CPU move after a delay
@@ -148,15 +157,14 @@ export class CpuGameService implements IGameService {
         const move: GameMove = { position, result, shipId };
         gameState.moves.push(move);
         
-        // Update turn based on the bonus shot configuration
+        // Update timestamp for when the move was made
         gameState.lastMoveTime = Date.now();
         
-        // If bonus shot is disabled or it was a miss, give turn to player
+        // Only change turn if it's a miss and bonus shots are enabled
+        // Let the component (BattleshipGame.svelte) handle the turn logic instead
         if (!battleshipConfig.bonusShotWhenHit || result === 'miss') {
             gameState.currentTurn = 'player';
         }
-        
-        // Otherwise, CPU gets another turn, but the frontend will check timeout
         
         // Check for game end
         if (gameState.playerBoard.ships.every(ship => ship.sunk)) {
@@ -261,7 +269,7 @@ export class CpuGameService implements IGameService {
             }
             
             if (!placed) {
-                console.error(`Failed to place ${ship.type} ${ship.id} after ${maxAttempts} attempts`);
+                console.error(`Failed to place ${String(ship.type)} ${ship.id} after ${maxAttempts} attempts`);
             }
         }
         
@@ -426,7 +434,7 @@ export class CpuGameService implements IGameService {
                 gameState.currentTurn = 'opponent';
                 gameState.lastMoveTime = Date.now();
                 
-                // CPU makes a move
+                // CPU makes a move (but we don't wait for it here - the component will handle this)
                 this.makeCpuMove(gameState);
             }
             // Similarly handle CPU timeout if needed

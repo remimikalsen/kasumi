@@ -1,41 +1,21 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
+    import { battleshipConfig } from '$lib/config/battleshipConfig.js';
+    import { generateShipsFromConfig, type Ship, type CellState, type Orientation, type Position } from '$lib/services/battleshipGameService';
     const dispatch = createEventDispatcher();
 
     export let username: string;
     export let isCPU: boolean;
 
-    type ShipType = 'battleship' | 'frigate' | 'corvette' | 'uboat';
-    type Ship = {
-        type: ShipType;
-        length: number;
-        placed: boolean;
-        position?: { x: number; y: number };
-        orientation?: 'horizontal' | 'vertical';
-        id: string;
-        hits?: number;
-        sunk?: boolean;
-    };
-
-    type CellState = 'empty' | 'ship' | 'hit' | 'miss';
-    type PreviewState = 'valid' | 'invalid' | null;
-
-    const BOARD_SIZE = 10;
-    let ships: Ship[] = [
-        { type: 'battleship', length: 5, placed: false, id: 'B1' },
-        { type: 'frigate', length: 3, placed: false, id: 'F1' },
-        { type: 'corvette', length: 2, placed: false, id: 'C1' },
-        { type: 'corvette', length: 2, placed: false, id: 'C2' },
-        { type: 'uboat', length: 1, placed: false, id: 'U1' },
-        { type: 'uboat', length: 1, placed: false, id: 'U2' },
-        { type: 'uboat', length: 1, placed: false, id: 'U3' },
-        { type: 'uboat', length: 1, placed: false, id: 'U4' }
-    ];
+    const BOARD_SIZE = battleshipConfig.boardSize;
+    
+    // Generate ships using the utility function from battleshipGameService
+    let ships: Ship[] = generateShipsFromConfig();
 
     let board: CellState[][] = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill('empty'));
     let selectedShip: Ship | null = null;
     let isDragging = false;
-    let currentOrientation: 'horizontal' | 'vertical' = 'horizontal';
+    let currentOrientation: Orientation = 'horizontal';
     let isReady = false;
     let allShipsPlaced = false;
     let dragOffset = { x: 0, y: 0 };
@@ -43,19 +23,19 @@
     let dragOffsetRelativeToShipStart = { x: 0, y: 0 };
 
     // For ship placement preview
-    let previewCells: { x: number; y: number }[] = [];
-    let previewState: PreviewState = null;
+    let previewCells: Position[] = [];
+    let previewState: 'valid' | 'invalid' | null = null;
 
     // Add a shipGrid to track which ship is in each cell
     let shipGrid: (Ship | null)[][] = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
 
     // Force UI to update reactively when ships array changes
-    $: placedShips = ships.filter(ship => ship.placed);
-    $: unplacedShips = ships.filter(ship => !ship.placed);
+    //$: placedShips = ships.filter(ship => ship.placed);
+    //$: unplacedShips = ships.filter(ship => !ship.placed);
 
     // Add these variables to track original position
-    let dragStartPosition: { x: number; y: number } | undefined = undefined;
-    let dragStartOrientation: 'horizontal' | 'vertical' | undefined = undefined;
+    let dragStartPosition: Position | undefined = undefined;
+    let dragStartOrientation: Orientation | undefined = undefined;
     let dragStartWasPlaced = false;
 
     // Add a resetBoard method to reset the game state
@@ -521,11 +501,13 @@
 
     // Function to receive a shot from the opponent
     export function receiveShot(x: number, y: number): 'hit' | 'miss' | 'sunk' {
+
+        let result: 'hit' | 'miss' | 'sunk' = 'miss';
+
         if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) {
-            return 'miss';
+            return result;
         }
         
-        let result: 'hit' | 'miss' | 'sunk' = 'miss';
         
         if (board[y][x] === 'ship') {
             board[y][x] = 'hit';
@@ -533,6 +515,7 @@
             // Find the ship that was hit
             const ship = shipGrid[y][x];
             if (ship) {
+                console.log('Player ship hit:', ship);
                 ship.hits = (ship.hits || 0) + 1;
                 
                 // Check if the ship is sunk
@@ -544,6 +527,7 @@
                 }
             }
         } else if (board[y][x] === 'empty') {
+            console.log('Player ship missed');
             board[y][x] = 'miss';
         }
         
