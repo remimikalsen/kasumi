@@ -161,16 +161,24 @@ export class CpuGameService implements IGameService {
         // Update timestamp for when the move was made
         gameState.lastMoveTime = Date.now();
         
-        // Only change turn if it's a miss and bonus shots are enabled
-        // Let the component (BattleshipGame.svelte) handle the turn logic instead
-        if (!battleshipConfig.bonusShotWhenHit || result === 'miss') {
-            gameState.currentTurn = 'player';
-        }
-        
         // Check for game end
         if (gameState.playerBoard.ships.every(ship => ship.sunk)) {
             gameState.status = 'opponent_won';
             gameState.currentTurn = 'player'; // Set to player so game over is detected
+            return; // Exit if game is over
+        }
+        
+        // Only change turn if it's a miss or bonus shots are disabled
+        const turnChanged = !battleshipConfig.bonusShotWhenHit || result === 'miss';
+        if (turnChanged) {
+            gameState.currentTurn = 'player';
+        } else {
+            // If it's a hit/sunk and bonus shots are enabled, CPU gets another shot
+            // Wait a bit then make another move
+            console.log('CPU gets a bonus shot');
+            setTimeout(() => {
+                this.makeCpuMove(gameState);
+            }, 1500);
         }
     }
     
@@ -322,7 +330,7 @@ export class CpuGameService implements IGameService {
         if (!gameState) {
             throw new Error('Game not found');
         }
-        playerBoardComponent        
+        
         if (gameState.status !== 'active') {
             throw new Error('Game is not active');
         }
@@ -399,28 +407,19 @@ export class CpuGameService implements IGameService {
         
         // Only process timeout if the game is active
         if (gameState.status === 'active') {
-            // Check if it's player's turn and they had a bonus shot
-            if (gameState.currentTurn === 'player' && 
-                gameState.moves.length > 0 && 
-                (gameState.moves[gameState.moves.length - 1].result === 'hit' || 
-                 gameState.moves[gameState.moves.length - 1].result === 'sunk')) {
-                
+            // Force timeout regardless of time elapsed
+            if (gameState.currentTurn === 'player') {
                 // Player timed out on bonus shot, switch to CPU
-                console.log('Player bonus shot timed out');
+                console.log('Player bonus shot timed out (explicit)');
                 gameState.currentTurn = 'opponent';
                 gameState.lastMoveTime = Date.now();
                 
-                // CPU makes a move (but we don't wait for it here - the component will handle this)
+                // CPU makes a move
                 this.makeCpuMove(gameState);
-            }
-            // Similarly handle CPU timeout if needed
-            else if (gameState.currentTurn === 'opponent' && 
-                    gameState.moves.length > 0 && 
-                    (gameState.moves[gameState.moves.length - 1].result === 'hit' || 
-                     gameState.moves[gameState.moves.length - 1].result === 'sunk')) {
-                
+            } 
+            else if (gameState.currentTurn === 'opponent') {
                 // CPU timed out on bonus shot, switch to player
-                console.log('CPU bonus shot timed out');
+                console.log('CPU bonus shot timed out (explicit)');
                 gameState.currentTurn = 'player';
                 gameState.lastMoveTime = Date.now();
             }
@@ -441,23 +440,24 @@ export class CpuGameService implements IGameService {
             battleshipConfig.bonusShotWhenHit && 
             Date.now() - gameState.lastMoveTime > battleshipConfig.bonusShotTimeout) {
             
-            // Check if a timeout should occur (for either player or CPU)
-            if (gameState.currentTurn === 'player' && 
-                gameState.moves.length > 0 && 
-                (gameState.moves[gameState.moves.length - 1].result === 'hit' || 
-                 gameState.moves[gameState.moves.length - 1].result === 'sunk')) {
-                
+            // Check the most recent move to see if it was a hit or sunk
+            const lastMove = gameState.moves.length > 0 ? gameState.moves[gameState.moves.length - 1] : null;
+            const wasHitOrSunk = lastMove && (lastMove.result === 'hit' || lastMove.result === 'sunk');
+            
+            // Check player timeout
+            if (gameState.currentTurn === 'player' && wasHitOrSunk) {
                 // Player timed out on bonus shot, switch to CPU
-                console.log('Player bonus shot timed out');
+                console.log('Player bonus shot timed out (auto)');
                 gameState.currentTurn = 'opponent';
                 gameState.lastMoveTime = Date.now();
                 
                 // CPU makes a move
                 this.makeCpuMove(gameState);
             } 
-            else if (gameState.currentTurn === 'opponent') {
+            // Check CPU timeout
+            else if (gameState.currentTurn === 'opponent' && wasHitOrSunk) {
                 // CPU timed out on bonus shot, switch to player
-                console.log('CPU bonus shot timed out');
+                console.log('CPU bonus shot timed out (auto)');
                 gameState.currentTurn = 'player';
                 gameState.lastMoveTime = Date.now();
             }

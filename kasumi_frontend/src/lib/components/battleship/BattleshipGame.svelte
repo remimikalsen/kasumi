@@ -49,8 +49,12 @@
         const intervalId = setInterval(async () => {
             if (gameState && gameActive && !gameOver) {
                 const updatedGameState = await cpuGameService.getGameState(gameState.gameId);
-                if (updatedGameState.currentTurn !== gameState.currentTurn) {
-                    // Turn changed due to timeout
+                
+                // Check if there was a turn change or other state update
+                if (updatedGameState.currentTurn !== gameState.currentTurn ||
+                    updatedGameState.status !== gameState.status) {
+                    
+                    // Update our local game state
                     gameState = updatedGameState;
                     
                     // Clear any active timers
@@ -58,7 +62,10 @@
                     
                     // If it's now the opponent's turn, wait for their move
                     if (gameState.currentTurn === 'opponent') {
-                        gameMessage = "Your bonus shot timed out! Waiting for opponent...";
+                        const reason = gameState.status === 'active' ? 
+                            "Your bonus shot timed out! Waiting for opponent..." : 
+                            "Waiting for opponent...";
+                        gameMessage = reason;
                         
                         // Wait for CPU move to complete
                         setTimeout(async () => {
@@ -67,7 +74,7 @@
                     }
                 }
             }
-        }, 1000);
+        }, 1000); // Check every second
         
         // Clean up on component destruction
         return () => {
@@ -155,11 +162,11 @@
                         gameMessage = `You sunk their ${shipName}! Fire again!`;
                     }
                     
-                    // Set up timeout for bonus shot
+                    // Set up a UI countdown timer but rely on the server for actual timeout
                     timeRemaining = battleshipConfig.bonusShotTimeout;
                     updateBonusShotMessage();
                     
-                    // Setup countdown for UI
+                    // Setup countdown for UI only
                     countdownIntervalId = setInterval(() => {
                         timeRemaining -= 1000;
                         if (timeRemaining <= 0) {
