@@ -2,55 +2,40 @@
     import { createEventDispatcher } from 'svelte';
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
     import type { Ship } from '@lib/services/battleshipServices';
-    
+    import type { GameState } from '@lib/services/battleshipServices';
+
     const dispatch = createEventDispatcher();
     
-    export let isCPU: boolean = true;
-    export let inPlayMode: boolean = false;
-    export let debugMode: boolean = false;
+    export let gameState: GameState;
+    export let showBoard: boolean;
+    export let opponentInitials: string;
+
+    const isCPU = gameState.mode === 'cpu';
+    const inPlayMode = gameState.status === 'active';
+    const debugMode = gameState.config.debugCpuBoard || false;
     
     // Board state
-    let board: string[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill('empty'));
-    let shipGrid: (Ship | null)[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill(null));
+    let board = gameState.playerBoards[opponentInitials]?.board;
+    let shipGrid = gameState.playerBoards[opponentInitials]?.shipGrid;
+    let ships = gameState.playerBoards[opponentInitials]?.ships;
     
     function handleCellClick(x: number, y: number) {
         if (!inPlayMode) return;
         dispatch('fire', { position: { x, y } });
     }
 
-    export function updateCell(position: { x: number; y: number }, result: 'hit' | 'miss' | 'sunk', shipId: string | null) {
-        const { x, y } = position;
-        board[y][x] = result;
-        
-        if (shipId) {
-            // Find the ship in the grid and update its state
-            for (let i = 0; i < board.length; i++) {
-                for (let j = 0; j < board[i].length; j++) {
-                    if (shipGrid[i][j]?.id === shipId) {
-                        shipGrid[i][j]!.hits++;
-                        if (result === 'sunk') {
-                            shipGrid[i][j]!.sunk = true;
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Force update
-        board = [...board];
-        shipGrid = [...shipGrid];
-    }
     
     // Function to check if a cell is the start of a ship
     function isShipStart(ship: Ship, x: number, y: number): boolean {
         if (!ship.position) return false;
         return x === ship.position.x && y === ship.position.y;
     }
+
 </script>
 
-<div class="game-board {debugMode ? 'debug-mode' : ''}">
+<div class="game-board {debugMode ? 'debug-mode' : ''} {!showBoard ? 'hidden' : ''}">
     <div class="game-info">
-        <h2>Opponent's Fleet</h2>
+        <h2>{opponentInitials}'s Fleet</h2>
     </div>
 
     <div class="board-container">
@@ -63,7 +48,7 @@
                             on:click={() => handleCellClick(x, y)}
                         >
                             {#if cell === 'ship' && debugMode && isCPU}
-                                {@const ship = shipGrid[y][x]}
+                                {@const ship = ships.find(ship => ship.id === shipGrid[y][x])}
                                 {#if ship && isShipStart(ship, x, y)}
                                     <span class="ship-label">
                                         {ship.id}
@@ -73,7 +58,7 @@
                             
                             {#if cell === 'hit'}
                                 {@const ship = shipGrid[y][x]}
-                                {#if ship && ship.sunk}
+                                {#if ship && ships?.find(s => s.id === ship)?.sunk}
                                     <div class="hit-marker sunk">S</div>
                                 {:else}
                                     <div class="hit-marker">H</div>
@@ -179,6 +164,10 @@
         background-color: #3498db;
     }
 
+    .cell.sunk {
+        background-color: #e74c3c;
+    }
+
     .ship-label {
         position: absolute;
         top: 50%;
@@ -211,7 +200,7 @@
     }
 
     .hit-marker.sunk {
-        color: #ffffff;
+        color: #000000;
         background-color: #e74c3c;
     }
 
@@ -224,5 +213,9 @@
         font-weight: bold;
         font-size: 18px;
         color: #e74c3c;
+    }
+
+    .game-board.hidden {
+        display: none;
     }
 </style> 

@@ -12,7 +12,8 @@ const defaultBattleshipConfig = {
     submarine: { length: 3, count: 1, prefix: "S" },
     destroyer: { length: 2, count: 3, prefix: "D" }
   },
-  debugCpuBoard: false
+  debugCpuBoard: false,
+  cpuName: 'CPU'
 };
 
 /**
@@ -100,11 +101,17 @@ function validateBattleshipConfig(config) {
     if (config.debugCpuBoard && typeof config.debugCpuBoard === 'boolean') {
       validatedConfig.debugCpuBoard = config.debugCpuBoard;
     }
-    
+
+    // Validate cpuName
+    if (config.cpuName && typeof config.cpuName === 'string' && config.cpuName.length <= 10 && /^[A-Za-z0-9\s\.-]{3,10}$/.test(config.cpuName)) {
+      validatedConfig.cpuName = config.cpuName;
+    }
+
     // Only replace default ship types if at least one valid ship was defined
     if (valid) {
       validatedConfig.shipTypes = shipTypes;
     }
+
   }
   
   return validatedConfig;
@@ -114,10 +121,10 @@ function validateBattleshipConfig(config) {
  * CPU logic - place ships randomly on the board
  */
 function placeCpuShips(gameState) {
-  if (!gameState.playerBoards['CPU']) return;
+  if (!gameState.playerBoards[gameState.config.cpuName]) return;
   
-  const cpuBoard = gameState.playerBoards['CPU'];
-  const ships = gameState.playerBoards['CPU'].ships;
+  const cpuBoard = gameState.playerBoards[gameState.config.cpuName];
+  const ships = gameState.playerBoards[gameState.config.cpuName].ships;
 
   const config = gameState.config; 
   const board_size = config.boardSize;

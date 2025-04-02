@@ -1,6 +1,6 @@
 const express = require('express');
 const db = require('../common/db');
-const { battleshipConfig, generateGameId, createEmptyBoard, validateBattleshipConfig } = require('./utils');
+const { generateGameId, createEmptyBoard, validateBattleshipConfig } = require('./utils');
 
 const router = express.Router();
 
@@ -32,7 +32,15 @@ router.post('/battleship/create_game', (req, res) => {
   
   // Validate and use the client configuration or fall back to default
   const gameConfig = validateBattleshipConfig(config);
-  
+
+  console.log("gameConfig");
+  console.log(gameConfig);
+
+    // Prevent using CPU name as player initials
+    if (initials === gameConfig.cpuName) {
+      return res.status(400).json({ status: 'error', message: `Cannot use ${gameConfig.cpuName} as player initials` });
+    }
+
   const gameId = generateGameId();
   
   const gameState = {
@@ -59,9 +67,8 @@ router.post('/battleship/create_game', (req, res) => {
   
   // For CPU games, immediately add a CPU player
   if (mode === 'cpu') {
-    const cpuInitials = 'CPU';
-    gameState.players.push(cpuInitials);
-    gameState.playerBoards[cpuInitials] = createEmptyBoard(gameConfig.shipTypes, gameConfig.boardSize);
+    gameState.players.push(gameConfig.cpuName);
+    gameState.playerBoards[gameConfig.cpuName] = createEmptyBoard(gameConfig.shipTypes, gameConfig.boardSize);
     placeCpuShips(gameState);
   }
   
@@ -88,9 +95,10 @@ router.post('/battleship/join_game', (req, res) => {
       message: 'Game ID and player initials required' 
     });
   }
+
   
   const gameState = battleship_games.get(gameId);
-  
+
   if (!gameState) {
     return res.status(404).json({ 
       status: 'error', 
@@ -112,6 +120,11 @@ router.post('/battleship/join_game', (req, res) => {
     });
   }
   
+  // Prevent using CPU name as player initials
+  if (initials === gameState.config.cpuName) {
+    return res.status(400).json({ status: 'error', message: `Cannot use ${gameState.config.cpuName} as player initials` });
+  }
+
   // Add the second player
   gameState.players.push(initials);
   gameState.playerBoards[initials] = createEmptyBoard(gameState.config.shipTypes, gameState.config.boardSize);
@@ -260,7 +273,7 @@ router.post('/battleship/place_fleet', (req, res) => {
     gameState.currentTurn = gameState.players[Math.floor(Math.random() * gameState.players.length)];
     
     // If CPU is first to go, make its move immediately
-    if (gameState.mode === 'cpu' && gameState.currentTurn === 'CPU') {
+    if (gameState.mode === 'cpu' && gameState.currentTurn === gameState.config.cpuName) {
       setTimeout(() => makeCpuMove(gameState), 1000);
     }
   }
@@ -400,7 +413,7 @@ router.post('/battleship/fire', (req, res) => {
       gameState.bonusShotActive = false;
       
       // If opponent is CPU, make a CPU move
-      if (gameState.mode === 'cpu' && opponent === 'CPU') {
+      if (gameState.mode === 'cpu' && opponent === gameState.config.cpuName) {
         // Schedule CPU move asynchronously
         setTimeout(() => makeCpuMove(gameState), 1000);
       }
@@ -486,7 +499,7 @@ router.get('/battleship/game_state', (req, res) => {
         gameState.lastMoveTime = now;
         
         // If new turn is CPU, make CPU move
-        if (gameState.mode === 'cpu' && opponent === 'CPU') {
+        if (gameState.mode === 'cpu' && opponent === gameState.config.cpuName) {
           setTimeout(() => makeCpuMove(gameState), 1000);
         }
       }
@@ -548,7 +561,7 @@ router.post('/battleship/timeout_bonus_shot', (req, res) => {
     gameState.lastMoveTime = Date.now();
     
     // If new turn is CPU, make CPU move
-    if (gameState.mode === 'cpu' && opponent === 'CPU') {
+    if (gameState.mode === 'cpu' && opponent === gameState.config.cpuName) {
       setTimeout(() => makeCpuMove(gameState), 1000);
     }
   }
@@ -611,9 +624,9 @@ router.post('/battleship/delete_score', (req, res) => {
  * CPU logic - place ships randomly on the board
  */
 function placeCpuShips(gameState) {
-  if (!gameState.playerBoards['CPU']) return;
+  if (!gameState.playerBoards[gameState.config.cpuName]) return;
   
-  const cpuBoard = gameState.playerBoards['CPU'];
+  const cpuBoard = gameState.playerBoards[gameState.config.cpuName];
   const BOARD_SIZE = gameState.config.boardSize;
   const ships = cpuBoard.ships;
   
@@ -697,11 +710,11 @@ function canPlaceShip(ship, x, y, orientation, board) {
  * Make a CPU move
  */
 function makeCpuMove(gameState) {
-  if (gameState.status !== 'active' || gameState.currentTurn !== 'CPU') {
+  if (gameState.status !== 'active' || gameState.currentTurn !== gameState.config.cpuName) {
     return;
   }
   
-  const opponent = gameState.players.find(player => player !== 'CPU');
+  const opponent = gameState.players.find(player => player !== gameState.config.cpuName);
   if (!opponent) return;
   
   const playerBoard = gameState.playerBoards[opponent];
@@ -754,7 +767,7 @@ function makeCpuMove(gameState) {
   
   // Record the move
   const move = {
-    playerId: 'CPU',
+    playerId: gameState.config.cpuName,
     position: { x, y },
     result,
     shipId,
@@ -769,7 +782,7 @@ function makeCpuMove(gameState) {
   
   if (allShipsSunk) {
     gameState.status = 'opponent_won';
-    gameState.winner = 'CPU';
+    gameState.winner = gameState.config.cpuName;
   } else {
     // Check if CPU gets another shot
     const getBonusShot = gameState.config.bonusShotWhenHit && (result === 'hit' || result === 'sunk');

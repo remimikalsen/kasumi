@@ -7,9 +7,10 @@
     import { goto } from '$app/navigation';
 
     export let username: string = "Player";
-    export let gameId: string | null = null;
-    
-    let gameState: GameState | null = null;
+    export let gameState: GameState | null = null;
+
+    let gameId = gameState?.gameId;
+   
     let opponentReady = false;
     let playerReady = false;
     let gameActive = false;
@@ -61,6 +62,9 @@
     function handleGameStateUpdate(newState: GameState) {
         gameState = newState;
         
+        // Get opponent's initials
+        const opponent = newState.players.find(player => player !== username);
+        
         // Update game status based on state
         switch (newState.status) {
             case 'waiting_for_opponent':
@@ -71,66 +75,81 @@
                 if (!playerReady) {
                     gameMessage = 'Place your ships on the board';
                 } else if (!opponentReady) {
-                    gameMessage = 'Waiting for opponent to place ships...';
+                    // For CPU games, the CPU is already ready
+                    if (newState.mode === 'cpu') {
+                        gameMessage = 'Game is starting...';
+                        opponentReady = true;
+                    } else {
+                        gameMessage = 'Waiting for opponent to place ships...';
+                    }
                 } else {
                     gameMessage = 'Both players ready! Game starting...';
                 }
                 gameActive = false;
                 break;
             case 'active':
-                if (newState.currentTurn === username) {
-                    gameMessage = 'Your turn!';
-                } else {
-                    // Get the last move to determine the message
-                    const lastMove = newState.moves[newState.moves.length - 1];
-                    if (lastMove) {
-                        let message = '';
-                        if (lastMove.playerId === username) {
-                            // Player's move
-                            if (lastMove.result === 'miss') {
-                                message = 'You missed!';
-                            } else if (lastMove.result === 'hit') {
-                                message = 'You hit a ship!';
-                            } else if (lastMove.result === 'sunk') {
-                                const shipName = getShipNameFromId(lastMove.shipId ?? undefined);
-                                message = `You sunk the opponent's ${shipName}!`;
-                            }
-                            
-                            // Add bonus shot message if applicable
-                            if (newState.bonusShotActive) {
-                                message += ' You have a bonus shot!';
-                            } else {
-                                message += ' CPU\'s turn!';
-                            }
-                        } else {
-                            // CPU's move
-                            if (lastMove.result === 'miss') {
-                                message = 'CPU missed!';
-                            } else if (lastMove.result === 'hit') {
-                                message = 'CPU hit your ship!';
-                            } else if (lastMove.result === 'sunk') {
-                                const shipName = getShipNameFromId(lastMove.shipId ?? undefined);
-                                message = `CPU sunk your ${shipName}!`;
-                            }
-                            
-                            // Add bonus shot message if applicable
-                            if (newState.bonusShotActive) {
-                                message += ' CPU has a bonus shot!';
-                            } else {
-                                message += ' Your turn!';
-                            }
+                // For CPU games, ensure opponent is marked as ready when game becomes active
+                if (newState.mode === 'cpu') {
+                    opponentReady = true;
+                }
+                
+                // Get the last move to determine the message
+                const lastMove = newState.moves[newState.moves.length - 1];
+                if (lastMove) {
+                    let message = '';
+                    if (lastMove.playerId === username) {
+                        // Player's move
+                        if (lastMove.result === 'miss') {
+                            message = 'You missed!';
+                        } else if (lastMove.result === 'hit') {
+                            message = 'You hit a ship!';
+                        } else if (lastMove.result === 'sunk') {
+                            const shipName = getShipNameFromId(lastMove.shipId ?? undefined);
+                            message = `You sunk ${opponent}'s ${shipName}!`;
                         }
-                        gameMessage = message;
+                        
+                        // Add bonus shot message if applicable
+                        if (newState.bonusShotActive) {
+                            message += ' You have a bonus shot!';
+                        } else {
+                            message += ` ${opponent}'s turn!`;
+                        }
                     } else {
-                        gameMessage = 'CPU\'s turn';
+                        // Opponent's move
+                        if (lastMove.result === 'miss') {
+                            message = `${opponent} missed!`;
+                        } else if (lastMove.result === 'hit') {
+                            message = `${opponent} hit your ship!`;
+                        } else if (lastMove.result === 'sunk') {
+                            const shipName = getShipNameFromId(lastMove.shipId ?? undefined);
+                            message = `${opponent} sunk your ${shipName}!`;
+                        }
+                        
+                        // Add bonus shot message if applicable
+                        if (newState.bonusShotActive) {
+                            message += ` ${opponent} has a bonus shot!`;
+                        } else {
+                            message += ' Your turn!';
+                        }
                     }
+                    gameMessage = message;
+
+                    // Update player's board with opponent's shots
+                    //if (newState.playerBoards[username] && playerBoardComponent) {
+                    //   const playerBoard = newState.playerBoards[username];
+                    //    playerBoardComponent.updateBoard(playerBoard.board);
+                    //}
+
+                    // Update opponent's board with player's shots
+                    //if (newState.playerBoards[opponent!] && opponentBoardComponent) {
+                    //    const opponentBoard = newState.playerBoards[opponent!];
+                    //    opponentBoardComponent.updateBoard(opponentBoard.board);
+                    //}
+                } else {
+                    gameMessage = newState.currentTurn === username ? 'Your turn!' : `${opponent}'s turn!`;
                 }
+                
                 gameActive = true;
-                // Only update player's board with CPU shots when game is active
-                if (newState.playerBoards[username] && playerBoardComponent) {
-                    const playerBoard = newState.playerBoards[username];
-                    playerBoardComponent.updateBoard(playerBoard.board);
-                }
                 break;
             case 'player_won':
                 gameOver = true;
@@ -211,10 +230,6 @@
         }
     }
     
-    function handleOpponentReady(event: CustomEvent) {
-        opponentReady = true;
-    }
-    
     async function handleFireShot(event: CustomEvent) {
         if (!gameId || !gameState || gameState.currentTurn !== username) return;
         
@@ -284,36 +299,30 @@
 
 <div class="battleship-game">
     <div class="game-status">
-        <h2>{gameMessage}</h2>
-        {#if timeRemaining > 0}
-            <p class="bonus-shot-timer">Bonus shot: {Math.ceil(timeRemaining / 1000)}s</p>
-        {/if}
+        <h2>
+            {gameMessage}
+            {#if timeRemaining > 0}
+                <span class="bonus-shot-timer">(Can fire bonus shot within {Math.ceil(timeRemaining / 1000)}s)</span>
+            {/if}
+        </h2>
     </div>
     
     <div class="game-boards">
-        <div class="player-board">
-            <GameBoard 
-                username={username} 
-                gameId={gameId || ''}
-                on:ready={handlePlayerReady}
+        {#if gameId && gameState}
+            <GameBoard
                 bind:this={playerBoardComponent}
+                {username}
+                gameState={gameState}
+                on:ready={handlePlayerReady}
             />
-            {#if winningStreak > 0}
-                <p class="winning-streak">Win streak: {winningStreak}</p>
-            {/if}
-        </div>
         
-        {#if playerReady}
-            <div class="opponent-board">
-                <OpponentBoard 
-                    isCPU={gameState?.mode === 'cpu'}
-                    inPlayMode={gameActive}
-                    on:ready={handleOpponentReady}
-                    on:fire={handleFireShot}
-                    bind:this={opponentBoardComponent}
-                    debugMode={battleshipConfig.debugCpuBoard}
-                />
-            </div>
+            <OpponentBoard
+                bind:this={opponentBoardComponent}
+                opponentInitials={gameState?.players.find(player => player !== username) || battleshipConfig.cpuName}
+                showBoard={playerReady && opponentReady}
+                gameState={gameState}
+                on:fire={handleFireShot}
+            />
         {/if}
     </div>
     

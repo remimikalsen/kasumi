@@ -1,15 +1,17 @@
-texts<script lang="ts">
+<script lang="ts">
     import { onMount } from 'svelte';
     import { env } from '$env/dynamic/public';
     import { getLocalizedText, loadTexts, pageHeader, pageSubHeader, documentTitle } from '$lib/stores/translatedTexts.js';
     import BattleshipGame from '$lib/components/battleship/BattleshipGame.svelte';
     import GameSetup from '$lib/components/battleship/GameSetup.svelte';
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
+    import type { GameState } from '$lib/services/battleshipServices';
+    import { battleshipApi } from '$lib/services/battleshipServices';
 
     let gameStarted = false;
     let playerInitials = "";
     let gameId: string | null = null;
-    let isCPU = true;
+    let gameState: GameState | null = null;
     
     // Load language texts
     let pageTexts = 'battleship';
@@ -35,10 +37,13 @@ texts<script lang="ts">
         documentTitle.set(getLocalizedText(pageTexts, 'headerTitle') + ' - ' + getLocalizedText(commonTexts, 'documentTitle' + alt));
     }
     
-    function handleGameStart(event: CustomEvent<{username: string, gameId: string, isCPU: boolean}>) {
+    async function handleGameStart(event: CustomEvent<{username: string, gameId: string}>) {
         playerInitials = event.detail.username;
         gameId = event.detail.gameId;
-        isCPU = event.detail.isCPU;
+
+        const gameStateResponse = await battleshipApi.getGameState(gameId, playerInitials);
+        gameState = gameStateResponse.gameState;
+
         gameStarted = true;
     }
 </script>
@@ -48,7 +53,7 @@ texts<script lang="ts">
     {:else}
         <BattleshipGame 
             username={playerInitials} 
-            gameId={gameId}
+            gameState={gameState}
         />
     {/if}
     

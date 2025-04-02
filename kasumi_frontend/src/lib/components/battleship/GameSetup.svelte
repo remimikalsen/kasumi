@@ -43,11 +43,11 @@
             const response = await battleshipApi.createGame(username, 'cpu', defaultConfig);
             if (response.status === 'success') {
                 gameId = response.gameId;
+
                 gameStarted = true;
                 dispatch('gameStart', {
                     username,
-                    gameId,
-                    isCPU: gameMode === 'cpu'
+                    gameId
                 });
             } else {
                 errorMessage = 'Failed to start game. Please try again.';
@@ -58,53 +58,41 @@
         }
     }
 
-    function handleReady(event: CustomEvent) {
-        // The ready event is now handled by the GameBoard component
-        console.log('Player ready:', event.detail);
-    }
 </script>
 
-{#if !gameStarted}
-    <div class="game-setup">
-        <h2>Getting ready to play</h2>
-        
-        {#if !initialsSubmitted}
-            <VirtualKeyboard onSubmit={handleUsernameChange} />
-        {:else}
-            <div class="initials-display">
-                <p>Your initials: <span>{username}</span></p>
-                <button class="edit-button" on:click={() => initialsSubmitted = false}>Edit</button>
-            </div>
-        {/if}
-        
-        {#if isUsernameValid}
-            <GameModeSelector 
-                on:gameModeSelect={handleGameModeSelect}
-                on:tokenInput={handleTokenInput}
-            />
-        {/if}
+<div class="game-setup">
+    <h2>Getting ready to play</h2>
+    
+    {#if !initialsSubmitted}
+        <VirtualKeyboard onSubmit={handleUsernameChange} />
+    {:else}
+        <div class="initials-display">
+            <p>Your initials: <span>{username}</span></p>
+            <button class="edit-button" on:click={() => initialsSubmitted = false}>Edit</button>
+        </div>
+    {/if}
+    
+    {#if isUsernameValid}
+        <GameModeSelector 
+            on:gameModeSelect={handleGameModeSelect}
+            on:tokenInput={handleTokenInput}
+        />
+    {/if}
 
-        {#if errorMessage}
-            <p class="error-message">{errorMessage}</p>
-        {/if}
+    {#if errorMessage}
+        <p class="error-message">{errorMessage}</p>
+    {/if}
 
-        {#if isUsernameValid && gameMode && gameMode !== 'cpu'}
-            <button 
-                class="start-button"
-                on:click={startGame}
-                disabled={gameMode === 'token' && !gameToken}
-            >
-                Start Game
-            </button>
-        {/if}
-    </div>
-{:else if gameId}
-    <GameBoard 
-        username={username}
-        gameId={gameId}
-        on:ready={handleReady}
-    />
-{/if}
+    {#if isUsernameValid && gameMode && gameMode !== 'cpu'}
+        <button 
+            class="start-button"
+            on:click={startGame}
+            disabled={gameMode === 'token' && !gameToken}
+        >
+            Start Game
+        </button>
+    {/if}
+</div>
 
 <style>
     .game-setup {

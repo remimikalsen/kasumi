@@ -1,20 +1,21 @@
 <!-- GameBoard.svelte -->
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import { battleshipConfig } from '$lib/config/battleshipConfig.js';
     import type { Ship } from '@lib/services/battleshipServices';
-    
+    import type { GameState } from '@lib/services/battleshipServices';
     const dispatch = createEventDispatcher();
     
     export let username: string;
-    export let gameId: string;
-    
+    export let gameState: GameState;
+
+    const gameId = gameState.gameId;
+
     // Board state
-    let ships: Ship[] = [];
-    let board: string[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill('empty'));
-    let shipGrid: (Ship | null)[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill(null));
+    let ships = gameState.playerBoards[username]?.ships;
+    let board = gameState.playerBoards[username]?.board;
+    let shipGrid = gameState.playerBoards[username]?.shipGrid;
     
-    const BOARD_SIZE = battleshipConfig.boardSize;
+    const board_size = gameState.config.boardSize;
     
     let selectedShip: Ship | null = null;
     let isDragging = false;
@@ -26,25 +27,6 @@
     let dragOffsetRelativeToShipStart = { x: 0, y: 0 };
     let previewCells: {x: number, y: number}[] = [];
     let previewState: string | null = null;
-
-    // Initialize ships from config
-    $: {
-        if (ships.length === 0) {
-            ships = Object.entries(battleshipConfig.shipTypes).reduce((acc, [type, details]) => {
-                const { length, count, prefix } = details;
-                const newShips = Array(count).fill(null).map((_, i) => ({
-                    id: `${prefix}${i + 1}`,
-                    type,
-                    prefix, 
-                    length,
-                    placed: false,
-                    hits: 0,
-                    sunk: false
-                }));
-                return [...acc, ...newShips];
-            }, [] as Ship[]);
-        }
-    }
 
     // Ship placement functions must be done locally, and when the user is ready, the ships and their placement is sent to the server
     function handleShipDragStart(event: MouseEvent | TouchEvent, ship: Ship) {
@@ -99,7 +81,7 @@
         const boardRect = boardElement.getBoundingClientRect();
         
         // Get cell position from mouse position relative to board
-        const cellSize = boardRect.width / BOARD_SIZE;
+        const cellSize = boardRect.width / board_size;
         const offsetX = mousePosition.x - boardRect.left;
         const offsetY = mousePosition.y - boardRect.top;
         
@@ -108,7 +90,7 @@
         const y = Math.floor(offsetY / cellSize);
         
         // Ensure position is within bounds
-        if (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE) {
+        if (x >= 0 && x < board_size && y >= 0 && y < board_size) {
             updatePreview(x, y);
         }
     }
@@ -147,7 +129,8 @@
         // Check if cell has a ship
         if (board[y][x] === 'ship') {
             // Find the ship
-            const ship = shipGrid[y][x];
+            const shipId = shipGrid[y][x];
+            const ship = ships.find(ship => ship.id === shipId);
             if (ship) {
                 // Start dragging the ship
                 handleShipDragStart(event, ship);
@@ -171,8 +154,8 @@
             let attempts = 0;
             
             while (!placed && attempts < 100) {
-                const x = Math.floor(Math.random() * BOARD_SIZE);
-                const y = Math.floor(Math.random() * BOARD_SIZE);
+                const x = Math.floor(Math.random() * board_size);
+                const y = Math.floor(Math.random() * board_size);
                 currentOrientation = Math.random() < 0.5 ? 'horizontal' : 'vertical';
                 
                 selectedShip = ship;
@@ -272,7 +255,7 @@
             }
             
             // Check if position is within bounds
-            if (posX >= 0 && posX < BOARD_SIZE && posY >= 0 && posY < BOARD_SIZE) {
+            if (posX >= 0 && posX < board_size && posY >= 0 && posY < board_size) {
                 previewCells.push({ x: posX, y: posY });
             }
         }
@@ -297,12 +280,12 @@
             }
             
             // Check if position is within bounds
-            if (posX < 0 || posX >= BOARD_SIZE || posY < 0 || posY >= BOARD_SIZE) {
+            if (posX < 0 || posX >= board_size || posY < 0 || posY >= board_size) {
                 return false;
             }
             
             // Check if position is already occupied by another ship
-            if (board[posY][posX] === 'ship' && shipGrid[posY][posX] !== selectedShip) {
+            if (board[posY][posX] === 'ship' && shipGrid[posY][posX] !== selectedShip.id) {
                 return false;
             }
         }
@@ -327,7 +310,7 @@
             
             // Place ship on board
             board[posY][posX] = 'ship';
-            shipGrid[posY][posX] = selectedShip;
+            shipGrid[posY][posX] = selectedShip.id;
         }
         
         // Update ship state
@@ -477,7 +460,7 @@
                             on:touchstart={(e) => handleBoardCellMouseDown(e, x, y)}
                         >
                             {#if cell === 'ship'}
-                                {@const ship = shipGrid[y][x]}
+                                {@const ship = ships.find(ship => ship.id === shipGrid[y][x])}
                                 {#if ship && isShipCenter(ship, x, y) && ship.length > 1 && !isReady}
                                     <button 
                                         class="rotate-button"
@@ -494,7 +477,7 @@
                             {/if}
                             
                             {#if cell === 'hit'}
-                                {@const ship = shipGrid[y][x]}
+                                {@const ship = ships.find(ship => ship.id === shipGrid[y][x])}
                                 {#if ship && ship.sunk}
                                     <div class="hit-marker sunk">S</div>
                                 {:else}
