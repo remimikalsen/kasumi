@@ -1,114 +1,51 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
-    import { generateShipsFromConfig, type Ship, type CellState, type GameState } from '$lib/services/battleshipGameService';
+    import type { Ship } from '@lib/services/battleshipServices';
+    
     const dispatch = createEventDispatcher();
     
     export let isCPU: boolean = true;
     export let inPlayMode: boolean = false;
     export let debugMode: boolean = false;
     
-    // Export these properties so they can be accessed from the parent component
-    export let ships: Ship[] = generateShipsFromConfig();
-    export let board: CellState[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill('empty'));
-    export let shipGrid: (Ship | null)[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill(null));
+    // Board state
+    let board: string[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill('empty'));
+    let shipGrid: (Ship | null)[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill(null));
     
-    const BOARD_SIZE = battleshipConfig.boardSize;
-    
-    let isReady = false;
-    let allShipsPlaced = false;
-    
-    function createEmptyBoard() {
-        board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill('empty'));
-        shipGrid = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+    function handleCellClick(x: number, y: number) {
+        if (!inPlayMode) return;
+        dispatch('fire', { position: { x, y } });
     }
-    
-    // Function to reset the board state
-    export function resetBoard() {
-        // Reset ships to default state
-        ships = ships.map(ship => ({
-            ...ship,
-            placed: false,
-            position: undefined,
-            orientation: undefined,
-            hits: 0,
-            sunk: false
-        }));
+
+    export function updateCell(position: { x: number; y: number }, result: 'hit' | 'miss' | 'sunk', shipId: string | null) {
+        const { x, y } = position;
+        board[y][x] = result;
         
-        // Reset board and shipGrid
-        board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill('empty'));
-        shipGrid = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
-        
-        // Reset state flags
-        isReady = false;
-        allShipsPlaced = false;
-    }
-    
-    // Function to sync the board with game state
-    export function syncWithGameState(gameState: GameState) {
-        // If we have a game state with opponent board, use that
-        if (gameState && gameState.opponentBoard) {
-            // Copy the ships
-            ships = [...gameState.opponentBoard.ships];
-            
-            // Reset and rebuild the board based on ships
-            board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill('empty'));
-            shipGrid = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
-            
-            // Place ships on the board
-            for (const ship of ships) {
-                if (ship.placed && ship.position && ship.orientation) {
-                    const { x, y } = ship.position;
-                    const orientation = ship.orientation;
-                    
-                    for (let i = 0; i < ship.length; i++) {
-                        const newX = orientation === 'horizontal' ? x + i : x;
-                        const newY = orientation === 'vertical' ? y + i : y;
-                        
-                        if (newX < BOARD_SIZE && newY < BOARD_SIZE) {
-                            board[newY][newX] = 'ship';
-                            shipGrid[newY][newX] = ship;
+        if (shipId) {
+            // Find the ship in the grid and update its state
+            for (let i = 0; i < board.length; i++) {
+                for (let j = 0; j < board[i].length; j++) {
+                    if (shipGrid[i][j]?.id === shipId) {
+                        shipGrid[i][j]!.hits++;
+                        if (result === 'sunk') {
+                            shipGrid[i][j]!.sunk = true;
                         }
                     }
                 }
             }
-            
-            // Copy hit/miss markers
-            for (let y = 0; y < BOARD_SIZE; y++) {
-                for (let x = 0; x < BOARD_SIZE; x++) {
-                    if (gameState.opponentBoard.board[y][x] === 'hit' || 
-                        gameState.opponentBoard.board[y][x] === 'miss') {
-                        board[y][x] = gameState.opponentBoard.board[y][x];
-                    }
-                }
-            }
-            
-            allShipsPlaced = true;
-            isReady = true;
-            
-            // Force UI update
-            board = [...board];
-            ships = [...ships];
         }
+        
+        // Force update
+        board = [...board];
+        shipGrid = [...shipGrid];
     }
-
-    // Initialize empty board - ship placement will be handled by the game service
-    createEmptyBoard();
-
-    // Function to check if a cell is the first cell of a ship
+    
+    // Function to check if a cell is the start of a ship
     function isShipStart(ship: Ship, x: number, y: number): boolean {
         if (!ship.position) return false;
         return x === ship.position.x && y === ship.position.y;
     }
-    
-    // Function to handle player's shot
-    function handleCellClick(x: number, y: number) {
-        if (!inPlayMode || board[y][x] === 'hit' || board[y][x] === 'miss') return;
-        
-        // Dispatch event to parent component to handle the shot
-        dispatch('fire', { x, y });
-    }
-    
 </script>
 
 <div class="game-board {debugMode ? 'debug-mode' : ''}">
@@ -153,7 +90,6 @@
 </div>
 
 <style>
-
     h2 {
         margin: 0;
         color: #e94560;

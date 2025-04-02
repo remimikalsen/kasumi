@@ -1,0 +1,140 @@
+// Types based on the API implementation
+export interface BattleshipConfig {
+  boardSize: number;
+  bonusShotWhenHit: boolean;
+  bonusShotTimeout: number;
+  shipTypes: {
+    [key: string]: {
+      length: number;
+      count: number;
+      prefix: string;
+    };
+  };
+  debugCpuBoard: boolean;
+}
+
+export interface Ship {
+  id: string;
+  type: string;
+  prefix: string;
+  length: number;
+  placed: boolean;
+  hits: number;
+  sunk: boolean;
+  position?: { x: number; y: number };
+  orientation?: 'horizontal' | 'vertical';
+}
+
+export interface PlayerBoard {
+  ships: Ship[];
+  board: string[][];
+  shipGrid: (string | null)[][];
+  ready: boolean;
+}
+
+export interface GameState {
+  gameId: string;
+  mode: 'cpu' | 'multiplayer';
+  status: 'waiting_for_opponent' | 'setup' | 'active' | 'player_won' | 'opponent_won';
+  currentTurn: string | null;
+  players: string[];
+  playerBoards: { [key: string]: PlayerBoard };
+  moves: {
+    playerId: string;
+    position: { x: number; y: number };
+    result: 'hit' | 'miss' | 'sunk';
+    shipId: string | null;
+    timestamp: number;
+  }[];
+  lastMoveTime: number;
+  bonusShotActive: boolean;
+  winner: string | null;
+  config: BattleshipConfig;
+}
+
+export interface LeaderboardEntry {
+  initials: string;
+  win_streak: number;
+}
+
+// API base URL
+const API_BASE_URL = 'http://localhost:3000/api/battleship';
+
+// API service
+export const battleshipApi = {
+    async createGame(initials: string, mode: 'cpu' | 'multiplayer', config?: Partial<BattleshipConfig>): Promise<{ gameId: string; status: string }> {
+        const response = await fetch(`${API_BASE_URL}/create_game`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ initials, mode, config })
+        });
+        return response.json();
+    },
+
+    async reMatch(gameId: string): Promise<{ status: string }> {
+        const response = await fetch(`${API_BASE_URL}/re_match`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gameId })
+        });
+        return response.json();
+    },
+
+    async joinGame(gameId: string, initials: string): Promise<{ status: string }> {
+        const response = await fetch(`${API_BASE_URL}/join_game`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gameId, initials })
+        });
+        return response.json();
+    },
+
+    async placeFleet(gameId: string, initials: string, shipGrid: (string | null)[][]): Promise<{ status: string; message: string }> {
+        const response = await fetch(`${API_BASE_URL}/place_fleet`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gameId, initials, shipGrid })
+        });
+        return response.json();
+    },
+
+    async fire(gameId: string, initials: string, position: { x: number; y: number }): Promise<{ result: 'hit' | 'miss' | 'sunk'; shipId: string | null; status: string }> {
+        const response = await fetch(`${API_BASE_URL}/fire`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gameId, initials, position })
+        });
+        return response.json();
+    },
+
+    async getGameState(gameId: string, initials: string, lastUpdate?: number): Promise<{ gameState: GameState; status: string }> {
+        const params = new URLSearchParams({ gameId, initials });
+        if (lastUpdate) params.append('lastUpdate', lastUpdate.toString());
+        
+        const response = await fetch(`${API_BASE_URL}/game_state?${params}`);
+        return response.json();
+    },
+
+    async timeoutBonusShot(gameId: string, initials: string): Promise<{ gameState: GameState; status: string }> {
+        const response = await fetch(`${API_BASE_URL}/timeout_bonus_shot`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gameId, initials })
+        });
+        return response.json();
+    },
+
+    async submitScore(initials: string, winStreak: number): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/submit_score`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ initials, win_streak: winStreak })
+        });
+        return response.json();
+    },
+
+    async getLeaderboard(): Promise<LeaderboardEntry[]> {
+        const response = await fetch(`${API_BASE_URL}/get_leaderboard`);
+        return response.json();
+    }
+}; 

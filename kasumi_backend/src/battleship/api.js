@@ -1,6 +1,6 @@
 const express = require('express');
 const db = require('../common/db');
-const { battleshipConfig, generateGameId, createEmptyBoard } = require('./utils');
+const { battleshipConfig, generateGameId, createEmptyBoard, validateBattleshipConfig } = require('./utils');
 
 const router = express.Router();
 
@@ -122,6 +122,49 @@ router.post('/battleship/join_game', (req, res) => {
   });
 });
 
+
+
+/*
+ * Re-match a game
+ * 
+ * @route POST /api/battleship/re_match
+ */
+router.post('/battleship/re_match', (req, res) => {
+  const { gameId } = req.body;
+
+  if (!gameId) {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'Game ID required' 
+    });
+  }
+
+  const gameState = battleship_games.get(gameId);
+
+  if (!gameState) {
+    return res.status(404).json({  
+      status: 'error', 
+      message: 'Game not found' 
+    });
+  }
+
+  // Reset game state to the setup phase
+  gameState.status = 'setup';
+  gameState.currentTurn = null;
+  gameState.moves = [];
+  gameState.lastMoveTime = Date.now();
+  gameState.bonusShotActive = false;
+  gameState.winner = null;  
+
+  // Clear the player board
+  gameState.playerBoards[initials].board = createEmptyBoard(gameState.config.shipTypes, gameState.config.boardSize);
+  gameState.playerBoards[initials].shipGrid = null;
+  gameState.playerBoards[initials].ready = false;
+
+});
+
+
+
 /**
  * Place fleet on the board
  * 
@@ -215,6 +258,11 @@ router.post('/battleship/place_fleet', (req, res) => {
   if (allReady) {
     gameState.status = 'active';
     gameState.currentTurn = gameState.players[Math.floor(Math.random() * gameState.players.length)];
+    
+    // If CPU is first to go, make its move immediately
+    if (gameState.mode === 'cpu' && gameState.currentTurn === 'CPU') {
+      setTimeout(() => makeCpuMove(gameState), 1000);
+    }
   }
   
   // Only return success status, no game state
@@ -305,6 +353,19 @@ router.post('/battleship/fire', (req, res) => {
           result = 'hit';
         }
       }
+    }
+  } else if (opponentBoard.board[y][x] === 'hit' && opponentBoard.shipGrid[y][x]) {
+    // This is a hit on an already hit ship - check if it's the final shot to sink it
+    shipId = opponentBoard.shipGrid[y][x];
+    const ship = opponentBoard.ships.find(s => s.id === shipId);
+    if (ship && !ship.sunk && ship.hits >= ship.length - 1) {
+      ship.sunk = true;
+      result = 'sunk';
+    } else {
+      return res.status(400).json({ 
+        status: 'error', 
+        message: 'Cell already targeted' 
+      });
     }
   } else {
     // It's a miss
@@ -601,7 +662,7 @@ function placeCpuShips(gameState) {
  * Check if a ship can be placed at a position
  */
 function canPlaceShip(ship, x, y, orientation, board) {
-  const BOARD_SIZE = gameState.config.boardSize;
+  const BOARD_SIZE = board.length;
   
   for (let i = 0; i < ship.length; i++) {
     const newX = orientation === 'horizontal' ? x + i : x;
@@ -679,6 +740,8 @@ function makeCpuMove(gameState) {
         if (ship.hits >= ship.length) {
           ship.sunk = true;
           result = 'sunk';
+          // Mark all cells of the sunk ship as hit
+          markShipAsSunk(playerBoard, ship);
         } else {
           result = 'hit';
         }
@@ -718,9 +781,27 @@ function makeCpuMove(gameState) {
     } else {
       // CPU gets a bonus shot
       gameState.bonusShotActive = true;
+      gameState.lastMoveTime = Date.now();
       
       // Make another move after delay
       setTimeout(() => makeCpuMove(gameState), 1500);
+    }
+  }
+}
+
+// Helper function to mark all cells of a sunk ship
+function markShipAsSunk(board, ship) {
+  if (!ship.position || !ship.orientation) return;
+  
+  const { x, y } = ship.position;
+  const orientation = ship.orientation;
+  
+  for (let i = 0; i < ship.length; i++) {
+    const posX = orientation === 'horizontal' ? x + i : x;
+    const posY = orientation === 'vertical' ? y + i : y;
+    
+    if (posX < board.board[0].length && posY < board.board.length) {
+      board.board[posY][posX] = 'hit';
     }
   }
 }

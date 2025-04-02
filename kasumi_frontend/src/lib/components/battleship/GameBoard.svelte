@@ -1,678 +1,468 @@
+<!-- GameBoard.svelte -->
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
-    import { generateShipsFromConfig, type Ship, type CellState, type Orientation, type Position } from '$lib/services/battleshipGameService';
-    const dispatch = createEventDispatcher();
-
-    export let username: string;
-    export let isCPU: boolean;
+    import type { Ship } from '@lib/services/battleshipServices';
     
-    // Export these properties so they can be accessed from the parent component
-    export let ships: Ship[] = generateShipsFromConfig();
-    export let board: CellState[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill('empty'));
-    export let shipGrid: (Ship | null)[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill(null));
-
+    const dispatch = createEventDispatcher();
+    
+    export let username: string;
+    export let gameId: string;
+    
+    // Board state
+    let ships: Ship[] = [];
+    let board: string[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill('empty'));
+    let shipGrid: (Ship | null)[][] = Array(battleshipConfig.boardSize).fill(null).map(() => Array(battleshipConfig.boardSize).fill(null));
+    
     const BOARD_SIZE = battleshipConfig.boardSize;
     
     let selectedShip: Ship | null = null;
     let isDragging = false;
-    let currentOrientation: Orientation = 'horizontal';
+    let currentOrientation: 'horizontal' | 'vertical' = 'horizontal';
     let isReady = false;
     let allShipsPlaced = false;
-    let dragOffset = { x: 0, y: 0 };
+    
     let mousePosition = { x: 0, y: 0 };
     let dragOffsetRelativeToShipStart = { x: 0, y: 0 };
+    let previewCells: {x: number, y: number}[] = [];
+    let previewState: string | null = null;
 
-    // For ship placement preview
-    let previewCells: Position[] = [];
-    let previewState: 'valid' | 'invalid' | null = null;
-
-    // Force UI to update reactively when ships array changes
-    //$: placedShips = ships.filter(ship => ship.placed);
-    //$: unplacedShips = ships.filter(ship => !ship.placed);
-
-    // Add these variables to track original position
-    let dragStartPosition: Position | undefined = undefined;
-    let dragStartOrientation: Orientation | undefined = undefined;
-    let dragStartWasPlaced = false;
-
-    // Add a resetBoard method to reset the game state
-    export function resetBoard() {
-        // Reset all ships to unplaced state
-        ships = ships.map(ship => ({
-            ...ship,
-            placed: false,
-            position: undefined,
-            orientation: undefined,
-            hits: 0,
-            sunk: false
-        }));
-        
-        // Reset the board cells
-        board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill('empty'));
-        
-        // Reset the ship grid
-        shipGrid = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
-        
-        // Reset other state variables
-        isReady = false;
-        allShipsPlaced = false;
-        
-        // Force UI update
-        ships = [...ships];
+    // Initialize ships from config
+    $: {
+        if (ships.length === 0) {
+            ships = Object.entries(battleshipConfig.shipTypes).reduce((acc, [type, details]) => {
+                const { length, count, prefix } = details;
+                const newShips = Array(count).fill(null).map((_, i) => ({
+                    id: `${prefix}${i + 1}`,
+                    type,
+                    prefix, 
+                    length,
+                    placed: false,
+                    hits: 0,
+                    sunk: false
+                }));
+                return [...acc, ...newShips];
+            }, [] as Ship[]);
+        }
     }
 
+    // Ship placement functions must be done locally, and when the user is ready, the ships and their placement is sent to the server
     function handleShipDragStart(event: MouseEvent | TouchEvent, ship: Ship) {
         if (isReady) return;
         
         event.preventDefault();
-        event.stopPropagation();
         
-        isDragging = true;
-        selectedShip = ship;
-        currentOrientation = ship.orientation || 'horizontal';
-        
-        // Record the starting position and state
-        dragStartPosition = ship.position ? {...ship.position} : undefined;
-        dragStartOrientation = ship.orientation;
-        dragStartWasPlaced = ship.placed;
-        
-        // Calculate drag offset for ghost image positioning AND set the relative offset
-        if (event instanceof MouseEvent) {
-            const target = event.currentTarget as HTMLElement;
-            const rect = target.getBoundingClientRect();
-            
-            // Calculate which part of the ship was clicked relative to its start
-            // For ships in container, we need to calculate based on button width
-            const offsetWithinButton = event.clientX - rect.left;
-            const cellWidth = 40; // Each cell is 40px wide
-            const clickedCellOffset = Math.floor(offsetWithinButton / cellWidth);
-            
-            // Store the relative offset for dragging calculations
-            dragOffsetRelativeToShipStart = { 
-                x: clickedCellOffset,
-                y: 0 // Only horizontal offset for ships in container
-            };
-            
-            // Store absolute cursor offset for ghost display
-            dragOffset.x = event.clientX - rect.left;
-            dragOffset.y = event.clientY - rect.top;
-            mousePosition.x = event.clientX;
-            mousePosition.y = event.clientY;
+        // Prevent immediate mouse up on mobile
+        if (event.type === 'touchstart') {
+            const touch = (event as TouchEvent).touches[0];
+            mousePosition = { x: touch.clientX, y: touch.clientY };
         } else {
-            const target = event.currentTarget as HTMLElement;
-            const rect = target.getBoundingClientRect();
-            
-            // Calculate touch offset within the button
-            const offsetWithinButton = event.touches[0].clientX - rect.left;
-            const cellWidth = 40;
-            const clickedCellOffset = Math.floor(offsetWithinButton / cellWidth);
-            
-            // Store the relative offset
-            dragOffsetRelativeToShipStart = { 
-                x: clickedCellOffset,
-                y: 0 
-            };
-            
-            // Store absolute offset for ghost
-            dragOffset.x = event.touches[0].clientX - rect.left;
-            dragOffset.y = event.touches[0].clientY - rect.top;
-            mousePosition.x = event.touches[0].clientX;
-            mousePosition.y = event.touches[0].clientY;
+            mousePosition = { x: (event as MouseEvent).clientX, y: (event as MouseEvent).clientY };
         }
         
-        // If picking up from board, remove it first
+        // If ship is already placed, remove it from board first
         if (ship.placed) {
             removeShip(ship);
         }
         
-        // Force UI update
+        selectedShip = ship;
+        isDragging = true;
+        currentOrientation = ship.orientation || 'horizontal';
+        
+        // Set up drag event listeners
+        window.addEventListener('mousemove', handleShipDragMove);
+        window.addEventListener('mouseup', handleShipDragEnd);
+        window.addEventListener('touchmove', handleShipDragMove);
+        window.addEventListener('touchend', handleShipDragEnd);
+        
+        // Force update UI
         ships = [...ships];
     }
-
-    function handleBoardCellMouseDown(event: MouseEvent | TouchEvent, x: number, y: number) {
-        if (isReady) return;
-        
-        event.preventDefault();
-        event.stopPropagation();
-        
-        // Check if there's a ship at this position
-        const ship = shipGrid[y][x];
-        if (ship && ship.position) {
-            // Record the starting position and state
-            dragStartPosition = {...ship.position};
-            dragStartOrientation = ship.orientation;
-            dragStartWasPlaced = ship.placed;
-            
-            // Calculate the clicked cell's offset from the ship's start position
-            const cellX = x - ship.position.x;
-            const cellY = y - ship.position.y;
-            
-            // Store this offset for both ghost positioning and placement calculations
-            dragOffsetRelativeToShipStart = {
-                x: cellX,
-                y: cellY
-            };
-            
-            // Calculate drag offset for ghost image positioning
-            if (event instanceof MouseEvent) {
-                const target = event.currentTarget as HTMLElement;
-                const rect = target.getBoundingClientRect();
-                dragOffset.x = event.clientX - rect.left;
-                dragOffset.y = event.clientY - rect.top;
-                mousePosition.x = event.clientX;
-                mousePosition.y = event.clientY;
-            } else {
-                const target = event.currentTarget as HTMLElement;
-                const rect = target.getBoundingClientRect();
-                dragOffset.x = event.touches[0].clientX - rect.left;
-                dragOffset.y = event.touches[0].clientY - rect.top;
-                mousePosition.x = event.touches[0].clientX;
-                mousePosition.y = event.touches[0].clientY;
-            }
-            
-            // Start the drag operation
-            isDragging = true;
-            selectedShip = ship;
-            currentOrientation = ship.orientation || 'horizontal';
-            removeShip(ship);
-            ships = [...ships]; // Force UI update
-        }
-    }
-
+    
     function handleShipDragMove(event: MouseEvent | TouchEvent) {
         if (!isDragging || !selectedShip) return;
         if (isReady) return;
         
         event.preventDefault();
         
-        // Update mouse position for ghost image
-        if (event instanceof MouseEvent) {
-            mousePosition.x = event.clientX;
-            mousePosition.y = event.clientY;
+        if (event.type === 'touchmove') {
+            const touch = (event as TouchEvent).touches[0];
+            mousePosition = { x: touch.clientX, y: touch.clientY };
         } else {
-            mousePosition.x = event.touches[0].clientX;
-            mousePosition.y = event.touches[0].clientY;
+            mousePosition = { x: (event as MouseEvent).clientX, y: (event as MouseEvent).clientY };
         }
         
+        // Find the cell under the mouse
         const boardElement = document.querySelector('.board');
         if (!boardElement) return;
-
-        const rect = boardElement.getBoundingClientRect();
         
-        // Calculate the position where the ship's START should be placed
-        // by subtracting the offset of the clicked cell
-        let clientX, clientY;
-        if (event instanceof MouseEvent) {
-            clientX = event.clientX;
-            clientY = event.clientY;
-        } else {
-            clientX = event.touches[0].clientX;
-            clientY = event.touches[0].clientY;
+        const boardRect = boardElement.getBoundingClientRect();
+        
+        // Get cell position from mouse position relative to board
+        const cellSize = boardRect.width / BOARD_SIZE;
+        const offsetX = mousePosition.x - boardRect.left;
+        const offsetY = mousePosition.y - boardRect.top;
+        
+        // Calculate grid position
+        const x = Math.floor(offsetX / cellSize);
+        const y = Math.floor(offsetY / cellSize);
+        
+        // Ensure position is within bounds
+        if (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE) {
+            updatePreview(x, y);
         }
-        
-        // Check if the cursor is near the board (even if not directly over it)
-        const extendedBorderSize = 200; // Allow preview when cursor is within this many pixels of the board
-        const isNearBoard = 
-            clientX >= rect.left - extendedBorderSize && 
-            clientX <= rect.right + extendedBorderSize && 
-            clientY >= rect.top - extendedBorderSize && 
-            clientY <= rect.bottom + extendedBorderSize;
-            
-        if (!isNearBoard) {
-            // Clear preview if far from the board
-            previewCells = [];
-            previewState = null;
-            return;
-        }
-        
-        // Convert mouse position to cell coordinates (can be negative or beyond board size)
-        const cellX = Math.floor((clientX - rect.left) / 40);
-        const cellY = Math.floor((clientY - rect.top) / 40);
-        
-        // Adjust coordinates to get the ship's starting position based on which cell was clicked
-        const shipStartX = cellX - dragOffsetRelativeToShipStart.x;
-        const shipStartY = cellY - dragOffsetRelativeToShipStart.y;
-        
-        // Always update preview even if starting position is off board
-        updatePreview(shipStartX, shipStartY);
     }
-
+    
     function handleShipDragEnd(event: MouseEvent | TouchEvent) {
         if (!isDragging || !selectedShip) return;
         if (isReady) return;
         
         event.preventDefault();
-
-        const boardElement = document.querySelector('.board');
-        if (!boardElement) return;
-
-        const rect = boardElement.getBoundingClientRect();
         
-        // Calculate the position where the ship's START should be placed
-        let clientX, clientY;
-        if (event instanceof MouseEvent) {
-            clientX = event.clientX;
-            clientY = event.clientY;
-        } else {
-            clientX = event.changedTouches?.[0]?.clientX || 0;
-            clientY = event.changedTouches?.[0]?.clientY || 0;
+        // Remove event listeners
+        window.removeEventListener('mousemove', handleShipDragMove);
+        window.removeEventListener('mouseup', handleShipDragEnd);
+        window.removeEventListener('touchmove', handleShipDragMove);
+        window.removeEventListener('touchend', handleShipDragEnd);
+        
+        // Place ship if preview is valid
+        if (previewState === 'valid' && previewCells.length > 0) {
+            const { x, y } = previewCells[0];
+            placeShip(x, y);
         }
         
-        // Convert mouse position to grid coordinates
-        const mouseGridX = Math.floor((clientX - rect.left) / 40);
-        const mouseGridY = Math.floor((clientY - rect.top) / 40);
-        
-        // Calculate ship's start position based on drag offset
-        const shipStartX = mouseGridX - dragOffsetRelativeToShipStart.x;
-        const shipStartY = mouseGridY - dragOffsetRelativeToShipStart.y;
-        
-        // Check if ANY cell of the ship would be on the board
-        let anyPartOnBoard = false;
-        for (let i = 0; i < selectedShip.length; i++) {
-            const cellX = currentOrientation === 'horizontal' ? shipStartX + i : shipStartX;
-            const cellY = currentOrientation === 'vertical' ? shipStartY + i : shipStartY;
-            
-            if (cellX >= 0 && cellX < BOARD_SIZE && cellY >= 0 && cellY < BOARD_SIZE) {
-                anyPartOnBoard = true;
-                break;
-            }
-        }
-        
-        // Check if mouse/touch is over the board
-        const isOverBoard = 
-            clientX >= rect.left && 
-            clientX <= rect.right && 
-            clientY >= rect.top && 
-            clientY <= rect.bottom;
-        
-        if (isOverBoard) {
-            // Check if the ship can be placed at the target position
-            if (shipStartX >= 0 && shipStartX < BOARD_SIZE && 
-                shipStartY >= 0 && shipStartY < BOARD_SIZE &&
-                canPlaceShip(shipStartX, shipStartY)) {
-                
-                // Valid placement - place the ship
-                placeShip(shipStartX, shipStartY);
-            } else if (dragStartWasPlaced && dragStartPosition && dragStartOrientation) {
-                // Invalid placement on board - return to original position
-                currentOrientation = dragStartOrientation;
-                placeShip(dragStartPosition.x, dragStartPosition.y);
-            }
-            // If not previously placed and invalid placement, just keep it unplaced
-        } else if (!anyPartOnBoard) {
-            // Only unplace the ship if NO part of it is over the board
-            if (selectedShip) {
-                // Ensure the ship is marked as unplaced
-                selectedShip.placed = false;
-                selectedShip.position = undefined;
-                selectedShip.orientation = undefined;
-            }
-        } else if (dragStartWasPlaced && dragStartPosition && dragStartOrientation) {
-            // Ship is partially on board and was previously placed - return to original position
-            currentOrientation = dragStartOrientation;
-            placeShip(dragStartPosition.x, dragStartPosition.y);
-        }
-
-        // Clear dragging state
+        // Reset drag state
         isDragging = false;
         selectedShip = null;
         previewCells = [];
         previewState = null;
         
-        // Force update of all relevant arrays
+        // Check if all ships are placed
+        checkAllShipsPlaced();
+    }
+    
+    function handleBoardCellMouseDown(event: MouseEvent | TouchEvent, x: number, y: number) {
+        if (isReady) return;
+        
+        // Check if cell has a ship
+        if (board[y][x] === 'ship') {
+            // Find the ship
+            const ship = shipGrid[y][x];
+            if (ship) {
+                // Start dragging the ship
+                handleShipDragStart(event, ship);
+            }
+        }
+    }
+    
+    function handleAutoPlaceClick() {
+        if (isReady) return;
+        
+        // Reset all ships
+        ships.forEach(ship => {
+            if (ship.placed) {
+                removeShip(ship);
+            }
+        });
+        
+        // Place each ship randomly
+        ships.forEach(ship => {
+            let placed = false;
+            let attempts = 0;
+            
+            while (!placed && attempts < 100) {
+                const x = Math.floor(Math.random() * BOARD_SIZE);
+                const y = Math.floor(Math.random() * BOARD_SIZE);
+                currentOrientation = Math.random() < 0.5 ? 'horizontal' : 'vertical';
+                
+                selectedShip = ship;
+                
+                if (canPlaceShip(x, y)) {
+                    placeShip(x, y);
+                    placed = true;
+                }
+                
+                attempts++;
+            }
+        });
+        
+        // Reset selection
+        selectedShip = null;
+        
+        // Force update board and ships
         board = [...board];
         shipGrid = [...shipGrid];
         ships = [...ships];
+        
+        // Check if all ships are placed
+        checkAllShipsPlaced();
     }
-
-    function handleRotateClick(event: MouseEvent | TouchEvent, ship: Ship) {
+    
+    function handleRotateClick(event: MouseEvent, ship: Ship) {
         if (isReady) return;
         
         event.preventDefault();
-        event.stopPropagation();
         
-        if (!ship || !ship.position || !ship.orientation) return;
-
-        // Save original position and orientation
-        const originalPosition = {...ship.position};
-        const originalOrientation = ship.orientation;
+        // Toggle orientation
+        const newOrientation = ship.orientation === 'horizontal' ? 'vertical' : 'horizontal';
         
-        // Set as selected ship and try the other orientation
-        selectedShip = ship;
-        const newOrientation = originalOrientation === 'horizontal' ? 'vertical' : 'horizontal';
-        currentOrientation = newOrientation;
+        // Remember original position
+        const originalPosition = ship.position;
         
-        // Temporarily hide the ship
+        if (!originalPosition) return;
+        
+        // Remove ship from board
         removeShip(ship);
         
-        // Check if can place with new orientation
-        const canRotate = canPlaceShip(originalPosition.x, originalPosition.y);
+        // Set new orientation
+        currentOrientation = newOrientation;
+        selectedShip = ship;
+        
+        // Try to place ship at the same position with new orientation
+        updatePreview(originalPosition.x, originalPosition.y);
+        
+        const canRotate = previewState === 'valid';
         
         if (canRotate) {
-            // If rotation is possible, place with new orientation
             placeShip(originalPosition.x, originalPosition.y);
-            ships = [...ships]; // Force UI update
+            ships = [...ships];
         } else {
-            // Show invalid preview cells
             updatePreview(originalPosition.x, originalPosition.y);
             
-            // Wait a moment to show the invalid preview before restoring
+            // Show visual feedback that rotation is not possible
+            previewState = 'invalid';
+            
+            // Force update
+            previewCells = [...previewCells];
+            
+            // Reset after a short delay
             setTimeout(() => {
-                // Clear preview
-                previewCells = [];
-                previewState = null;
-                
-                // Revert to original orientation
-                currentOrientation = originalOrientation;
-                
-                // Restore ship to original position and orientation
+                // Revert to original orientation and place ship back
+                currentOrientation = ship.orientation || 'horizontal';
+                updatePreview(originalPosition.x, originalPosition.y);
                 placeShip(originalPosition.x, originalPosition.y);
                 
-                // Force UI update
                 ships = [...ships];
                 board = [...board];
                 shipGrid = [...shipGrid];
             }, 500);
         }
         
-        // Important: reset the selection to prevent conflicts - wait until after animation
-        setTimeout(() => {
-            selectedShip = null;
-        }, 600);
+        // Reset selection
+        selectedShip = null;
+        previewCells = [];
+        previewState = null;
     }
-
+    
     function updatePreview(x: number, y: number) {
         if (!selectedShip) return;
         
         previewCells = [];
         const length = selectedShip.length;
-        let isValid = true;
         
-        // First check if any part of the ship would be off the board
         for (let i = 0; i < length; i++) {
-            const newX = currentOrientation === 'horizontal' ? x + i : x;
-            const newY = currentOrientation === 'vertical' ? y + i : y;
+            let posX, posY;
             
-            if (newX < 0 || newX >= BOARD_SIZE || newY < 0 || newY >= BOARD_SIZE) {
-                isValid = false;
-                // Don't break - we still want to collect valid cells for the preview
+            if (currentOrientation === 'horizontal') {
+                posX = x + i;
+                posY = y;
+            } else {
+                posX = x;
+                posY = y + i;
+            }
+            
+            // Check if position is within bounds
+            if (posX >= 0 && posX < BOARD_SIZE && posY >= 0 && posY < BOARD_SIZE) {
+                previewCells.push({ x: posX, y: posY });
             }
         }
         
-        // Then add all cells that are within the board to the preview
-        for (let i = 0; i < length; i++) {
-            const newX = currentOrientation === 'horizontal' ? x + i : x;
-            const newY = currentOrientation === 'vertical' ? y + i : y;
-            
-            // Only add cells that are actually on the board
-            if (newX >= 0 && newX < BOARD_SIZE && newY >= 0 && newY < BOARD_SIZE) {
-                previewCells.push({ x: newX, y: newY });
-                
-                // Also check for overlapping ships
-                if (board[newY][newX] === 'ship' && shipGrid[newY][newX] !== selectedShip) {
-                    isValid = false;
-                }
-            }
-        }
-        
-        previewState = isValid ? 'valid' : 'invalid';
+        // Check if all preview cells are valid
+        previewState = canPlaceShip(x, y) ? 'valid' : 'invalid';
     }
-
-    function canPlaceShip(x: number, y: number): boolean {
+    
+    function canPlaceShip(x: number, y: number) {
         if (!selectedShip) return false;
         
         const length = selectedShip.length;
         for (let i = 0; i < length; i++) {
-            const newX = currentOrientation === 'horizontal' ? x + i : x;
-            const newY = currentOrientation === 'vertical' ? y + i : y;
+            let posX, posY;
             
-            if (newX >= BOARD_SIZE || newY >= BOARD_SIZE) return false;
+            if (currentOrientation === 'horizontal') {
+                posX = x + i;
+                posY = y;
+            } else {
+                posX = x;
+                posY = y + i;
+            }
             
-            // Allow overlapping with the same ship being moved
-            if (board[newY][newX] === 'ship' && shipGrid[newY][newX] !== selectedShip) {
+            // Check if position is within bounds
+            if (posX < 0 || posX >= BOARD_SIZE || posY < 0 || posY >= BOARD_SIZE) {
+                return false;
+            }
+            
+            // Check if position is already occupied by another ship
+            if (board[posY][posX] === 'ship' && shipGrid[posY][posX] !== selectedShip) {
                 return false;
             }
         }
+        
         return true;
     }
-
+    
     function placeShip(x: number, y: number) {
         if (!selectedShip) return;
         
         const length = selectedShip.length;
         for (let i = 0; i < length; i++) {
-            const newX = currentOrientation === 'horizontal' ? x + i : x;
-            const newY = currentOrientation === 'vertical' ? y + i : y;
-            board[newY][newX] = 'ship';
-            shipGrid[newY][newX] = selectedShip;
+            let posX, posY;
+            
+            if (currentOrientation === 'horizontal') {
+                posX = x + i;
+                posY = y;
+            } else {
+                posX = x;
+                posY = y + i;
+            }
+            
+            // Place ship on board
+            board[posY][posX] = 'ship';
+            shipGrid[posY][posX] = selectedShip;
         }
         
+        // Update ship state
         selectedShip.placed = true;
         selectedShip.position = { x, y };
         selectedShip.orientation = currentOrientation;
-        checkAllShipsPlaced();
     }
-
+    
     function removeShip(ship: Ship) {
         if (!ship.position) return;
         
         const length = ship.length;
+        const { x, y } = ship.position;
+        const orientation = ship.orientation || 'horizontal';
+        
         for (let i = 0; i < length; i++) {
-            const x = ship.orientation === 'horizontal' ? ship.position.x + i : ship.position.x;
-            const y = ship.orientation === 'vertical' ? ship.position.y + i : ship.position.y;
-            board[y][x] = 'empty';
-            shipGrid[y][x] = null;
+            let posX, posY;
+            
+            if (orientation === 'horizontal') {
+                posX = x + i;
+                posY = y;
+            } else {
+                posX = x;
+                posY = y + i;
+            }
+            
+            // Remove ship from board
+            board[posY][posX] = 'empty';
+            shipGrid[posY][posX] = null;
         }
         
-        // Need to set placed to false when removing from board
+        // Update ship state
         ship.placed = false;
-        checkAllShipsPlaced();
+        ship.position = undefined;
     }
-
+    
     function checkAllShipsPlaced() {
         allShipsPlaced = ships.every(ship => ship.placed);
     }
-
-    // Function to handle the "Ready" button click
+    
     function handleReadyClick() {
         if (allShipsPlaced) {
-            // Let the parent component know all ships are placed and ready
             isReady = true;
-            // Dispatch event to parent with the board state
-            dispatch('ready');
-        } else {
-            alert("Please place all ships before starting the game.");
+            dispatch('ready', {
+                ships,
+                board,
+                shipGrid
+            });
         }
     }
-
+    
     // Function to check if a cell is the center of a ship
     function isShipCenter(ship: Ship, x: number, y: number): boolean {
         if (!ship.position || !ship.orientation) return false;
         
+        const halfLength = Math.floor(ship.length / 2);
+        
         if (ship.orientation === 'horizontal') {
-            return x === Math.floor(ship.position.x + ship.length / 2) && y === ship.position.y;
+            return x === ship.position.x + halfLength && y === ship.position.y;
         } else {
-            return y === Math.floor(ship.position.y + ship.length / 2) && x === ship.position.x;
+            return x === ship.position.x && y === ship.position.y + halfLength;
         }
     }
-
+    
     // Function to check if a cell is the first cell of a ship
     function isShipStart(ship: Ship, x: number, y: number): boolean {
         if (!ship.position) return false;
         return x === ship.position.x && y === ship.position.y;
     }
 
-    // Function to receive a shot from the opponent
-    export function receiveShot(
-        x: number, 
-        y: number, 
-        serverResult?: 'hit' | 'miss' | 'sunk',
-        serverShipId?: string
-    ): 'hit' | 'miss' | 'sunk' {
-        // Bounds checking
-        if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) {
-            return 'miss';
-        }
-
-        // If we have a server result, trust it
-        if (serverResult) {
-            // Update the board state based on the server result
-            if (serverResult === 'hit' || serverResult === 'sunk') {
-                board[y][x] = 'hit';
-                
-                // Find the ship that was hit
-                const ship = shipGrid[y][x];
-                if (ship) {
-                    ship.hits = (ship.hits || 0) + 1;
-                    
-                    // If the server says the ship is sunk, mark it as sunk
-                    if (serverResult === 'sunk') {
-                        ship.sunk = true;
-                        console.log(`Ship ${ship.id} sunk by server result!`);
-                    } else {
-                        // Don't automatically mark as sunk for just a hit
-                        ship.sunk = false;
-                        
-                        // Check if all cells of the ship are actually hit
-                        let allCellsHit = true;
-                        if (ship.position && ship.orientation) {
-                            for (let i = 0; i < ship.length; i++) {
-                                const cellX = ship.orientation === 'horizontal' ? ship.position.x + i : ship.position.x;
-                                const cellY = ship.orientation === 'vertical' ? ship.position.y + i : ship.position.y;
-                                
-                                if (board[cellY][cellX] !== 'hit') {
-                                    allCellsHit = false;
-                                    break;
-                                }
-                            }
-                            
-                            if (allCellsHit) {
-                                ship.sunk = true;
-                                console.log(`Ship ${ship.id} sunk because all cells are hit!`);
-                            }
-                        }
-                    }
-                }
-            } else if (serverResult === 'miss') {
-                board[y][x] = 'miss';
-            }
-            
-            // Force UI update
-            board = [...board];
-            ships = [...ships];
-            
-            // Log ship status for debugging
-            console.log('Ship status after CPU shot:');
-            ships.forEach(ship => {
-                console.log(`${ship.id}: hits=${ship.hits}/${ship.length}, sunk=${ship.sunk}`);
-            });
-            
-            return serverResult;
-        }
+    export function updateBoard(newBoard: string[][]) {
+        // Update the board state
+        board = newBoard;
         
-        // Local calculation (used when server result is not provided)
-        let result: 'hit' | 'miss' | 'sunk' = 'miss';
-        
-        if (board[y][x] === 'ship') {
-            board[y][x] = 'hit';
-            
-            // Find the ship that was hit
-            const ship = shipGrid[y][x];
-            if (ship) {
-                console.log('Player ship hit:', ship);
-                ship.hits = (ship.hits || 0) + 1;
-                
-                // Check if all cells of the ship are hit
+        // Update ship states based on the new board
+        ships.forEach(ship => {
+            if (ship.position && ship.orientation) {
+                const { x, y } = ship.position;
+                const orientation = ship.orientation;
                 let allCellsHit = true;
-                if (ship.position && ship.orientation) {
-                    for (let i = 0; i < ship.length; i++) {
-                        const cellX = ship.orientation === 'horizontal' ? ship.position.x + i : ship.position.x;
-                        const cellY = ship.orientation === 'vertical' ? ship.position.y + i : ship.position.y;
-                        
-                        if (board[cellY][cellX] !== 'hit') {
+                
+                // Check all cells of the ship
+                for (let i = 0; i < ship.length; i++) {
+                    const posX = orientation === 'horizontal' ? x + i : x;
+                    const posY = orientation === 'vertical' ? y + i : y;
+                    
+                    if (posX < board[0].length && posY < board.length) {
+                        if (board[posY][posX] !== 'hit') {
                             allCellsHit = false;
                             break;
                         }
                     }
-                    
-                    if (allCellsHit) {
-                        ship.sunk = true;
-                        result = 'sunk';
-                        console.log(`Ship ${ship.id} was sunk!`);
-                    } else {
-                        ship.sunk = false;
-                        result = 'hit';
-                    }
-                } else {
-                    result = 'hit';
                 }
+                
+                // Update ship sunk state
+                ship.sunk = allCellsHit;
             }
-        } else if (board[y][x] === 'empty') {
-            console.log('Player ship missed');
-            board[y][x] = 'miss';
-        }
-        
-        // Force UI update
-        board = [...board];
-        ships = [...ships];
-        
-        return result;
+        });
     }
-
-    // Function to check if all ships are sunk
-    export function areAllShipsSunk(): boolean {
-        return ships.every(ship => ship.sunk === true);
-    }
-
-    // Function to get the current board state for saving to game state
-    export function getBoardState() {
-        return {
-            ships: [...ships],
-            board: [...board],
-            shipGrid: [...shipGrid]
-        };
-    }
-    
-    // Function to check if a ship is actually sunk
-    function isShipSunk(ship: Ship): boolean {
-        if (!ship || !ship.position || !ship.orientation) return false;
-        
-        for (let i = 0; i < ship.length; i++) {
-            const x = ship.orientation === 'horizontal' ? ship.position.x + i : ship.position.x;
-            const y = ship.orientation === 'vertical' ? ship.position.y + i : ship.position.y;
-            
-            if (board[y][x] !== 'hit') {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-
 </script>
 
 <div class="game-board">
     <div class="game-info">
         <h2>{username}'s Fleet</h2>
+        
         {#if !isReady}
-        <div class="ships-container">
-            {#if allShipsPlaced}
-                <p class="fleet-deployed">Your entire fleet has been deployed!</p>
-            {:else}
-                {#each ships as ship}
-                    <button 
-                        class="ship-button {ship.placed ? 'placed' : ''}"
-                        on:mousedown={(e) => handleShipDragStart(e, ship)}
-                        on:touchstart={(e) => handleShipDragStart(e, ship)}
-                        style="width: {ship.length * 40}px;"
-                        disabled={ship.placed}
-                    >
-                        {ship.type} {ship.id}
-                    </button>
-                {/each}
-            {/if}
-        </div>
+            <div class="ship-placement-controls">
+                <button class="auto-place-button" on:click={handleAutoPlaceClick}>
+                    Auto-place Fleet
+                </button>
+                
+                <button 
+                    class="ready-button" 
+                    on:click={handleReadyClick}
+                    disabled={!allShipsPlaced}
+                >
+                    Ready for Battle!
+                </button>
+            </div>
+            
+            <div class="ship-selection">
+                {#if allShipsPlaced}
+                    <p class="fleet-deployed">Your entire fleet has been deployed!</p>
+                {:else}
+                    {#each ships as ship}
+                        <button 
+                            class="ship-button {ship.placed ? 'placed' : ''}"
+                            on:mousedown={(e) => handleShipDragStart(e, ship)}
+                            on:touchstart={(e) => handleShipDragStart(e, ship)}
+                        >
+                            {ship.type.charAt(0).toUpperCase() + ship.type.slice(1)}
+                        </button>
+                    {/each}
+                {/if}
+            </div>
         {/if}
     </div>
 
@@ -692,10 +482,8 @@
                                     <button 
                                         class="rotate-button"
                                         on:click={(e) => handleRotateClick(e, ship)}
-                                        on:mousedown={(e) => e.stopPropagation()}
-                                        on:touchstart={(e) => e.stopPropagation()}
                                     >
-                                        ↻
+                                        ⟳
                                     </button>
                                 {/if}
                                 {#if ship && isShipStart(ship, x, y)}
@@ -721,7 +509,7 @@
             {/each}
         </div>
     </div>
-
+    
     {#if isDragging && selectedShip}
         <div class="drag-ghost" 
             style="
@@ -729,42 +517,13 @@
                 top: {mousePosition.y - 20}px; 
                 width: {currentOrientation === 'horizontal' ? selectedShip.length * 40 : 40}px;
                 height: {currentOrientation === 'vertical' ? selectedShip.length * 40 : 40}px;
-                transform: translate(
-                    {currentOrientation === 'horizontal' ? -dragOffsetRelativeToShipStart.x * 40 : 0}px,
-                    {currentOrientation === 'vertical' ? -dragOffsetRelativeToShipStart.y * 40 : 0}px
-                );
-            "
-        >
-            <span>{selectedShip.id}</span>
+            ">
+            {selectedShip.id}
         </div>
-    {/if}
-
-    {#if allShipsPlaced && !isReady}
-        <button class="ready-button" on:click={handleReadyClick}>
-            I'm ready!
-        </button>
     {/if}
 </div>
 
-<svelte:window 
-    on:mousemove={handleShipDragMove} 
-    on:mouseup={handleShipDragEnd}
-    on:touchmove={handleShipDragMove}
-    on:touchend={handleShipDragEnd}
-/>
-
 <style>
-
-    h2 {
-        margin: 0;
-        color: #ffd700;
-        text-shadow: 
-            0 0 7px #ffd700,
-            0 0 14px #ffd700;
-        font-weight: bold;
-        font-size: 2rem;
-    }
-
     .game-board {
         display: flex;
         flex-direction: column;
@@ -775,6 +534,13 @@
         position: relative;
     }
 
+    h2 {
+        margin: 0;
+        color: #2c3e50;
+        font-weight: bold;
+        font-size: 2rem;
+    }
+
     .game-info {
         display: flex;
         flex-direction: column;
@@ -782,62 +548,74 @@
         align-items: center;
     }
 
-    .ships-container {
+    .ship-placement-controls {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .ship-selection {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
         justify-content: center;
-        align-items: center;
-        padding: 1rem;
-        width: 400px;
-        min-height: 90px;
-        background-color: #1b263b;
-        color: #e0e1dd;
-        border-radius: 5px;
-        border-style: solid;
-        border-color: #f05972;
-        border-width: 2px;
-        box-shadow: 0 0px 12px rgba(237, 74, 213, 0.6);
-
-    }
-
-
-    .fleet-deployed {
-        color: #e0e1dd;
-        font-weight: normal;
-        margin: 0;
-        font-size: 1.1rem;
     }
 
     .ship-button {
-        padding: 0.5rem;
+        padding: 0.5rem 1rem;
         border: 2px solid #3498db;
         border-radius: 5px;
         background-color: white;
-        color: #3498db;
-        cursor: grab;
+        cursor: pointer;
         transition: all 0.2s;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.81rem;
-        text-transform: capitalize;
-        user-select: none;
-        -webkit-user-select: none;
-        touch-action: none;
+    }
+
+    .ship-button:hover:not(.placed) {
+        background-color: #3498db;
+        color: white;
     }
 
     .ship-button.placed {
-        opacity: 0.5;
-        background-color: #ecf0f1;
+        background-color: #bdc3c7;
         color: #7f8c8d;
-        border-color: #95a5a6;
         cursor: not-allowed;
     }
 
-    .ship-button:active {
-        cursor: grabbing;
+    .fleet-deployed {
+        color: #27ae60;
+        font-weight: bold;
+    }
+
+    .auto-place-button, .ready-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .auto-place-button {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .auto-place-button:hover {
+        background-color: #2980b9;
+    }
+
+    .ready-button {
+        background-color: #2ecc71;
+        color: white;
+    }
+
+    .ready-button:hover:not(:disabled) {
+        background-color: #27ae60;
+    }
+
+    .ready-button:disabled {
+        background-color: #bdc3c7;
+        cursor: not-allowed;
     }
 
     .board-container {
@@ -852,7 +630,6 @@
         background-color: #3498db;
         padding: 2px;
         border-radius: 5px;
-        touch-action: none;
     }
 
     .row {
@@ -868,24 +645,27 @@
         background-color: #ecf0f1;
         border-radius: 2px;
         transition: background-color 0.2s;
-        cursor: default;
+        cursor: pointer;
+    }
+
+    .cell:hover:not(.locked) {
+        background-color: #d6eaf8;
     }
 
     .cell.ship {
-        background-color: #2c3e50;
-        cursor: grab;
+        background-color: #34495e;
     }
 
     .cell.ship.locked {
         cursor: default;
     }
 
-    .cell.ship:active:not(.locked) {
-        cursor: grabbing;
+    .cell.hit {
+        background-color: #e74c3c;
     }
 
-    .cell.preview {
-        background-color: rgba(52, 152, 219, 0.3);
+    .cell.miss {
+        background-color: #3498db;
     }
 
     .cell.preview.valid {
@@ -896,50 +676,6 @@
         background-color: rgba(231, 76, 60, 0.5);
     }
 
-    .ship-label {
-        position: absolute;
-        top: 0;
-        left: 0;
-        font-size: 0.7rem;
-        color: white;
-        background-color: rgba(0, 0, 0, 0.5);
-        padding: 1px 3px;
-        border-radius: 2px;
-        pointer-events: none;
-    }
-
-    .drag-ghost {
-        position: fixed;
-        background-color: rgba(52, 152, 219, 0.7);
-        border-radius: 5px;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        pointer-events: none;
-        z-index: 1000;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .ready-button {
-        padding: 1rem 2rem;
-        background-color: #2ecc71;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 1.2rem;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        width: 422px;
-        margin: 0 auto;
-        display: block;
-    }
-
-    .ready-button:hover {
-        background-color: #27ae60;
-    }
-
     .rotate-button {
         position: absolute;
         top: 50%;
@@ -947,22 +683,26 @@
         transform: translate(-50%, -50%);
         width: 24px;
         height: 24px;
-        border-radius: 50%;
-        background-color: rgba(46, 204, 113, 0.9);
+        background-color: #3498db;
         color: white;
         border: none;
+        border-radius: 50%;
+        font-size: 16px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
-        padding: 0;
-        transition: background-color 0.2s;
         z-index: 10;
     }
 
-    .rotate-button:hover {
-        background-color: rgba(46, 204, 113, 1);
+    .ship-label {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 0.7rem;
+        color: white;
+        pointer-events: none;
     }
 
     .hit-marker, .miss-marker {
@@ -970,6 +710,12 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+        font-size: 1.5rem;
+        font-weight: bold;
+        pointer-events: none;
+    }
+    
+    .hit-marker {
         width: 100%;
         height: 100%;
         display: flex;
@@ -977,10 +723,6 @@
         justify-content: center;
         font-weight: bold;
         font-size: 18px;
-        pointer-events: none;
-    }
-    
-    .hit-marker {
         color: #2ecc71;
     }
 
@@ -990,6 +732,27 @@
     }
 
     .miss-marker {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 18px;
         color: #e74c3c;
+    }
+
+    .drag-ghost {
+        position: fixed;
+        background-color: rgba(52, 152, 219, 0.5);
+        border: 2px dashed #3498db;
+        color: #2c3e50;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 1000;
+        font-weight: bold;
     }
 </style> 

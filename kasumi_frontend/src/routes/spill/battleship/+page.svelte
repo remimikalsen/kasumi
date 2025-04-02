@@ -1,13 +1,15 @@
-<script lang="ts">
+texts<script lang="ts">
     import { onMount } from 'svelte';
     import { env } from '$env/dynamic/public';
     import { getLocalizedText, loadTexts, pageHeader, pageSubHeader, documentTitle } from '$lib/stores/translatedTexts.js';
     import BattleshipGame from '$lib/components/battleship/BattleshipGame.svelte';
+    import GameSetup from '$lib/components/battleship/GameSetup.svelte';
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
-    import VirtualKeyboard from '$lib/components/common/VirtualKeyboard.svelte';
 
-    let playerInitials = "";
     let gameStarted = false;
+    let playerInitials = "";
+    let gameId: string | null = null;
+    let isCPU = true;
     
     // Load language texts
     let pageTexts = 'battleship';
@@ -33,64 +35,29 @@
         documentTitle.set(getLocalizedText(pageTexts, 'headerTitle') + ' - ' + getLocalizedText(commonTexts, 'documentTitle' + alt));
     }
     
-    function handleSubmitInitials(initials) {
-        playerInitials = initials.toUpperCase();
+    function handleGameStart(event: CustomEvent<{username: string, gameId: string, isCPU: boolean}>) {
+        playerInitials = event.detail.username;
+        gameId = event.detail.gameId;
+        isCPU = event.detail.isCPU;
         gameStarted = true;
     }
 </script>
 
-<div class="battleship-container">
     {#if !gameStarted}
-        <div class="game-setup">
-            <h2>Enter your initials to play</h2>
-            <VirtualKeyboard onSubmit={handleSubmitInitials} />
-        </div>
+        <GameSetup on:gameStart={handleGameStart} />
     {:else}
-        <BattleshipGame username={playerInitials} />
+        <BattleshipGame 
+            username={playerInitials} 
+            gameId={gameId}
+        />
     {/if}
     
     <div class="env-info">
         <p>Debug CPU board: {battleshipConfig.debugCpuBoard ? 'Enabled' : 'Disabled'}</p>
     </div>
-</div>
 
 <style>
-    .battleship-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 2rem;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
 
-    h1 {
-        color: #2c3e50;
-        margin-bottom: 2rem;
-        font-size: 2.5rem;
-        text-align: center;
-    }
-    
-    h2 {
-        color: #3498db;
-        margin-bottom: 1rem;
-        font-size: 1.5rem;
-        text-align: center;
-    }
-    
-    .game-setup {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        align-items: center;
-        margin-bottom: 2rem;
-        width: 100%;
-        max-width: 400px;
-        padding: 2rem;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    
     .env-info {
         margin-top: 2rem;
         font-size: 0.8rem;

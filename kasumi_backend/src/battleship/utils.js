@@ -11,7 +11,8 @@ const defaultBattleshipConfig = {
     cruiser: { length: 3, count: 1, prefix: "R" },
     submarine: { length: 3, count: 1, prefix: "S" },
     destroyer: { length: 2, count: 3, prefix: "D" }
-  }
+  },
+  debugCpuBoard: false
 };
 
 /**
@@ -93,6 +94,11 @@ function validateBattleshipConfig(config) {
         };
         valid = true;
       }
+    }
+
+    // Validate debugCpuBoard
+    if (config.debugCpuBoard && typeof config.debugCpuBoard === 'boolean') {
+      validatedConfig.debugCpuBoard = config.debugCpuBoard;
     }
     
     // Only replace default ship types if at least one valid ship was defined
