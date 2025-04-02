@@ -3,7 +3,7 @@
     import GameBoard from './GameBoard.svelte';
     import OpponentBoard from './OpponentBoard.svelte';
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
-    import { cpuGameService, type GameState, type Position, type GameMove } from '$lib/services/battleshipGameService';
+    import { cpuGameService, type GameState, type Position } from '$lib/services/battleshipGameService';
     import { goto } from '$app/navigation';
 
     export let username: string = "Player";

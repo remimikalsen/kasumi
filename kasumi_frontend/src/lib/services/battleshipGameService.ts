@@ -129,7 +129,6 @@ export class CpuGameService implements IGameService {
         
         // Process the CPU's move
         const position = { x, y };
-        const cell = gameState.playerBoard.board[y][x];
         let result: 'hit' | 'miss' | 'sunk' = 'miss';
         let shipId: string | undefined = undefined;
         
@@ -141,7 +140,10 @@ export class CpuGameService implements IGameService {
             const ship = gameState.playerBoard.shipGrid[y][x];
             if (ship) {
                 shipId = ship.id;
+                console.log(`CPU hit player ship ${ship.id}!`);
+                console.log(`CPU hit player ship ${ship.id}, ${ship.hits}/${ship.length} hits (before)`);
                 ship.hits = (ship.hits || 0) + 1;
+                console.log(`CPU hit player ship ${ship.id}, ${ship.hits}/${ship.length} hits (after)`);
                 
                 // Check if the ship is sunk
                 if (ship.hits >= ship.length) {
