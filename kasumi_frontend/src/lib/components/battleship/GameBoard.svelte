@@ -15,6 +15,15 @@
     let board = gameState.playerBoards[username]?.board;
     let shipGrid = gameState.playerBoards[username]?.shipGrid;
     
+    // React to gameState changes
+    $: {
+        if (gameState?.playerBoards[username]) {
+            ships = gameState.playerBoards[username].ships;
+            board = gameState.playerBoards[username].board;
+            shipGrid = gameState.playerBoards[username].shipGrid;
+        }
+    }
+    
     const board_size = gameState.config.boardSize;
     
     let selectedShip: Ship | null = null;
@@ -381,35 +390,6 @@
         return x === ship.position.x && y === ship.position.y;
     }
 
-    export function updateBoard(newBoard: string[][]) {
-        // Update the board state
-        board = newBoard;
-        
-        // Update ship states based on the new board
-        ships.forEach(ship => {
-            if (ship.position && ship.orientation) {
-                const { x, y } = ship.position;
-                const orientation = ship.orientation;
-                let allCellsHit = true;
-                
-                // Check all cells of the ship
-                for (let i = 0; i < ship.length; i++) {
-                    const posX = orientation === 'horizontal' ? x + i : x;
-                    const posY = orientation === 'vertical' ? y + i : y;
-                    
-                    if (posX < board[0].length && posY < board.length) {
-                        if (board[posY][posX] !== 'hit') {
-                            allCellsHit = false;
-                            break;
-                        }
-                    }
-                }
-                
-                // Update ship sunk state
-                ship.sunk = allCellsHit;
-            }
-        });
-    }
 </script>
 
 <div class="game-board">

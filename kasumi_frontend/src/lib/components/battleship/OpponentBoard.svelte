@@ -11,13 +11,23 @@
     export let opponentInitials: string;
 
     const isCPU = gameState.mode === 'cpu';
-    const inPlayMode = gameState.status === 'active';
     const debugMode = gameState.config.debugCpuBoard || false;
     
     // Board state
     let board = gameState.playerBoards[opponentInitials]?.board;
     let shipGrid = gameState.playerBoards[opponentInitials]?.shipGrid;
     let ships = gameState.playerBoards[opponentInitials]?.ships;
+    let inPlayMode = gameState.status === 'active';
+    
+    // React to gameState changes
+    $: {
+        if (gameState?.playerBoards[opponentInitials]) {
+            board = gameState.playerBoards[opponentInitials].board;
+            shipGrid = gameState.playerBoards[opponentInitials].shipGrid;
+            ships = gameState.playerBoards[opponentInitials].ships;
+            inPlayMode = gameState.status === 'active';
+        }
+    }
     
     function handleCellClick(x: number, y: number) {
         if (!inPlayMode) return;

@@ -61,6 +61,7 @@
 
     function handleGameStateUpdate(newState: GameState) {
         gameState = newState;
+
         
         // Get opponent's initials
         const opponent = newState.players.find(player => player !== username);
@@ -80,7 +81,13 @@
                         gameMessage = 'Game is starting...';
                         opponentReady = true;
                     } else {
-                        gameMessage = 'Waiting for opponent to place ships...';
+                        // Check if opponent has placed their ships
+                        if (opponent && newState.playerBoards[opponent]?.ready) {
+                            gameMessage = 'Both players ready! Game starting...';
+                            opponentReady = true;
+                        } else {
+                            gameMessage = 'Waiting for opponent to place ships...';
+                        }
                     }
                 } else {
                     gameMessage = 'Both players ready! Game starting...';
@@ -134,17 +141,6 @@
                     }
                     gameMessage = message;
 
-                    // Update player's board with opponent's shots
-                    //if (newState.playerBoards[username] && playerBoardComponent) {
-                    //   const playerBoard = newState.playerBoards[username];
-                    //    playerBoardComponent.updateBoard(playerBoard.board);
-                    //}
-
-                    // Update opponent's board with player's shots
-                    //if (newState.playerBoards[opponent!] && opponentBoardComponent) {
-                    //    const opponentBoard = newState.playerBoards[opponent!];
-                    //    opponentBoardComponent.updateBoard(opponentBoard.board);
-                    //}
                 } else {
                     gameMessage = newState.currentTurn === username ? 'Your turn!' : `${opponent}'s turn!`;
                 }
@@ -223,6 +219,8 @@
             if (response.status === 'success') {
                 playerReady = true;
                 gameMessage = response.message;
+                // Start polling only after fleet is placed
+                startPolling();
             }
         } catch (error) {
             console.error('Failed to place fleet:', error);
@@ -286,9 +284,10 @@
     }
 
     onMount(() => {
-        if (gameId) {
-            startPolling();
-        }
+        // Remove polling from onMount since we'll start it after fleet placement
+        // if (gameId) {
+        //     startPolling();
+        // }
     });
 
     onDestroy(() => {

@@ -33,13 +33,11 @@ router.post('/battleship/create_game', (req, res) => {
   // Validate and use the client configuration or fall back to default
   const gameConfig = validateBattleshipConfig(config);
 
-  console.log("gameConfig");
-  console.log(gameConfig);
-
-    // Prevent using CPU name as player initials
-    if (initials === gameConfig.cpuName) {
-      return res.status(400).json({ status: 'error', message: `Cannot use ${gameConfig.cpuName} as player initials` });
-    }
+  
+  // Prevent using CPU name as player initials
+  if (initials === gameConfig.cpuName) {
+    return res.status(400).json({ status: 'error', message: `Cannot use ${gameConfig.cpuName} as player initials` });
+  }
 
   const gameId = generateGameId();
   
