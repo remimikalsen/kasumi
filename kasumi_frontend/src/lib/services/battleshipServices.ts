@@ -11,6 +11,7 @@ export interface BattleshipConfig {
     };
   };
   debugCpuBoard: boolean;
+  cpuDifficulty?: 'easy' | 'hard';
 }
 
 export interface Ship {

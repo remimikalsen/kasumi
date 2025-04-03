@@ -6,6 +6,7 @@ export const battleshipConfig = {
   
   // CPU configuration
   cpuName: 'C3PO', // The name used for the CPU player
+  cpuDifficulty: env.PUBLIC_BATTLESHIP_CPU_DIFFICULTY || 'hard', // Default to easy
   
   // Bonus shot configuration
   bonusShotWhenHit: env.PUBLIC_BATTLESHIP_BONUS_SHOT_WHEN_HIT?.toLowerCase() === 'true' || true, // Default to true

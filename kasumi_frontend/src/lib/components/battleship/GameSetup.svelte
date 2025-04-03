@@ -18,6 +18,8 @@
     let gameId: string | null = null;
     let errorMessage = '';
     let initialsSubmitted = false;
+    let cpuDifficulty: 'easy' | 'hard' = 'easy';
+    let multiplayerMode: 'host' | 'join' | 'discover' | null = null;
 
     function handleUsernameChange(initials: string) {
         username = initials.toUpperCase();
@@ -25,11 +27,23 @@
         initialsSubmitted = true;
     }
 
-    function handleGameModeSelect(event: CustomEvent<'cpu' | 'token' | 'discovery'>) {
-        gameMode = event.detail;
-        if (gameMode === 'cpu') {
-            startGame();
-        }
+    function editUsername() {
+        initialsSubmitted = false;
+    }
+
+    function handleCpuDifficultySelect(difficulty: 'easy' | 'hard') {
+        cpuDifficulty = difficulty;
+        defaultConfig.cpuDifficulty = difficulty;
+    }
+
+    function handleMultiplayerModeSelect(mode: 'host' | 'join' | 'discover') {
+        multiplayerMode = mode;
+        // For now, these are inactive
+    }
+
+    function handleStartCpuGame() {
+        gameMode = 'cpu';
+        startGame();
     }
 
     function handleTokenInput(event: CustomEvent<string>) {
@@ -67,30 +81,61 @@
         <VirtualKeyboard onSubmit={handleUsernameChange} />
     {:else}
         <div class="initials-display">
-            <p>Your initials: <span>{username}</span></p>
-            <button class="edit-button" on:click={() => initialsSubmitted = false}>Edit</button>
+            <p>Your initials: <span>{username}</span> <button class="pencil-button" on:click={editUsername}>✏️</button></p>
         </div>
     {/if}
     
-    {#if isUsernameValid}
-        <GameModeSelector 
-            on:gameModeSelect={handleGameModeSelect}
-            on:tokenInput={handleTokenInput}
-        />
+    {#if isUsernameValid && initialsSubmitted}
+        <div class="game-mode-sections">
+            <div class="mode-section">
+                <h3>Play against CPU</h3>
+                <div class="difficulty-selector">
+                    <button 
+                        class="mode-button {cpuDifficulty === 'easy' ? 'selected' : ''}"
+                        on:click={() => handleCpuDifficultySelect('easy')}
+                    >
+                        Easy
+                    </button>
+                    <button 
+                        class="mode-button {cpuDifficulty === 'hard' ? 'selected' : ''}"
+                        on:click={() => handleCpuDifficultySelect('hard')}
+                    >
+                        Hard
+                    </button>
+                </div>
+                <button class="start-button" on:click={handleStartCpuGame}>
+                    Start CPU Game
+                </button>
+            </div>
+            
+            <div class="mode-section">
+                <h3>Multiplayer (Coming Soon)</h3>
+                <div class="multiplayer-options">
+                    <button 
+                        class="mode-button disabled"
+                        disabled
+                    >
+                        Host Game
+                    </button>
+                    <button 
+                        class="mode-button disabled"
+                        disabled
+                    >
+                        Join Game
+                    </button>
+                    <button 
+                        class="mode-button disabled"
+                        disabled
+                    >
+                        Find Local Players
+                    </button>
+                </div>
+            </div>
+        </div>
     {/if}
 
     {#if errorMessage}
         <p class="error-message">{errorMessage}</p>
-    {/if}
-
-    {#if isUsernameValid && gameMode && gameMode !== 'cpu'}
-        <button 
-            class="start-button"
-            on:click={startGame}
-            disabled={gameMode === 'token' && !gameToken}
-        >
-            Start Game
-        </button>
     {/if}
 </div>
 
@@ -112,16 +157,25 @@
         text-align: center;
     }
 
+    h3 {
+        color: #3498db;
+        margin: 0 0 1rem 0;
+        font-size: 1.2rem;
+        text-align: center;
+    }
+
     .initials-display {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 1rem;
+        gap: 0.5rem;
     }
 
     .initials-display p {
         font-size: 1.5rem;
         margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .initials-display span {
@@ -130,19 +184,66 @@
         color: #3498db;
     }
 
-    .edit-button {
-        background-color: #3498db;
-        color: white;
+    .pencil-button {
+        background: none;
         border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 5px;
-        font-size: 1rem;
         cursor: pointer;
-        transition: background-color 0.2s;
+        font-size: 1.2rem;
+        padding: 0;
+        margin-left: 5px;
     }
 
-    .edit-button:hover {
-        background-color: #2980b9;
+    .pencil-button:hover {
+        transform: scale(1.2);
+    }
+
+    .game-mode-sections {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        width: 100%;
+    }
+
+    .mode-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 5px;
+        background-color: #f7f9fc;
+        border: 1px solid #e1e8ed;
+    }
+
+    .difficulty-selector, .multiplayer-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .mode-button {
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+        border: 2px solid #3498db;
+        border-radius: 5px;
+        background-color: white;
+        color: #3498db;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .mode-button:hover:not(.disabled) {
+        background-color: #f7f9fc;
+    }
+
+    .mode-button.selected {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .mode-button.disabled {
+        border-color: #bdc3c7;
+        color: #bdc3c7;
+        cursor: not-allowed;
     }
 
     .start-button {
@@ -154,6 +255,7 @@
         font-size: 1.2rem;
         cursor: pointer;
         transition: background-color 0.2s;
+        margin-top: 0.5rem;
     }
 
     .start-button:hover {

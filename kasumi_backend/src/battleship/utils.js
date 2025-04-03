@@ -13,7 +13,8 @@ const defaultBattleshipConfig = {
     destroyer: { length: 2, count: 3, prefix: "D" }
   },
   debugCpuBoard: false,
-  cpuName: 'CPU'
+  cpuName: 'CPU',
+  cpuDifficulty: 'easy' // New option: 'easy' (random) or 'hard' (smart targeting)
 };
 
 /**
@@ -106,6 +107,12 @@ function validateBattleshipConfig(config) {
     // Validate cpuName
     if (config.cpuName && typeof config.cpuName === 'string' && config.cpuName.length <= 10 && /^[A-Za-z0-9\s\.-]{3,10}$/.test(config.cpuName)) {
       validatedConfig.cpuName = config.cpuName;
+    }
+    
+    // Validate cpuDifficulty
+    if (config.cpuDifficulty && typeof config.cpuDifficulty === 'string' && 
+        (config.cpuDifficulty === 'easy' || config.cpuDifficulty === 'hard')) {
+      validatedConfig.cpuDifficulty = config.cpuDifficulty;
     }
 
     // Only replace default ship types if at least one valid ship was defined

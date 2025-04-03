@@ -57,7 +57,12 @@ router.post('/battleship/create_game', (req, res) => {
     lastMoveTime: Date.now(),
     bonusShotActive: false,
     winner: null,
-    config: gameConfig // Store the validated configuration in game state
+    config: gameConfig, // Store the validated configuration in game state
+    // Add CPU memory for smart targeting
+    cpuMemory: {
+      currentHits: [],       // Tracks coordinates of hits on ships not yet sunk
+      potentialTargets: []   // Prioritized cells to target next
+    }
   };
   
   // Create empty board for the player with the configured board size
@@ -764,18 +769,42 @@ function makeCpuMove(gameState) {
   const playerBoard = gameState.playerBoards[opponent];
   const BOARD_SIZE = gameState.config.boardSize;
   
-  // Find valid position to shoot
-  let validMove = false;
+  // Find valid position to shoot based on difficulty setting
   let x, y;
   
-  while (!validMove) {
-    x = Math.floor(Math.random() * BOARD_SIZE);
-    y = Math.floor(Math.random() * BOARD_SIZE);
-    
-    // Check if cell hasn't been targeted yet
-    if (playerBoard.board[y][x] === 'empty' || playerBoard.board[y][x] === 'ship') {
-      validMove = true;
+  if (gameState.config.cpuDifficulty === 'hard') {
+    // SMART TARGETING LOGIC for hard mode
+    if (gameState.cpuMemory.potentialTargets.length > 0) {
+      // Use a prioritized target
+      const nextTarget = gameState.cpuMemory.potentialTargets.shift();
+      x = nextTarget.x;
+      y = nextTarget.y;
+    } else if (gameState.cpuMemory.currentHits.length > 0) {
+      // Generate new targets around existing hits
+      generatePotentialTargets(gameState, playerBoard);
+      
+      if (gameState.cpuMemory.potentialTargets.length > 0) {
+        // Use newly generated target
+        const nextTarget = gameState.cpuMemory.potentialTargets.shift();
+        x = nextTarget.x;
+        y = nextTarget.y;
+      } else {
+        // Fallback to random if no valid targets (shouldn't happen)
+        const randomTarget = getRandomTarget(playerBoard, BOARD_SIZE);
+        x = randomTarget.x;
+        y = randomTarget.y;
+      }
+    } else {
+      // No current hits, use random targeting
+      const randomTarget = getRandomTarget(playerBoard, BOARD_SIZE);
+      x = randomTarget.x;
+      y = randomTarget.y;
     }
+  } else {
+    // EASY MODE - just use random targeting
+    const randomTarget = getRandomTarget(playerBoard, BOARD_SIZE);
+    x = randomTarget.x;
+    y = randomTarget.y;
   }
   
   // Process the shot
@@ -821,6 +850,28 @@ function makeCpuMove(gameState) {
   gameState.moves.push(move);
   gameState.lastMoveTime = Date.now();
   
+  // Update the targeting memory in hard mode
+  if (gameState.config.cpuDifficulty === 'hard') {
+    if (result === 'hit') {
+      // Add to current hits
+      gameState.cpuMemory.currentHits.push({ x, y, shipId });
+      
+      // If we have multiple hits on same ship, update potential targets
+      const sameShipHits = gameState.cpuMemory.currentHits.filter(hit => hit.shipId === shipId);
+      if (sameShipHits.length > 1) {
+        // Clear existing targets and generate new ones based on ship orientation
+        gameState.cpuMemory.potentialTargets = [];
+        generateOrientedTargets(gameState, playerBoard, sameShipHits, shipId);
+      }
+    } else if (result === 'sunk') {
+      // Remove all hits for this ship from tracking
+      gameState.cpuMemory.currentHits = gameState.cpuMemory.currentHits.filter(hit => hit.shipId !== shipId);
+      
+      // Clear potential targets - we'll generate new ones if needed
+      gameState.cpuMemory.potentialTargets = [];
+    }
+  }
+  
   // Check if all player ships are sunk
   const allShipsSunk = playerBoard.ships.every(ship => ship.sunk);
   
@@ -842,6 +893,104 @@ function makeCpuMove(gameState) {
       
       // Make another move after delay
       setTimeout(() => makeCpuMove(gameState), 1500);
+    }
+  }
+}
+
+/**
+ * Get a random valid target
+ */
+function getRandomTarget(playerBoard, BOARD_SIZE) {
+  let validMove = false;
+  let x, y;
+  
+  while (!validMove) {
+    x = Math.floor(Math.random() * BOARD_SIZE);
+    y = Math.floor(Math.random() * BOARD_SIZE);
+    
+    // Check if cell hasn't been targeted yet
+    if (playerBoard.board[y][x] === 'empty' || playerBoard.board[y][x] === 'ship') {
+      validMove = true;
+    }
+  }
+  
+  return { x, y };
+}
+
+/**
+ * Generate potential targets around current hits
+ */
+function generatePotentialTargets(gameState, playerBoard) {
+  const BOARD_SIZE = gameState.config.boardSize;
+  
+  // For each current hit, check adjacent cells
+  for (const hit of gameState.cpuMemory.currentHits) {
+    const directions = [
+      {dx: 0, dy: -1}, // up
+      {dx: 1, dy: 0},  // right
+      {dx: 0, dy: 1},  // down
+      {dx: -1, dy: 0}  // left
+    ];
+    
+    for (const dir of directions) {
+      const newX = hit.x + dir.dx;
+      const newY = hit.y + dir.dy;
+      
+      // Check if valid cell and not already targeted
+      if (newX >= 0 && newX < BOARD_SIZE && newY >= 0 && newY < BOARD_SIZE &&
+          (playerBoard.board[newY][newX] === 'empty' || playerBoard.board[newY][newX] === 'ship')) {
+        
+        // Add to potential targets if not already there
+        if (!gameState.cpuMemory.potentialTargets.some(target => target.x === newX && target.y === newY)) {
+          gameState.cpuMemory.potentialTargets.push({ x: newX, y: newY });
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Generate targets based on ship orientation
+ */
+function generateOrientedTargets(gameState, playerBoard, hits, shipId) {
+  const BOARD_SIZE = gameState.config.boardSize;
+  
+  // Sort hits by x and y to determine orientation
+  const sortedByX = [...hits].sort((a, b) => a.x - b.x);
+  const sortedByY = [...hits].sort((a, b) => a.y - b.y);
+  
+  // Check if horizontal (x values differ)
+  if (sortedByX[0].x !== sortedByX[sortedByX.length - 1].x) {
+    // Ship is horizontal - target cells to the left and right
+    const minX = sortedByX[0].x;
+    const maxX = sortedByX[sortedByX.length - 1].x;
+    const y = sortedByX[0].y; // y is the same for all hits
+    
+    // Try left
+    if (minX > 0 && (playerBoard.board[y][minX-1] === 'empty' || playerBoard.board[y][minX-1] === 'ship')) {
+      gameState.cpuMemory.potentialTargets.push({ x: minX-1, y });
+    }
+    
+    // Try right
+    if (maxX < BOARD_SIZE-1 && (playerBoard.board[y][maxX+1] === 'empty' || playerBoard.board[y][maxX+1] === 'ship')) {
+      gameState.cpuMemory.potentialTargets.push({ x: maxX+1, y });
+    }
+  } 
+  // Check if vertical (y values differ)
+  else if (sortedByY[0].y !== sortedByY[sortedByY.length - 1].y) {
+    // Ship is vertical - target cells above and below
+    const minY = sortedByY[0].y;
+    const maxY = sortedByY[sortedByY.length - 1].y;
+    const x = sortedByY[0].x; // x is the same for all hits
+    
+    // Try above
+    if (minY > 0 && (playerBoard.board[minY-1][x] === 'empty' || playerBoard.board[minY-1][x] === 'ship')) {
+      gameState.cpuMemory.potentialTargets.push({ x, y: minY-1 });
+    }
+    
+    // Try below
+    if (maxY < BOARD_SIZE-1 && (playerBoard.board[maxY+1][x] === 'empty' || playerBoard.board[maxY+1][x] === 'ship')) {
+      gameState.cpuMemory.potentialTargets.push({ x, y: maxY+1 });
     }
   }
 }
