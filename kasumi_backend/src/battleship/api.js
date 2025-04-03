@@ -185,6 +185,29 @@ router.post('/battleship/re_match', (req, res) => {
     });
   }
 
+  // Track the winner's streak if the game is over
+  if (gameState.status === 'player_won' || gameState.status === 'opponent_won') {
+    // Initialize the win streaks object if it doesn't exist
+    if (!gameState.winStreaks) {
+      gameState.winStreaks = {};
+      for (const player of gameState.players) {
+        gameState.winStreaks[player] = 0;
+      }
+    }
+    
+    // Increment the winner's streak and reset the loser's streak
+    if (gameState.winner) {
+      // Increment winner's streak
+      gameState.winStreaks[gameState.winner] = (gameState.winStreaks[gameState.winner] || 0) + 1;
+      
+      // Reset streaks for other players
+      for (const player of gameState.players) {
+        if (player !== gameState.winner) {
+          gameState.winStreaks[player] = 0;
+        }
+      }
+    }
+  }
 
   // Reset game state to the setup phase
   gameState.status = 'setup';
@@ -194,11 +217,22 @@ router.post('/battleship/re_match', (req, res) => {
   gameState.bonusShotActive = false;
   gameState.winner = null;  
 
-  // Clear the player board
-  gameState.playerBoards[initials].board = createEmptyBoard(gameState.config.shipTypes, gameState.config.boardSize);
-  gameState.playerBoards[initials].shipGrid = null;
-  gameState.playerBoards[initials].ready = false;
+  // Reset all player boards
+  for (const player of gameState.players) {
+    gameState.playerBoards[player] = createEmptyBoard(gameState.config.shipTypes, gameState.config.boardSize);
+    gameState.playerBoards[player].ready = false;
+  }
 
+  // For CPU games, place CPU ships immediately
+  if (gameState.mode === 'cpu') {
+    placeCpuShips(gameState);
+  }
+
+  // Return the updated game state
+  res.json({
+    status: 'success',
+    gameState: sanitizeGameState(gameState, initials)
+  });
 });
 
 

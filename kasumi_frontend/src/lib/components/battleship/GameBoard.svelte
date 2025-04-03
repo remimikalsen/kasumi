@@ -1034,10 +1034,15 @@
     }
     
     .cell.clickable.hit:hover,
-    .cell.clickable.miss:hover,
-    .cell.hit,
-    .cell.miss {
+    .cell.clickable.miss:hover {
         cursor: not-allowed;
+        background-color: rgba(231, 76, 60, 0.7); /* Red background for better visual indication */
+    }
+    
+    .cell.hit:hover,
+    .cell.miss:hover {
+        cursor: not-allowed;
+        background-color: rgba(231, 76, 60, 0.7); /* Red background for better visual indication */
     }
     
     /* Remove the not-clickable hover effect */

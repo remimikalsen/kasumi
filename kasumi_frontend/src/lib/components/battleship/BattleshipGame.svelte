@@ -24,6 +24,13 @@
     // Component references
     let playerBoardComponent: GameBoard;
     
+    // React to game state changes
+    $: if (gameState?.status === 'player_won' && gameState?.winStreaks?.[username]) {
+        winningStreak = gameState.winStreaks[username];
+    } else if (gameState?.status === 'opponent_won') {
+        winningStreak = 0;
+    }
+    
     // Helper function to get ship name from prefix
     function getShipNameFromPrefix(prefix: string): string {
         for (const [type, details] of Object.entries(battleshipConfig.shipTypes)) {
@@ -58,11 +65,23 @@
     }
 
     function handleGameStateUpdate(newState: GameState) {
+        // Store old win streak values to detect changes
+        const previousWinStreaks = gameState?.winStreaks || {};
+        const previousStatus = gameState?.status;
+        
+        // Update game state
         gameState = newState;
-
         
         // Get opponent's initials
         const opponent = newState.players.find(player => player !== username);
+        
+        // Check if win streaks have been updated from the server
+        if (newState.winStreaks) {
+            // If player's win streak changed, update the local variable
+            if (newState.winStreaks[username] !== previousWinStreaks[username]) {
+                winningStreak = newState.winStreaks[username] || 0;
+            }
+        }
         
         // Update game status based on state
         switch (newState.status) {
@@ -149,14 +168,63 @@
                 gameOver = true;
                 gameMessage = 'Congratulations! You won!';
                 lastGameResult = 'win';
-                winningStreak++;
+                
+                // Immediately update win streak only if we just transitioned to this state
+                if (previousStatus !== 'player_won') {
+                    // Update win streak from server if available
+                    if (newState.winStreaks?.[username]) {
+                        winningStreak = newState.winStreaks[username];
+                    } else {
+                        // If server doesn't provide streak, increment locally
+                        winningStreak++;
+                    }
+                    
+                    // Make sure gameState.winStreaks is updated for consistent display
+                    if (!newState.winStreaks) {
+                        newState.winStreaks = {};
+                    }
+                    
+                    // Force the displayed streak to match the local value
+                    newState.winStreaks[username] = winningStreak;
+                    
+                    // If opponent had a streak, reset it
+                    if (opponent) {
+                        newState.winStreaks[opponent] = 0;
+                    }
+                    
+                    // Ensure reactivity by forcing a state update
+                    gameState = {...gameState};
+                }
+                
                 stopPolling();
                 break;
             case 'opponent_won':
                 gameOver = true;
                 gameMessage = 'Game Over! You lost!';
                 lastGameResult = 'loss';
-                winningStreak = Math.max(0, winningStreak - 1);
+                
+                // Only reset if we just transitioned to this state
+                if (previousStatus !== 'opponent_won') {
+                    // Reset local win streak
+                    winningStreak = 0;
+                    
+                    // If server doesn't provide streaks, update the display data
+                    if (!newState.winStreaks) {
+                        newState.winStreaks = {};
+                    }
+                    
+                    // Ensure player's streak is zero in the display
+                    newState.winStreaks[username] = 0;
+                    
+                    // The opponent won, so they have at least a streak of 1
+                    if (opponent) {
+                        newState.winStreaks[opponent] = (newState.winStreaks[opponent] || 0) + 1;
+                    }
+                    
+                    // Ensure reactivity by forcing a state update
+                    gameState = {...gameState};
+                }
+                
                 stopPolling();
                 break;
         }
@@ -246,18 +314,38 @@
     }
     
     async function handleRematch() {
-        // Reset game state
-        gameState = null;
-        opponentReady = false;
-        playerReady = false;
-        gameActive = false;
-        gameOver = false;
-        lastGameResult = null;
-        
-        // Re-match the game
-        await battleshipApi.reMatch(gameId!, username);
-        startPolling();
+        try {
+            stopPolling(); // Stop polling first to avoid race conditions
+            
+            // Reset game state variables
+            gameOver = false;
+            playerReady = false;
+            opponentReady = false;
+            gameActive = false;
+            lastGameResult = null;
+            
+            // Call re-match API
+            const response = await battleshipApi.reMatch(gameId!, username);
+            
+            if (response.status === 'success' && response.gameState) {
+                // Update game state with the new state from server
+                gameState = response.gameState;
+                
+                // If server provides win streaks, update local variable
+                if (gameState.winStreaks && gameState.winStreaks[username]) {
+                    winningStreak = gameState.winStreaks[username];
+                }
+                
+                // Update game message
+                gameMessage = 'Place your ships on the board';
 
+            } else {
+                throw new Error('Failed to get updated game state');
+            }
+        } catch (error) {
+            console.error('Failed to restart game:', error);
+            gameMessage = 'Failed to restart game. Please try again.';
+        }
     }
     
     function handleDone() {
@@ -300,20 +388,43 @@
     
     <div class="game-boards">
         {#if gameId && gameState}
-            <GameBoard
-                bind:this={playerBoardComponent}
-                {username}
-                {gameState}
-                on:ready={handlePlayerReady}
-            />
+            <div class="board-container">
+                <GameBoard
+                    bind:this={playerBoardComponent}
+                    {username}
+                    {gameState}
+                    isReady={playerReady}
+                    on:ready={handlePlayerReady}
+                />
+                
+                <!-- Show player win streak - prioritize server data but fall back to local -->
+                {#if (gameState.winStreaks && gameState.winStreaks[username] > 0) || winningStreak > 0}
+                    <div class="winning-streak">
+                        Win Streak: {(gameState.winStreaks && gameState.winStreaks[username]) || winningStreak}
+                    </div>
+                {/if}
+            </div>
         
-            <GameBoard
-                username={gameState.players.find(player => player !== username) || battleshipConfig.cpuName}
-                {gameState}
-                isOpponent={true}
-                showBoard={playerReady && opponentReady}
-                on:fire={handleFireShot}
-            />
+            <div class="board-container">
+                {#if gameState.players && gameState.players.length > 1}
+                    {@const opponent = gameState.players.find(player => player !== username) || ''}
+                    <GameBoard
+                        username={opponent}
+                        {gameState}
+                        isOpponent={true}
+                        isReady={opponentReady}
+                        showBoard={playerReady && opponentReady}
+                        on:fire={handleFireShot}
+                    />
+                    
+                    <!-- Show opponent win streak if available -->
+                    {#if gameState.winStreaks && opponent && gameState.winStreaks[opponent] > 0}
+                        <div class="winning-streak opponent-streak">
+                            Win Streak: {gameState.winStreaks[opponent]}
+                        </div>
+                    {/if}
+                {/if}
+            </div>
         {/if}
     </div>
     
@@ -357,6 +468,17 @@
         color: #2ecc71;
         margin-top: 0.5rem;
         text-align: center;
+    }
+    
+    .opponent-streak {
+        color: #e94560;
+    }
+    
+    .board-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
     }
     
     .game-boards {

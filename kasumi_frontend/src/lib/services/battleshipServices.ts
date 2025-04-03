@@ -51,6 +51,7 @@ export interface GameState {
   bonusShotActive: boolean;
   winner: string | null;
   config: BattleshipConfig;
+  winStreaks?: { [player: string]: number };
 }
 
 export interface LeaderboardEntry {
@@ -72,7 +73,7 @@ export const battleshipApi = {
         return response.json();
     },
 
-    async reMatch(gameId: string, initials: string): Promise<{ status: string }> {
+    async reMatch(gameId: string, initials: string): Promise<{ status: string; gameState?: GameState }> {
         const response = await fetch(`${API_BASE_URL}/re_match`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
