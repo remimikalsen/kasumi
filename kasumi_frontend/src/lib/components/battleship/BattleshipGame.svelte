@@ -1,7 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
     import GameBoard from './GameBoard.svelte';
-    import OpponentBoard from './OpponentBoard.svelte';
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
     import { battleshipApi, type GameState, type Ship } from '$lib/services/battleshipServices';
     import { goto } from '$app/navigation';
@@ -23,7 +22,6 @@
     let pollingInterval: number | null = null;
     
     // Component references
-    let opponentBoardComponent: OpponentBoard;
     let playerBoardComponent: GameBoard;
     
     // Helper function to get ship name from prefix
@@ -283,12 +281,6 @@
         goto('/spill/battleship');
     }
 
-    onMount(() => {
-        // Remove polling from onMount since we'll start it after fleet placement
-        // if (gameId) {
-        //     startPolling();
-        // }
-    });
 
     onDestroy(() => {
         stopPolling();
@@ -311,15 +303,15 @@
             <GameBoard
                 bind:this={playerBoardComponent}
                 {username}
-                gameState={gameState}
+                {gameState}
                 on:ready={handlePlayerReady}
             />
         
-            <OpponentBoard
-                bind:this={opponentBoardComponent}
-                opponentInitials={gameState?.players.find(player => player !== username) || battleshipConfig.cpuName}
+            <GameBoard
+                username={gameState.players.find(player => player !== username) || battleshipConfig.cpuName}
+                {gameState}
+                isOpponent={true}
                 showBoard={playerReady && opponentReady}
-                gameState={gameState}
                 on:fire={handleFireShot}
             />
         {/if}
