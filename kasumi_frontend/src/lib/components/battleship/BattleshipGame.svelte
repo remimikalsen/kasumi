@@ -164,7 +164,7 @@
         }
 
         // Handle bonus shot timer
-        if (newState.bonusShotActive) {
+        if (newState.bonusShotActive && newState.status === 'active') {
             startBonusShotTimer(newState.lastMoveTime);
         } else {
             clearBonusShotTimer();
@@ -213,8 +213,8 @@
         if (!gameId || !gameState) return;
         
         try {
-            const { shipGrid } = event.detail;
-            const response = await battleshipApi.placeFleet(gameId, username, shipGrid);
+            const { shipGrid, ships } = event.detail;
+            const response = await battleshipApi.placeFleet(gameId, username, shipGrid, ships);
             
             if (response.status === 'success') {
                 playerReady = true;
@@ -232,18 +232,18 @@
         if (!gameId || !gameState || gameState.currentTurn !== username) return;
         
         const { position } = event.detail;
+        
+        const response = await battleshipApi.fire(gameId, username, position);
+
         try {
-            const response = await battleshipApi.fire(gameId, username, position);
-            
-            if (response.status === 'success') {
-                // Update opponent board with shot result
-                if (opponentBoardComponent) {
-                    opponentBoardComponent.updateCell(position, response.result, response.shipId);
-                }
+            if (response.status === 'error' && response.message) {
+                gameMessage = response.message;
+                return;
             }
         } catch (error) {
             console.error('Failed to fire shot:', error);
             gameMessage = 'Failed to fire shot. Please try again.';
+            return;
         }
     }
     
@@ -257,7 +257,7 @@
         lastGameResult = null;
         
         // Re-match the game
-        await battleshipApi.reMatch(gameId!);
+        await battleshipApi.reMatch(gameId!, username);
         startPolling();
 
     }
@@ -270,7 +270,7 @@
         
         // Reset all game state
         gameState = null;
-        gameId = null;
+        gameId = undefined;
         opponentReady = false;
         playerReady = false;
         gameActive = false;

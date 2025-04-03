@@ -71,11 +71,11 @@ export const battleshipApi = {
         return response.json();
     },
 
-    async reMatch(gameId: string): Promise<{ status: string }> {
+    async reMatch(gameId: string, initials: string): Promise<{ status: string }> {
         const response = await fetch(`${API_BASE_URL}/re_match`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ gameId })
+            body: JSON.stringify({ gameId, initials })
         });
         return response.json();
     },
@@ -89,16 +89,36 @@ export const battleshipApi = {
         return response.json();
     },
 
-    async placeFleet(gameId: string, initials: string, shipGrid: (string | null)[][]): Promise<{ status: string; message: string }> {
+    async placeFleet(gameId: string, initials: string, shipGrid: (string | null)[][], ships: Ship[]): Promise<{ status: string; message: string }> {
         const response = await fetch(`${API_BASE_URL}/place_fleet`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ gameId, initials, shipGrid })
+            body: JSON.stringify({ gameId, initials, shipGrid, ships })
         });
         return response.json();
     },
 
-    async fire(gameId: string, initials: string, position: { x: number; y: number }): Promise<{ result: 'hit' | 'miss' | 'sunk'; shipId: string | null; status: string }> {
+    /**
+     * Fires a shot at the opponent's board at the specified position
+     * 
+     * @param gameId - The ID of the current game
+     * @param initials - The player's initials making the shot
+     * @param position - The x,y coordinates to fire at on the opponent's board
+     * @returns {
+     *   result: 'hit' | 'miss' | 'sunk' - The result of the shot
+     *   shipId: string | null - The ID of the ship that was hit (if any) 
+     *   status: string - The status of the API request ('success' or 'error')
+     *   message?: string - Error message if status is 'error' (e.g. "Not your turn", "Cell already targeted")
+     * }
+     * 
+     * This function sends a POST request to fire a shot during gameplay.
+     * If the shot hits a ship, it returns 'hit' and the ship's ID.
+     * If the shot misses, it returns 'miss' with no shipId.
+     * If the shot sinks a ship, it returns 'sunk' with the ship's ID.
+     * The backend validates that it's the player's turn and the shot is valid.
+     * If validation fails, it returns an error status with an explanatory message.
+     */
+    async fire(gameId: string, initials: string, position: { x: number; y: number }): Promise<{ result: 'hit' | 'miss' | 'sunk'; shipId: string | null; status: string; message?: string }> {
         const response = await fetch(`${API_BASE_URL}/fire`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

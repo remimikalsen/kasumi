@@ -1,6 +1,5 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import { battleshipConfig } from '$lib/config/battleshipConfig.js';
     import type { Ship } from '@lib/services/battleshipServices';
     import type { GameState } from '@lib/services/battleshipServices';
 
@@ -54,10 +53,10 @@
                 <div class="row">
                     {#each row as cell, x}
                         <div 
-                            class="cell {cell} {inPlayMode ? 'clickable' : ''}"
+                            class="cell {cell === 'empty' && debugMode && isCPU && shipGrid?.[y]?.[x] ? 'ship' : cell} {inPlayMode ? 'clickable' : ''}"
                             on:click={() => handleCellClick(x, y)}
                         >
-                            {#if cell === 'ship' && debugMode && isCPU}
+                            {#if debugMode && isCPU}
                                 {@const ship = ships.find(ship => ship.id === shipGrid[y][x])}
                                 {#if ship && isShipStart(ship, x, y)}
                                     <span class="ship-label">

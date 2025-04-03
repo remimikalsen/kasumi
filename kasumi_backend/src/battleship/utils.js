@@ -41,7 +41,8 @@ function createEmptyBoard(shipTypes, boardSize) {
         length,
         placed: false,
         hits: 0,
-        sunk: false
+        sunk: false,
+        position: null  // Add position property initialized as null
       }));
     }),
     board: Array(boardSize).fill(null).map(() => Array(boardSize).fill('empty')),

@@ -141,12 +141,19 @@ router.post('/battleship/join_game', (req, res) => {
  * @route POST /api/battleship/re_match
  */
 router.post('/battleship/re_match', (req, res) => {
-  const { gameId } = req.body;
+  const { gameId, initials } = req.body;
 
   if (!gameId) {
     return res.status(400).json({ 
       status: 'error', 
       message: 'Game ID required' 
+    });
+  }
+
+  if (!initials) {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'Player initials required' 
     });
   }
 
@@ -158,6 +165,21 @@ router.post('/battleship/re_match', (req, res) => {
       message: 'Game not found' 
     });
   }
+
+  if (!gameState.players.includes(initials)) {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'Player not in this game' 
+    });
+  }
+
+  // Return success if game is in setup phase
+  if (gameState.status === 'setup') {
+    return res.json({
+      status: 'success'
+    });
+  }
+
 
   // Reset game state to the setup phase
   gameState.status = 'setup';
@@ -182,9 +204,9 @@ router.post('/battleship/re_match', (req, res) => {
  * @route POST /api/battleship/place_fleet
  */
 router.post('/battleship/place_fleet', (req, res) => {
-  const { gameId, initials, shipGrid } = req.body;
+  const { gameId, initials, shipGrid, ships } = req.body;
   
-  if (!gameId || !initials || !shipGrid) {
+  if (!gameId || !initials || !shipGrid || !ships) {
     return res.status(400).json({ 
       status: 'error', 
       message: 'Missing required fields' 
@@ -224,6 +246,25 @@ router.post('/battleship/place_fleet', (req, res) => {
     });
   }
 
+  // Validate ships array matches expected ships
+  const expectedShips = gameState.playerBoards[initials].ships;
+  if (!Array.isArray(ships) || ships.length !== expectedShips.length) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Invalid number of ships'
+    });
+  }
+
+  // Validate each ship has required properties
+  for (const ship of ships) {
+    if (!ship.id || !ship.position || typeof ship.position.x !== 'number' || typeof ship.position.y !== 'number') {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Each ship must have an id and position with x,y coordinates'
+      });
+    }
+  }
+
   // Count total number of ship squares in the provided grid
   let shipSquareCount = 0;
   for (let row of shipGrid) {
@@ -257,6 +298,9 @@ router.post('/battleship/place_fleet', (req, res) => {
   }
   // Add the ship grid to the player board
   gameState.playerBoards[initials].shipGrid = shipGrid;
+
+  // Update ships with provided positions
+  gameState.playerBoards[initials].ships = ships;
 
   // Set the player board to ready
   gameState.playerBoards[initials].ready = true;
@@ -666,6 +710,8 @@ function placeCpuShips(gameState) {
     }
   }
   
+  // Update the ships array in the game state
+  gameState.playerBoards[gameState.config.cpuName].ships = ships;
   cpuBoard.ready = true;
 }
 
@@ -838,16 +884,7 @@ function sanitizeGameState(gameState, initials) {
             board.board[y][x] = 'empty';
           }
         }
-      }
-      
-      // Hide ship details like position and orientation
-      if (board.ships) {
-        board.ships = board.ships.map(ship => ({
-          ...ship,
-          position: undefined,
-          orientation: undefined
-        }));
-      }
+      }      
     }
   }
   
