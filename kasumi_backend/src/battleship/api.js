@@ -185,30 +185,6 @@ router.post('/battleship/re_match', (req, res) => {
     });
   }
 
-  // Track the winner's streak if the game is over
-  if (gameState.status === 'player_won' || gameState.status === 'opponent_won') {
-    // Initialize the win streaks object if it doesn't exist
-    if (!gameState.winStreaks) {
-      gameState.winStreaks = {};
-      for (const player of gameState.players) {
-        gameState.winStreaks[player] = 0;
-      }
-    }
-    
-    // Increment the winner's streak and reset the loser's streak
-    if (gameState.winner) {
-      // Increment winner's streak
-      gameState.winStreaks[gameState.winner] = (gameState.winStreaks[gameState.winner] || 0) + 1;
-      
-      // Reset streaks for other players
-      for (const player of gameState.players) {
-        if (player !== gameState.winner) {
-          gameState.winStreaks[player] = 0;
-        }
-      }
-    }
-  }
-
   // Reset game state to the setup phase
   gameState.status = 'setup';
   gameState.currentTurn = null;
@@ -484,6 +460,25 @@ router.post('/battleship/fire', (req, res) => {
   if (allShipsSunk) {
     gameState.status = 'player_won';
     gameState.winner = initials;
+
+    // Initialize winStreaks object if it doesn't exist
+    if (!gameState.winStreaks) {
+      gameState.winStreaks = {};
+      for (const player of gameState.players) {
+        gameState.winStreaks[player] = 0;
+      }
+    }
+    
+    // Increment winner's streak
+    gameState.winStreaks[initials] = (gameState.winStreaks[initials] || 0) + 1;
+    
+    // Reset streaks for other players
+    for (const player of gameState.players) {
+      if (player !== gameState.winner) {
+        gameState.winStreaks[player] = 0;
+      }
+    }   
+
   } else {
     // Update turn based on bonus shot rules
     const getBonusShot = gameState.config.bonusShotWhenHit && (result === 'hit' || result === 'sunk');

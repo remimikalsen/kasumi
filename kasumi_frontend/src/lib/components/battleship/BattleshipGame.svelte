@@ -23,13 +23,7 @@
     
     // Component references
     let playerBoardComponent: GameBoard;
-    
-    // React to game state changes
-    $: if (gameState?.status === 'player_won' && gameState?.winStreaks?.[username]) {
-        winningStreak = gameState.winStreaks[username];
-    } else if (gameState?.status === 'opponent_won') {
-        winningStreak = 0;
-    }
+
     
     // Helper function to get ship name from prefix
     function getShipNameFromPrefix(prefix: string): string {
@@ -168,30 +162,20 @@
                 gameOver = true;
                 gameMessage = 'Congratulations! You won!';
                 lastGameResult = 'win';
-                
+                console.log('Player won:', newState.winStreaks?.[username]);
                 // Immediately update win streak only if we just transitioned to this state
                 if (previousStatus !== 'player_won') {
+
+                    console.log('Player won with update:', newState.winStreaks?.[username]);
+                    console.log('Win streak from game:', newState.winStreaks);
+
                     // Update win streak from server if available
                     if (newState.winStreaks?.[username]) {
                         winningStreak = newState.winStreaks[username];
-                    } else {
-                        // If server doesn't provide streak, increment locally
-                        winningStreak++;
                     }
-                    
-                    // Make sure gameState.winStreaks is updated for consistent display
-                    if (!newState.winStreaks) {
-                        newState.winStreaks = {};
-                    }
-                    
-                    // Force the displayed streak to match the local value
-                    newState.winStreaks[username] = winningStreak;
-                    
-                    // If opponent had a streak, reset it
-                    if (opponent) {
-                        newState.winStreaks[opponent] = 0;
-                    }
-                    
+
+                    console.log('Win streak:', winningStreak);
+
                     // Ensure reactivity by forcing a state update
                     gameState = {...gameState};
                 }
