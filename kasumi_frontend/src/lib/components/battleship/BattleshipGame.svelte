@@ -168,19 +168,14 @@
                 gameOver = true;
                 gameMessage = 'Congratulations! You won!';
                 lastGameResult = 'win';
-                console.log('Player won:', newState.winStreaks?.[username]);
+                
                 // Immediately update win streak only if we just transitioned to this state
                 if (previousStatus !== 'player_won') {
-
-                    console.log('Player won with update:', newState.winStreaks?.[username]);
-                    console.log('Win streak from game:', newState.winStreaks);
 
                     // Update win streak from server if available
                     if (newState.winStreaks?.[username]) {
                         winningStreak = newState.winStreaks[username];
                     }
-
-                    console.log('Win streak:', winningStreak);
 
                     // Ensure reactivity by forcing a state update
                     gameState = {...gameState};
