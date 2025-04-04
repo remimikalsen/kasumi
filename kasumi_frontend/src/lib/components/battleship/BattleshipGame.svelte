@@ -4,16 +4,22 @@
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
     import { battleshipApi, type GameState, type Ship } from '$lib/services/battleshipServices';
     import { goto } from '$app/navigation';
+    import { createEventDispatcher } from 'svelte';
+
+    const dispatch = createEventDispatcher();
 
     export let username: string = "Player";
     export let gameState: GameState | null = null;
+
+    const startGameMessage = 'Place your ships on the board';
+
 
     let gameId = gameState?.gameId;
    
     let opponentReady = false;
     let playerReady = false;
     let gameActive = false;
-    $: gameMessage = 'Place your ships on the board';
+    $: gameMessage = startGameMessage;
     let gameOver = false;
     let winningStreak = 0;
     let lastGameResult: 'win' | 'loss' | null = null;
@@ -333,24 +339,11 @@
     }
     
     function handleDone() {
-        // Submit final score
-        if (lastGameResult) {
-            battleshipApi.submitScore(username, winningStreak).catch(console.error);
-        }
-        
-        // Reset all game state
-        gameState = null;
-        gameId = undefined;
-        opponentReady = false;
-        playerReady = false;
-        gameActive = false;
-        gameOver = false;
-        lastGameResult = null;
+
         clearBonusShotTimer();
         stopPolling();
-        
-        // Navigate back to battleship front page
-        goto('/spill/battleship');
+
+        dispatch('done');
     }
 
 
@@ -438,7 +431,7 @@
         text-align: center;
         margin-bottom: 0rem;
         font-size: 0.8rem;
-        color: #e94560;
+        color: #3498db;
     }    
     
     .bonus-shot-timer {

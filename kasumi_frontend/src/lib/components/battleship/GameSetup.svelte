@@ -46,10 +46,6 @@
         startGame();
     }
 
-    function handleTokenInput(event: CustomEvent<string>) {
-        gameToken = event.detail;
-    }
-
     async function startGame() {
         if (!isUsernameValid || !gameMode) return;
 

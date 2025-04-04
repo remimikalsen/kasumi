@@ -46,6 +46,10 @@
 
         gameStarted = true;
     }
+
+    function handleGameDone() {
+        gameStarted = false;
+    }
 </script>
 
     {#if !gameStarted}
@@ -54,6 +58,7 @@
         <BattleshipGame 
             username={playerInitials} 
             gameState={gameState}
+            on:done={handleGameDone}
         />
     {/if}
     
