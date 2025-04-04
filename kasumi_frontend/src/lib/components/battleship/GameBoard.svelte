@@ -12,7 +12,6 @@
     export let isReady: boolean = false;
     export let onReady: ((event: CustomEvent) => void) | null = null;
 
-    const gameId = gameState.gameId;
     const isCPU = gameState.mode === 'cpu';
     const debugMode = gameState.config.debugCpuBoard || false;
     
@@ -43,6 +42,11 @@
             inPlayMode = gameState.status === 'active';
             // Reset shot in progress when game state updates
             shotInProgress = false;
+
+            if (gameState.status === 'setup') {
+                allShipsPlaced = false;
+            }
+
         }
     }
     

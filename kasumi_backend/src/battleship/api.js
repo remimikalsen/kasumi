@@ -192,11 +192,30 @@ router.post('/battleship/re_match', (req, res) => {
   gameState.lastMoveTime = Date.now();
   gameState.bonusShotActive = false;
   gameState.winner = null;  
-
+  
   // Reset all player boards
   for (const player of gameState.players) {
     gameState.playerBoards[player] = createEmptyBoard(gameState.config.shipTypes, gameState.config.boardSize);
     gameState.playerBoards[player].ready = false;
+    
+    // Initialize ships array for each player
+    const ships = [];
+    let shipId = 1;
+    for (const [type, details] of Object.entries(gameState.config.shipTypes)) {
+      for (let i = 0; i < details.count; i++) {
+        ships.push({
+          id: `${details.prefix}${shipId}`,
+          type,
+          prefix: details.prefix,
+          length: details.length,
+          placed: false,
+          hits: 0,
+          sunk: false
+        });
+        shipId++;
+      }
+    }
+    gameState.playerBoards[player].ships = ships;
   }
 
   // For CPU games, place CPU ships immediately
