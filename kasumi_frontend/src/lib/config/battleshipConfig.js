@@ -15,10 +15,9 @@ export const battleshipConfig = {
   // Other game settings
   boardSize: 10,
   shipTypes: {
-    carrier: { length: 6, count: 1, prefix: 'W' },
     battleship: { length: 5, count: 1, prefix: 'B' },
     frigate: { length: 3, count: 1, prefix: 'F' },
     corvette: { length: 2, count: 2, prefix: 'C' },
-    uboat: { length: 1, count: 4, prefix: 'U' }
+    uboat: { length: 1, count: 3, prefix: 'U' }
   }
 }; 

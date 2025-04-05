@@ -10,7 +10,7 @@
     export let username: string = "Player";
     export let gameState: GameState | null = null;
 
-    const startGameMessage = 'Place your ships on the board';
+    const startGameMessage = 'Position your ships for battle!';
 
 
     let gameId = gameState?.gameId;
@@ -20,7 +20,6 @@
     let gameActive = false;
     $: gameMessage = startGameMessage;
     let gameOver = false;
-    let winningStreak = 0;
     let lastGameResult: 'win' | 'loss' | null = null;
     let countdownIntervalId: number | null = null;
     let timeRemaining: number = 0;
@@ -73,14 +72,6 @@
         
         // Get opponent's initials
         const opponent = newState.players.find(player => player !== username);
-        
-        // Check if win streaks have been updated from the server
-        if (newState.winStreaks) {
-            // If player's win streak changed, update the local variable
-            if (newState.winStreaks[username] !== previousWinStreaks[username]) {
-                winningStreak = newState.winStreaks[username] || 0;
-            }
-        }
         
         // Update game status based on state
         switch (newState.status) {
@@ -168,46 +159,12 @@
                 gameMessage = 'Congratulations! You won!';
                 lastGameResult = 'win';
                 
-                // Immediately update win streak only if we just transitioned to this state
-                if (previousStatus !== 'player_won') {
-
-                    // Update win streak from server if available
-                    if (newState.winStreaks?.[username]) {
-                        winningStreak = newState.winStreaks[username];
-                    }
-
-                    // Ensure reactivity by forcing a state update
-                    gameState = {...gameState};
-                }
-                
                 stopPolling();
                 break;
             case 'opponent_won':
                 gameOver = true;
                 gameMessage = 'Game Over! You lost!';
                 lastGameResult = 'loss';
-                
-                // Only reset if we just transitioned to this state
-                if (previousStatus !== 'opponent_won') {
-                    // Reset local win streak
-                    winningStreak = 0;
-                    
-                    // If server doesn't provide streaks, update the display data
-                    if (!newState.winStreaks) {
-                        newState.winStreaks = {};
-                    }
-                    
-                    // Ensure player's streak is zero in the display
-                    newState.winStreaks[username] = 0;
-                    
-                    // The opponent won, so they have at least a streak of 1
-                    if (opponent) {
-                        newState.winStreaks[opponent] = (newState.winStreaks[opponent] || 0) + 1;
-                    }
-                    
-                    // Ensure reactivity by forcing a state update
-                    gameState = {...gameState};
-                }
                 
                 stopPolling();
                 break;
@@ -315,11 +272,6 @@
                 // Update game state with the new state from server
                 gameState = response.gameState;
                 
-                // If server provides win streaks, update local variable
-                if (gameState.winStreaks && gameState.winStreaks[username]) {
-                    winningStreak = gameState.winStreaks[username];
-                }
-                
                 // Update game message
                 gameMessage = 'Place your ships on the board';
 
@@ -348,13 +300,19 @@
 </script>
 
 <div class="battleship-game">
-    <div class="game-status">
-        <h2>
+
+    <div class="game-status {playerReady && opponentReady ? 'game-status-wide' : ''}">
+
+        <h2 class="hq-title">
+            Message from HQ:
+        </h2>
+       
+        <div class="game-status-message">
             {gameMessage}
             {#if timeRemaining > 0}
-                <span class="bonus-shot-timer">(Can fire bonus shot within {Math.ceil(timeRemaining / 1000)}s)</span>
+                <span class="bonus-shot-timer">({Math.ceil(timeRemaining / 1000)}s)</span>
             {/if}
-        </h2>
+        </div>
     </div>
     
     <div class="game-boards">
@@ -367,20 +325,6 @@
                     isReady={playerReady}
                     on:ready={handlePlayerReady}
                 />
-                
-                <!-- Show player win streak - prioritize server data but fall back to local -->
-                {#if (gameState.winStreaks && gameState.winStreaks[username] > 0) || winningStreak > 0}
-                    <div class="winning-streak">
-                        Win Streak: {(gameState.winStreaks && gameState.winStreaks[username]) || winningStreak}
-                    </div>
-                {/if}
-
-                {#if gameState.mode === 'cpu'}
-                    <span class="difficulty-display">
-                        <span class="emoji">{gameState.config.cpuDifficulty === 'easy' ? '🌱' : '🔥'}</span>
-                        {gameState.config.cpuDifficulty}
-                    </span>
-                {/if}                
             </div>
         
             <div class="board-container">
@@ -430,15 +374,37 @@
     
     .game-status {
         text-align: center;
-        margin-bottom: 0rem;
-        font-size: 0.8rem;
-        color: #3498db;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        width: 100%;
+        max-width: 420px; /* Match single game board width */
+        margin-left: auto;
+        margin-right: auto;
     }    
     
+    .hq-title {
+        font-size: 1rem;
+        color: #ecf0f1;
+        letter-spacing: 0.5px;
+        text-align: left;
+        margin: 0;
+        margin-bottom: 0rem;
+    }
+
+    .game-status-message {
+        font-size: 1.2rem;
+        color: #ecf0f1;
+        font-weight: bold;
+        padding: 0.5rem;
+        text-align: left;
+    }
+    
+
     .bonus-shot-timer {
         color: #2ecc71;
         font-weight: bold;
-        margin-top: 0.5rem;
+        margin-left: 0.5rem;
+        text-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
     }
     
     .winning-streak {
@@ -506,6 +472,16 @@
             justify-content: center;
             align-items: flex-start;
             gap: 2rem;
+        }
+        .game-status-wide {
+            /* When in desktop view and game is active (two boards visible) */
+            max-width: 840px; /* 420px * 2 + gap between boards */
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .game-status-wide {
+            max-width: 420px; /* 420px * 2 + gap between boards */
         }
     }
 </style> 

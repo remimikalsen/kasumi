@@ -564,7 +564,6 @@
 <div class="game-board {debugMode ? 'debug-mode' : ''} {!showBoard ? 'hidden' : ''}" 
     style="
         --title-color: {isOpponent ? '#e94560' : '#3498db'};
-        --title-shadow: {isOpponent ? '0 0 7px #e94560, 0 0 14px #e94560' : '0 0 7px #3498db, 0 0 14px #3498db'};
     ">
     <div class="game-info">
         <h2>
@@ -582,13 +581,13 @@
                     on:click={handleReadyClick}
                     disabled={!allShipsPlaced}
                 >
-                    Ready for Battle!
+                    I'm ready
                 </button>
             </div>
             
             <div class="ship-selection">
                 {#if allShipsPlaced}
-                    <p class="fleet-deployed">Your entire fleet has been deployed!</p>
+                    <p class="fleet-deployed">Your fleet is deployed.</p>
                 {:else}
                     {#each ships as ship}
                         <button 
@@ -604,9 +603,44 @@
                 {/if}
             </div>
         {/if}
+
+
+        <div class="user-status">
+            <!-- Show player win streak - prioritize server data but fall back to local -->
+            {#if isCPU && !isOpponent}
+                <div class="difficulty-display">
+                    <span class="emoji">{gameState.config.cpuDifficulty === 'easy' ? '🌱' : '🔥'}</span>
+                    Playing it {gameState.config.cpuDifficulty}
+                </div>
+            {/if}   
+    
+            {#if isCPU && isOpponent}
+                <div class="opponent-info">
+                    {#if gameState.config.cpuDifficulty === 'easy'}
+                        CPU Opponent
+                    {:else}
+                        Advanced AI Bot
+                    {/if}
+                </div>
+            {/if}   
+
+            {#if !isCPU && isOpponent}
+                <div class="opponent-info">
+                        Human Opponent
+                </div>
+            {/if}               
+    
+            {#if (gameState.winStreaks && gameState.winStreaks[username] > 0) }
+                <div class="winning-streak">
+                    Win Streak: {(gameState.winStreaks && gameState.winStreaks[username]) || gameState.winStreaks[username]}
+                </div>
+            {/if}        
+        </div>        
+
     </div>
 
     <div class="board-container">
+
         <div class="board">
             {#each board as row, y}
                 <div class="row">
@@ -669,6 +703,35 @@
             {/if}
         </div>
     </div>
+
+    {#if isReady}
+    <div class="ship-list">
+        <h3>Fleet status</h3>
+        <div class="ship-items-container">
+            {#each [...ships].sort((a, b) => b.length - a.length) as ship, i}
+                <span class="ship-item">
+                    <span class="ship-name {ship.sunk ? 'sunk' : ''}">
+                        {ship.type[0].toUpperCase() + ship.type.slice(1)}
+                    </span>
+                    {#if !isOpponent}
+                        {#if ship.sunk}
+                            <span class="sunk-marker">✘</span>
+                        {:else if ship.hits > 0}
+                            <span class="damaged-marker">⚠</span>
+                        {:else}
+                            <span class="intact-marker">✓</span>
+                        {/if}
+                    {:else if ship.sunk}
+                        <span class="sunk-marker">✘</span>
+                    {/if}
+                </span>
+                {#if i < ships.length - 1}
+                    <span class="separator">•</span>
+                {/if}
+            {/each}
+        </div>
+    </div>
+    {/if}
     
     {#if isDragging && selectedShip}
         <!-- Ghost ship -->
@@ -712,7 +775,6 @@
     h2 {
         margin: 0;
         color: var(--title-color);
-        text-shadow: var(--title-shadow);
         font-weight: bold;
         font-size: 2rem;
         display: flex;
@@ -733,7 +795,6 @@
     .ship-placement-controls {
         display: flex;
         gap: 1rem;
-        margin-bottom: 1rem;
         width: 100%;
         justify-content: center;
     }
@@ -741,20 +802,22 @@
     .ship-selection {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.5rem;
+        gap: 1rem;
         justify-content: center;
         width: 100%;
-        border: 2px solid #3498db;
         border-radius: 8px;
-        padding: 0.5rem;
-        background-color: rgba(52, 152, 219, 0.05);
+        padding: 1rem;
+        background-color: #ecf0f1;
+        box-sizing: border-box;
+        margin-bottom: 1rem;
     }
 
     .ship-button {
         padding: 0.25rem 2px;
         border: none;
         border-radius: 5px;
-        background-color: white;
+        background-color: #34495e;
+        color: white;
         cursor: pointer;
         transition: all 0.2s;
         height: 40px;
@@ -764,6 +827,7 @@
         text-overflow: ellipsis;
         font-size: 0.9rem;
         position: relative;
+        box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.5);
     }
 
     .ship-button:hover:not(.placed) {
@@ -772,7 +836,7 @@
     }
 
     .ship-button.placed {
-        background-color: #77797a;
+        background-color: #6f828c;
         color: white;
         cursor: not-allowed;
         pointer-events: none;
@@ -785,7 +849,7 @@
     }
 
     .fleet-deployed {
-        color: #3498db;
+        color: #0d1b2a;
         font-weight: bold;
         font-size: 1.1rem;
         margin: 0;
@@ -793,7 +857,7 @@
     }
 
     .auto-place-button, .ready-button {
-        padding: 0.25rem 0.75rem;
+        padding: 0.75rem 1.25rem;
         border: none;
         border-radius: 5px;
         font-weight: bold;
@@ -842,6 +906,40 @@
         -moz-user-select: none;
         -ms-user-select: none;
         position: relative;
+    }
+
+    .user-status {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        min-height: 30px;
+        align-items: center;
+        justify-content: var(--justify, flex-start);
+        gap: 1rem;
+        margin: 0;
+        padding: 0px;
+        margin-top: -1rem;
+        margin-bottom: -0.5rem;
+    }
+
+    /* Set justify-content based on number of children using :has() */
+    .user-status:has(> :nth-child(2)) {
+        --justify: space-around;
+    }
+
+    .opponent-info {
+        font-size: 1rem;
+        display: inline-block;
+    }
+
+    .difficulty-display {
+        font-size: 1rem;
+        display: inline-block;
+    }
+
+    .winning-streak {
+        font-size: 1rem;
+        display: inline-block;
     }
 
     .row {
@@ -1045,5 +1143,71 @@
 
     .difficulty-display .emoji {
         font-size: 1em;
+    }
+
+
+    .ship-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 0.5rem;
+        max-width: 420px;
+        text-align: left;
+        border-radius: 8px;
+    }
+
+    .ship-list h3 {
+        margin: 0;
+        padding: 0;
+        font-size: 1.3rem;
+    }
+
+    .ship-items-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+        line-height: 1.2;
+    }
+
+    .ship-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .separator {
+        color: #ecf0f1;
+        opacity: 0.7;
+    }
+
+    .ship-list .ship-name {
+        display: inline;
+        font-size: 0.9rem;
+        text-align: left;
+        color: #ecf0f1;
+    }
+
+    .ship-list .ship-name.sunk {
+        text-decoration: line-through;
+        opacity: 0.7;
+    }
+
+    .sunk-marker {
+        display: inline;
+        color: #e74c3c;
+        font-weight: bold;
+    }
+    
+    .damaged-marker {
+        display: inline;
+        color: #f39c12;
+        font-weight: bold;
+    }
+    
+    .intact-marker {
+        display: inline;
+        color: #2ecc71;
+        font-weight: bold;
     }
 </style> 
