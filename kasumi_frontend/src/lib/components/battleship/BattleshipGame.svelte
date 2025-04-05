@@ -1,9 +1,8 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
+    import { onDestroy } from 'svelte';
     import GameBoard from './GameBoard.svelte';
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
     import { battleshipApi, type GameState, type Ship } from '$lib/services/battleshipServices';
-    import { goto } from '$app/navigation';
     import { createEventDispatcher } from 'svelte';
 
     const dispatch = createEventDispatcher();
@@ -375,6 +374,13 @@
                         Win Streak: {(gameState.winStreaks && gameState.winStreaks[username]) || winningStreak}
                     </div>
                 {/if}
+
+                {#if gameState.mode === 'cpu'}
+                    <span class="difficulty-display">
+                        <span class="emoji">{gameState.config.cpuDifficulty === 'easy' ? '🌱' : '🔥'}</span>
+                        {gameState.config.cpuDifficulty}
+                    </span>
+                {/if}                
             </div>
         
             <div class="board-container">

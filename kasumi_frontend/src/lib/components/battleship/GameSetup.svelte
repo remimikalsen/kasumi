@@ -1,8 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import VirtualKeyboard from '$lib/components/common/VirtualKeyboard.svelte';
-    import GameModeSelector from './GameModeSelector.svelte';
-    import GameBoard from './GameBoard.svelte';
     import { battleshipApi, type BattleshipConfig } from '$lib/services/battleshipServices';
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
 
@@ -18,7 +16,7 @@
     let gameId: string | null = null;
     let errorMessage = '';
     let initialsSubmitted = false;
-    let cpuDifficulty: 'easy' | 'hard' = 'easy';
+    let cpuDifficulty: 'easy' | 'hard' = defaultConfig.cpuDifficulty || 'easy';
     let multiplayerMode: 'host' | 'join' | 'discover' | null = null;
 
     function handleUsernameChange(initials: string) {
@@ -90,17 +88,17 @@
                         class="mode-button {cpuDifficulty === 'easy' ? 'selected' : ''}"
                         on:click={() => handleCpuDifficultySelect('easy')}
                     >
-                        Easy
+                        <span class="emoji">🌱</span> Easy {cpuDifficulty === 'easy' ? '✓' : ''}
                     </button>
                     <button 
                         class="mode-button {cpuDifficulty === 'hard' ? 'selected' : ''}"
                         on:click={() => handleCpuDifficultySelect('hard')}
                     >
-                        Hard
+                        <span class="emoji">🔥</span> Hard {cpuDifficulty === 'hard' ? '✓' : ''}
                     </button>
                 </div>
                 <button class="start-button" on:click={handleStartCpuGame}>
-                    Start CPU Game
+                    <span class="emoji">🤖</span> Start CPU Game
                 </button>
             </div>
             
@@ -111,19 +109,19 @@
                         class="mode-button disabled"
                         disabled
                     >
-                        Host Game
+                        <span class="emoji">👑</span> Host Game
                     </button>
                     <button 
                         class="mode-button disabled"
                         disabled
                     >
-                        Join Game
+                        <span class="emoji">🤝</span> Join Game
                     </button>
                     <button 
                         class="mode-button disabled"
                         disabled
                     >
-                        Find Local Players
+                        <span class="emoji">🔍</span> Find Local Players
                     </button>
                 </div>
             </div>
@@ -228,7 +226,8 @@
     }
 
     .mode-button:hover:not(.disabled) {
-        background-color: #f7f9fc;
+        background-color: #2980b9;
+        color: white;
     }
 
     .mode-button.selected {
@@ -267,5 +266,11 @@
         color: #e74c3c;
         text-align: center;
         margin: 0;
+    }
+    
+    .emoji {
+        font-size: 1.5em;
+        line-height: 1;
+        vertical-align: middle;
     }
 </style> 

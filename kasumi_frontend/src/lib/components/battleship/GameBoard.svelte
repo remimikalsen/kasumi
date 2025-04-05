@@ -13,7 +13,7 @@
     export let onReady: ((event: CustomEvent) => void) | null = null;
 
     const isCPU = gameState.mode === 'cpu';
-    const debugMode = gameState.config.debugCpuBoard || false;
+    const debugMode = gameState.config.debugOpponentBoard || false;
     
     // Board state
     let ships = gameState.playerBoards[username]?.ships;
@@ -540,49 +540,7 @@
             dispatch('fire', { position: { x, y } });
         }
     }
-    
-    function isShipCenter(ship: Ship, x: number, y: number): boolean {
-        if (!ship.position || !ship.orientation) return false;
         
-        const halfLength = Math.floor(ship.length / 2);
-        
-        if (ship.orientation === 'horizontal') {
-            return x === ship.position.x + halfLength && y === ship.position.y;
-        } else {
-            return x === ship.position.x && y === ship.position.y + halfLength;
-        }
-    }
-    
-    function isShipStart(ship: Ship, x: number, y: number): boolean {
-        if (!ship.position) return false;
-        return x === ship.position.x && y === ship.position.y;
-    }
-    
-    // Calculate the absolute position of a ship's center for the rotation button
-    function getShipCenterPosition(ship: Ship): { left: number, top: number } | null {
-        if (!ship.position || !ship.orientation || ship.length <= 1) return null;
-        
-        const cellSize = 40; // Cell size in pixels
-        const gap = 2; // Gap between cells
-        
-        let centerX, centerY;
-        
-        if (ship.orientation === 'horizontal') {
-            // For horizontal ships, center is in the middle cell
-            centerX = ship.position.x + Math.floor(ship.length / 2);
-            centerY = ship.position.y;
-        } else {
-            // For vertical ships, center is in the middle cell vertically
-            centerX = ship.position.x;
-            centerY = ship.position.y + Math.floor(ship.length / 2);
-        }
-        
-        // Calculate position within the cell
-        return {
-            left: centerX * (cellSize + gap) + cellSize / 2,
-            top: centerY * (cellSize + gap) + cellSize / 2
-        };
-    }
     
     function handleGhostRotateClick(event: MouseEvent) {
         if (!isDragging || !selectedShip || isReady || isOpponent || selectedShip.length <= 1) return;
@@ -609,7 +567,9 @@
         --title-shadow: {isOpponent ? '0 0 7px #e94560, 0 0 14px #e94560' : '0 0 7px #3498db, 0 0 14px #3498db'};
     ">
     <div class="game-info">
-        <h2>{username}'s Fleet</h2>
+        <h2>
+            {username}'s Fleet
+        </h2>
         
         {#if !isReady && !isOpponent}
             <div class="ship-placement-controls">
@@ -657,7 +617,7 @@
                             on:touchstart={(e) => handleBoardCellMouseDown(e, x, y)}
                             on:click={() => handleCellClick(x, y)}
                         >
-                            {#if shipGrid[y][x]}
+                            {#if shipGrid[y][x] && (!isOpponent || debugMode)}
                                 <span class="ship-label">
                                     {shipGrid[y][x]}
                                 </span>
@@ -755,6 +715,9 @@
         text-shadow: var(--title-shadow);
         font-weight: bold;
         font-size: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .game-info {
@@ -1068,5 +1031,19 @@
         left: 2px;
         font-size: 0.6rem;
         opacity: 0.7;
+    }
+
+    .difficulty-display {
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        opacity: 0.8;
+        color: white;
+        text-shadow: none;
+    }
+
+    .difficulty-display .emoji {
+        font-size: 1em;
     }
 </style> 

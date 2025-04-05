@@ -2,11 +2,11 @@ import { env } from '$env/dynamic/public';
 
 export const battleshipConfig = {
   // Debug mode to show the CPU's ships during gameplay
-  debugCpuBoard: env.PUBLIC_BATTLESHIP_DEBUG_CPU?.toLowerCase() === 'true',
+  debugOpponentBoard: env.PUBLIC_BATTLESHIP_DEBUG_OPPONENT_BOARD?.toLowerCase() === 'true',
   
   // CPU configuration
   cpuName: 'C3PO', // The name used for the CPU player
-  cpuDifficulty: env.PUBLIC_BATTLESHIP_CPU_DIFFICULTY || 'hard', // Default to easy
+  cpuDifficulty: env.PUBLIC_BATTLESHIP_CPU_DIFFICULTY || 'easy', // Default to easy
   
   // Bonus shot configuration
   bonusShotWhenHit: env.PUBLIC_BATTLESHIP_BONUS_SHOT_WHEN_HIT?.toLowerCase() === 'true' || true, // Default to true

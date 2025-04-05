@@ -62,9 +62,11 @@
         />
     {/if}
     
-    <div class="env-info">
-        <p>Debug CPU board: {battleshipConfig.debugCpuBoard ? 'Enabled' : 'Disabled'}</p>
-    </div>
+    {#if battleshipConfig.debugOpponentBoard}
+        <div class="env-info">
+            <p>Debugging opponent's board</p>
+        </div>
+    {/if}
 
 <style>
 

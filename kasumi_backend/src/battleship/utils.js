@@ -12,7 +12,7 @@ const defaultBattleshipConfig = {
     submarine: { length: 3, count: 1, prefix: "S" },
     destroyer: { length: 2, count: 3, prefix: "D" }
   },
-  debugCpuBoard: false,
+  debugOpponentBoard: false,
   cpuName: 'CPU',
   cpuDifficulty: 'easy' // New option: 'easy' (random) or 'hard' (smart targeting)
 };
@@ -99,9 +99,9 @@ function validateBattleshipConfig(config) {
       }
     }
 
-    // Validate debugCpuBoard
-    if (config.debugCpuBoard && typeof config.debugCpuBoard === 'boolean') {
-      validatedConfig.debugCpuBoard = config.debugCpuBoard;
+    // Validate debugOpponentBoard
+    if (config.debugOpponentBoard && typeof config.debugOpponentBoard === 'boolean') {
+      validatedConfig.debugOpponentBoard = config.debugOpponentBoard;
     }
 
     // Validate cpuName

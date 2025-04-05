@@ -10,7 +10,7 @@ export interface BattleshipConfig {
       prefix: string;
     };
   };
-  debugCpuBoard: boolean;
+  debugOpponentBoard: boolean;
   cpuDifficulty?: 'easy' | 'hard';
 }
 
