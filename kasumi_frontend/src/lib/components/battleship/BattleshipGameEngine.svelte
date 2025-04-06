@@ -132,6 +132,8 @@
         // Get opponent's initials
         const opponent = newState.players.find(player => player !== username);
 
+        console.log(newState);
+
         // Update game status based on state
         switch (newState.status) {
             case 'waiting_for_opponent':
@@ -176,7 +178,6 @@
                             message = getLocalizedText(pageTexts, "you_hit");
                         } else if (lastMove.result === 'sunk') {
                             const shipName = getShipNameFromId(lastMove.shipId ?? undefined);
-                            // Use template with parameters
                             message = getLocalizedText(pageTexts, "you_sunk").replace("{0}", opponent || "").replace("{1}", shipName);
                         }
                         

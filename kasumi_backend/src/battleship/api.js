@@ -1,11 +1,85 @@
 const express = require('express');
 const db = require('../common/db');
 const { generateGameId, createEmptyBoard, validateBattleshipConfig } = require('./utils');
+const redis = require('redis');
+require('dotenv').config();
 
 const router = express.Router();
 
-// In-memory store (replace with database in production)
-const battleship_games = new Map(); 
+// Create Redis client with environment-based configuration
+const redisClient = redis.createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
+});
+
+// Handle Redis connection errors
+redisClient.on('error', (err) => {
+  console.error('Redis Client Error:', err);
+});
+
+// Connect to Redis
+redisClient.connect().catch(console.error);
+
+// Helper function to get game from Redis
+async function getGame(gameId) {
+  const game = await redisClient.get(`battleship:${gameId}`);
+  return game ? JSON.parse(game) : null;
+}
+
+// Helper function to save game to Redis with 1 hour TTL
+async function saveGame(gameId, gameState) {
+  await redisClient.set(`battleship:${gameId}`, JSON.stringify(gameState), {
+    EX: 3600 // 1 hour in seconds
+  });
+}
+
+// Helper function to delete game from Redis
+async function deleteGame(gameId) {
+  await redisClient.del(`battleship:${gameId}`);
+}
+
+// Helper function to get all game keys
+async function getAllGameKeys() {
+  return await redisClient.keys('battleship:*');
+}
+
+// Helper function to get game TTL
+async function getGameTTL(gameId) {
+  return await redisClient.ttl(`battleship:${gameId}`);
+}
+
+// Helper function to update game TTL
+async function updateGameTTL(gameId) {
+  await redisClient.expire(`battleship:${gameId}`, 3600);
+}
+
+// Function to check and clean up inactive games
+async function cleanupInactiveGames() {
+  try {
+    const gameKeys = await getAllGameKeys();
+    const now = Date.now();
+    
+    for (const key of gameKeys) {
+      const gameId = key.replace('battleship:', '');
+      const gameState = await getGame(gameId);
+      
+      if (gameState) {
+        // If game is not active or hasn't been updated in the last hour
+        if (gameState.status !== 'active' || (now - gameState.lastMoveTime) > 3600000) {
+          await deleteGame(gameId);
+          console.log(`Cleaned up inactive game: ${gameId}`);
+        } else {
+          // Update TTL for active games
+          await updateGameTTL(gameId);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error cleaning up games:', error);
+  }
+}
+
+// Set up periodic cleanup (every 5 minutes)
+setInterval(cleanupInactiveGames, 300000);
 
 // Create a table for the leaderboard
 db.serialize(() => {
@@ -17,7 +91,7 @@ db.serialize(() => {
  * 
  * @route POST /api/battleship/create_game
  */
-router.post('/battleship/create_game', (req, res) => {
+router.post('/battleship/create_game', async (req, res) => {
   const { initials, mode, config } = req.body;
   
   // Validate player initials
@@ -33,7 +107,6 @@ router.post('/battleship/create_game', (req, res) => {
   // Validate and use the client configuration or fall back to default
   const gameConfig = validateBattleshipConfig(config);
 
-  
   // Prevent using CPU name as player initials
   if (initials === gameConfig.cpuName) {
     return res.status(400).json({ status: 'error', message: `Cannot use ${gameConfig.cpuName} as player initials` });
@@ -76,8 +149,8 @@ router.post('/battleship/create_game', (req, res) => {
     placeCpuShips(gameState);
   }
   
-  // Store the game
-  battleship_games.set(gameId, gameState);
+  // Store the game in Redis
+  await saveGame(gameId, gameState);
   
   res.json({ 
     gameId, 
@@ -90,7 +163,7 @@ router.post('/battleship/create_game', (req, res) => {
  * 
  * @route POST /api/battleship/join_game
  */
-router.post('/battleship/join_game', (req, res) => {
+router.post('/battleship/join_game', async (req, res) => {
   const { gameId, initials } = req.body;
   
   if (!gameId || !initials) {
@@ -100,8 +173,7 @@ router.post('/battleship/join_game', (req, res) => {
     });
   }
 
-  
-  const gameState = battleship_games.get(gameId);
+  const gameState = await getGame(gameId);
 
   if (!gameState) {
     return res.status(404).json({ 
@@ -134,17 +206,20 @@ router.post('/battleship/join_game', (req, res) => {
   gameState.playerBoards[initials] = createEmptyBoard(gameState.config.shipTypes, gameState.config.boardSize);
   gameState.status = 'setup';
   
+  // Save updated game state
+  await saveGame(gameId, gameState);
+  
   res.json({
     status: 'success'
   });
 });
 
-/*
+/**
  * Retreat from a battle
  * 
  * @route POST /api/battleship/retreat
  */
-router.post('/battleship/retreat', (req, res) => {
+router.post('/battleship/retreat', async (req, res) => {
   const { gameId, initials } = req.body;
 
   if (!gameId || !initials) {
@@ -154,7 +229,7 @@ router.post('/battleship/retreat', (req, res) => {
     });
   }
 
-  const gameState = battleship_games.get(gameId); 
+  const gameState = await getGame(gameId);
 
   if (!gameState) {
     return res.status(404).json({ 
@@ -202,18 +277,21 @@ router.post('/battleship/retreat', (req, res) => {
   gameState.winStreaks[initials] = 0;
   gameState.winStreaks[opponent] = (gameState.winStreaks[opponent] || 0) + 1;
 
+  // Save updated game state
+  await saveGame(gameId, gameState);
+
   // Return success status
   res.json({
     status: 'success'
   }); 
 });
 
-/*
+/**
  * Re-match a game
  * 
  * @route POST /api/battleship/re_match
  */
-router.post('/battleship/re_match', (req, res) => {
+router.post('/battleship/re_match', async (req, res) => {
   const { gameId, initials } = req.body;
 
   if (!gameId) {
@@ -230,7 +308,7 @@ router.post('/battleship/re_match', (req, res) => {
     });
   }
 
-  const gameState = battleship_games.get(gameId);
+  const gameState = await getGame(gameId);
 
   if (!gameState) {
     return res.status(404).json({  
@@ -292,6 +370,9 @@ router.post('/battleship/re_match', (req, res) => {
     placeCpuShips(gameState);
   }
 
+  // Save updated game state
+  await saveGame(gameId, gameState);
+
   // Return the updated game state
   res.json({
     status: 'success',
@@ -299,13 +380,12 @@ router.post('/battleship/re_match', (req, res) => {
   });
 });
 
-
-/*
+/**
  * Leave the game - this will destroy the game state
  * 
  * @route POST /api/battleship/leave_game
  */
-router.post('/battleship/leave_game', (req, res) => {
+router.post('/battleship/leave_game', async (req, res) => {
   const { gameId, initials } = req.body;
 
   if (!gameId || !initials) {
@@ -315,7 +395,7 @@ router.post('/battleship/leave_game', (req, res) => {
     });
   }
 
-  const gameState = battleship_games.get(gameId);
+  const gameState = await getGame(gameId);
 
   if (!gameState) {
     return res.status(404).json({ 
@@ -331,23 +411,21 @@ router.post('/battleship/leave_game', (req, res) => {
     });
   }
 
-  // Delete the game state from memory
-  battleship_games.delete(gameId);
+  // Delete the game state from Redis
+  await deleteGame(gameId);
 
   // Return success status
   res.json({
     status: 'success'
   });
-
 });
-
 
 /**
  * Place fleet on the board
  * 
  * @route POST /api/battleship/place_fleet
  */
-router.post('/battleship/place_fleet', (req, res) => {
+router.post('/battleship/place_fleet', async (req, res) => {
   const { gameId, initials, shipGrid, ships } = req.body;
   
   if (!gameId || !initials || !shipGrid || !ships) {
@@ -357,7 +435,7 @@ router.post('/battleship/place_fleet', (req, res) => {
     });
   }
   
-  const gameState = battleship_games.get(gameId);
+  const gameState = await getGame(gameId);
   
   if (!gameState) {
     return res.status(404).json({ 
@@ -464,6 +542,9 @@ router.post('/battleship/place_fleet', (req, res) => {
     }
   }
   
+  // Save updated game state
+  await saveGame(gameId, gameState);
+
   // Only return success status, no game state
   res.json({
     status: 'success',
@@ -476,7 +557,7 @@ router.post('/battleship/place_fleet', (req, res) => {
  * 
  * @route POST /api/battleship/fire
  */
-router.post('/battleship/fire', (req, res) => {
+router.post('/battleship/fire', async (req, res) => {
   const { gameId, initials, position } = req.body;
   
   if (!gameId || !initials || !position) {
@@ -486,7 +567,7 @@ router.post('/battleship/fire', (req, res) => {
     });
   }
   
-  const gameState = battleship_games.get(gameId);
+  const gameState = await getGame(gameId);
   
   if (!gameState) {
     return res.status(404).json({ 
@@ -617,10 +698,9 @@ router.post('/battleship/fire', (req, res) => {
       gameState.currentTurn = opponent;
       gameState.bonusShotActive = false;
       
-      // If opponent is CPU, make a CPU move
+      // If opponent is CPU, make its move
       if (gameState.mode === 'cpu' && opponent === gameState.config.cpuName) {
-        // Schedule CPU move asynchronously
-        setTimeout(() => makeCpuMove(gameState), 2000);
+        setTimeout(() => makeCpuMove(gameState), 1000);
       }
     } else {
       // Player gets a bonus shot
@@ -628,6 +708,9 @@ router.post('/battleship/fire', (req, res) => {
     }
   }
   
+  // Save updated game state
+  await saveGame(gameId, gameState);
+
   // Only return the shot result, no game state
   res.json({
     result,
@@ -641,7 +724,7 @@ router.post('/battleship/fire', (req, res) => {
  * 
  * @route GET /api/battleship/game_state
  */
-router.get('/battleship/game_state', (req, res) => {
+router.get('/battleship/game_state', async (req, res) => {
   const { gameId, initials, lastUpdate } = req.query;
   
   if (!gameId) {
@@ -651,7 +734,7 @@ router.get('/battleship/game_state', (req, res) => {
     });
   }
   
-  const gameState = battleship_games.get(gameId);
+  const gameState = await getGame(gameId);
   
   if (!gameState) {
     return res.status(404).json({ 
@@ -670,8 +753,8 @@ router.get('/battleship/game_state', (req, res) => {
     if (!hasNewUpdates) {
       // No new updates, use long polling
       // Set a timeout to check again in 5 seconds
-      setTimeout(() => {
-        const updatedGameState = battleship_games.get(gameId);
+      setTimeout(async () => {
+        const updatedGameState = await getGame(gameId);
         if (updatedGameState) {
           res.json({
             gameState: sanitizeGameState(updatedGameState, initials),
@@ -707,6 +790,9 @@ router.get('/battleship/game_state', (req, res) => {
         if (gameState.mode === 'cpu' && opponent === gameState.config.cpuName) {
           setTimeout(() => makeCpuMove(gameState), 1000);
         }
+
+        // Save updated game state
+        await saveGame(gameId, gameState);
       }
     }
   }
@@ -723,7 +809,7 @@ router.get('/battleship/game_state', (req, res) => {
  * 
  * @route POST /api/battleship/timeout_bonus_shot
  */
-router.post('/battleship/timeout_bonus_shot', (req, res) => {
+router.post('/battleship/timeout_bonus_shot', async (req, res) => {
   const { gameId, initials } = req.body;
   
   if (!gameId || !initials) {
@@ -733,7 +819,7 @@ router.post('/battleship/timeout_bonus_shot', (req, res) => {
     });
   }
   
-  const gameState = battleship_games.get(gameId);
+  const gameState = await getGame(gameId);
   
   if (!gameState) {
     return res.status(404).json({ 
@@ -769,6 +855,9 @@ router.post('/battleship/timeout_bonus_shot', (req, res) => {
     if (gameState.mode === 'cpu' && opponent === gameState.config.cpuName) {
       setTimeout(() => makeCpuMove(gameState), 1000);
     }
+
+    // Save updated game state
+    await saveGame(gameId, gameState);
   }
   
   res.json({
@@ -778,7 +867,7 @@ router.post('/battleship/timeout_bonus_shot', (req, res) => {
 });
 
 // Endpoint to submit a score
-router.post('/battleship/submit_score', (req, res) => {
+router.post('/battleship/submit_score', async (req, res) => {
   const { gameId, initials } = req.body;
   
   // Validate required parameters
@@ -790,7 +879,7 @@ router.post('/battleship/submit_score', (req, res) => {
   }
   
   // Find the game
-  const gameState = battleship_games.get(gameId);
+  const gameState = await getGame(gameId);
   
   if (!gameState) {
     return res.status(404).json({ 
@@ -971,7 +1060,7 @@ function canPlaceShip(ship, x, y, orientation, board) {
 /**
  * Make a CPU move
  */
-function makeCpuMove(gameState) {
+async function makeCpuMove(gameState) {
   if (gameState.status !== 'active' || gameState.currentTurn !== gameState.config.cpuName) {
     return;
   }
@@ -1108,6 +1197,9 @@ function makeCpuMove(gameState) {
       setTimeout(() => makeCpuMove(gameState), 1500);
     }
   }
+
+  // Save the updated game state to Redis
+  await saveGame(gameState.gameId, gameState);
 }
 
 /**
