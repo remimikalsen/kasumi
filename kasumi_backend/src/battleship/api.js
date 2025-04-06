@@ -538,7 +538,7 @@ router.post('/battleship/place_fleet', async (req, res) => {
     
     // If CPU is first to go, make its move immediately
     if (gameState.mode === 'cpu' && gameState.currentTurn === gameState.config.cpuName) {
-      setTimeout(() => makeCpuMove(gameState), 1000);
+      setTimeout(() => makeCpuMove(gameState), 3000);
     }
   }
   
@@ -700,7 +700,7 @@ router.post('/battleship/fire', async (req, res) => {
       
       // If opponent is CPU, make its move
       if (gameState.mode === 'cpu' && opponent === gameState.config.cpuName) {
-        setTimeout(() => makeCpuMove(gameState), 1000);
+        setTimeout(() => makeCpuMove(gameState), 3000);
       }
     } else {
       // Player gets a bonus shot
@@ -788,7 +788,7 @@ router.get('/battleship/game_state', async (req, res) => {
         
         // If new turn is CPU, make CPU move
         if (gameState.mode === 'cpu' && opponent === gameState.config.cpuName) {
-          setTimeout(() => makeCpuMove(gameState), 1000);
+          setTimeout(() => makeCpuMove(gameState), 3000);
         }
 
         // Save updated game state

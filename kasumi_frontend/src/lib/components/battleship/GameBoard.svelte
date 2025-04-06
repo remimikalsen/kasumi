@@ -1,6 +1,6 @@
 <!-- GameBoard.svelte -->
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onDestroy } from 'svelte';
     import type { Ship } from '@lib/services/battleshipServices';
     import type { GameState } from '@lib/services/battleshipServices';
     import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
@@ -53,6 +53,36 @@
     let winStreak = 0;
     
     let showRetreatConfirm = false;
+    
+    // Add a reactive variable for cell size calculation
+    let boardElement: HTMLElement;
+    let cellSize = 40; // Default size that will be updated
+    let cellGap = 2;
+    let resizeObserver: ResizeObserver;
+    
+    // Update cellSize when the board is visible and resized
+    function updateCellSize() {
+        if (boardElement) {
+            const boardWidth = boardElement.clientWidth;
+            cellSize = (boardWidth - (9 * cellGap)) / 10; // 10 cells with 9 gaps
+        }
+    }
+    
+    $: if (showBoard && boardElement) {
+        // Use ResizeObserver to monitor size changes
+        resizeObserver = new ResizeObserver(() => {
+            updateCellSize();
+        });
+        resizeObserver.observe(boardElement);
+        updateCellSize(); // Initial calculation
+    }
+
+    // Clean up the ResizeObserver when component is destroyed
+    onDestroy(() => {
+        if (resizeObserver) {
+            resizeObserver.disconnect();
+        }
+    });
     
     // React to gameState changes
     $: {
@@ -115,40 +145,36 @@
         // Calculate drag offset based on where in the ship the user clicked
         if (ship.placed && ship.position) {
             // If dragging from the board, preserve the relative position where user clicked
-            const boardElement = document.querySelector('.board') as HTMLElement;
-            if (boardElement) {
-                const boardRect = boardElement.getBoundingClientRect();
-                const cellSize = 40;
-                const gap = 2; // Gap between cells
-                
-                // Get the position of the click in the grid
-                const clickGridX = Math.floor((initialX - boardRect.left) / (cellSize + gap));
-                const clickGridY = Math.floor((initialY - boardRect.top) / (cellSize + gap));
-                
-                // Calculate which cell of the ship was clicked
-                let cellIndexClicked;
-                if (ship.orientation === 'horizontal') {
-                    cellIndexClicked = clickGridX - ship.position.x;
-                } else {
-                    cellIndexClicked = clickGridY - ship.position.y;
-                }
-                
-                // Clamp to valid range
-                cellIndexClicked = Math.max(0, Math.min(cellIndexClicked, ship.length - 1));
-                
-                // Set drag offset based on orientation
-                dragOffset = {
-                    x: ship.orientation === 'horizontal' ? cellIndexClicked : 0.5,
-                    y: ship.orientation === 'vertical' ? cellIndexClicked : 0.5
-                };
-                
-                // Now remove the ship from the board
-                removeShip(ship);
+            const boardRect = boardElement.getBoundingClientRect();
+            const totalCellSize = cellSize + cellGap;
+            
+            // Get the position of the click in the grid
+            const clickGridX = Math.floor((initialX - boardRect.left) / totalCellSize);
+            const clickGridY = Math.floor((initialY - boardRect.top) / totalCellSize);
+            
+            // Calculate which cell of the ship was clicked
+            let cellIndexClicked;
+            if (ship.orientation === 'horizontal') {
+                cellIndexClicked = clickGridX - ship.position.x;
+            } else {
+                cellIndexClicked = clickGridY - ship.position.y;
             }
+            
+            // Clamp to valid range
+            cellIndexClicked = Math.max(0, Math.min(cellIndexClicked, ship.length - 1));
+            
+            // Set drag offset based on orientation
+            dragOffset = {
+                x: ship.orientation === 'horizontal' ? cellIndexClicked : 0.5,
+                y: ship.orientation === 'vertical' ? cellIndexClicked : 0.5
+            };
+            
+            // Now remove the ship from the board
+            removeShip(ship);
         } else {
             // If dragging from the ship selection area
             dragOffset = { 
-                x: Math.min(Math.max(0, Math.floor((initialX - rect.left) / 40)), ship.length - 1),
+                x: Math.min(Math.max(0, Math.floor((initialX - rect.left) / cellSize)), ship.length - 1),
                 y: 0.5
             };
         }
@@ -175,14 +201,13 @@
             mousePosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
         }
         
-        // Get the board element
-        const boardElement = document.querySelector('.board') as HTMLElement;
         if (!boardElement) return;
         
         const boardRect = boardElement.getBoundingClientRect();
+        const totalCellSize = cellSize + cellGap;
         
         // Check if mouse is extremely far from the board (more than 3 cells away)
-        const farDistance = 120; // 3 cells
+        const farDistance = totalCellSize * 3;
         const isVeryFarFromBoard = 
             mousePosition.x < boardRect.left - farDistance || 
             mousePosition.x > boardRect.right + farDistance || 
@@ -197,10 +222,8 @@
         }
         
         // Calculate grid position on the board
-        const cellSize = 40; // Cell size in pixels
-        const gap = 2; // Gap between cells
-        const gridX = Math.floor((mousePosition.x - boardRect.left) / (cellSize + gap));
-        const gridY = Math.floor((mousePosition.y - boardRect.top) / (cellSize + gap));
+        const gridX = Math.floor((mousePosition.x - boardRect.left) / totalCellSize);
+        const gridY = Math.floor((mousePosition.y - boardRect.top) / totalCellSize);
         
         // Apply drag offset based on orientation
         let adjustedX, adjustedY;
@@ -231,8 +254,6 @@
         window.removeEventListener('mouseup', handleShipDragEnd);
         window.removeEventListener('touchend', handleShipDragEnd);
         
-        // Get the board element
-        const boardElement = document.querySelector('.board') as HTMLElement;
         if (!boardElement) {
             isDragging = false;
             previewCells = [];
@@ -240,12 +261,11 @@
         }
         
         const boardRect = boardElement.getBoundingClientRect();
+        const totalCellSize = cellSize + cellGap;
         
         // Calculate grid position on the board
-        const cellSize = 40; // Cell size in pixels
-        const gap = 2; // Gap between cells
-        const gridX = Math.floor((mousePosition.x - boardRect.left) / (cellSize + gap));
-        const gridY = Math.floor((mousePosition.y - boardRect.top) / (cellSize + gap));
+        const gridX = Math.floor((mousePosition.x - boardRect.left) / totalCellSize);
+        const gridY = Math.floor((mousePosition.y - boardRect.top) / totalCellSize);
         
         // Apply drag offset based on orientation - same logic as in handleShipDragMove
         let adjustedX, adjustedY;
@@ -606,6 +626,23 @@
         }
         return shipType.charAt(0).toUpperCase() + shipType.slice(1);
     }
+
+    // Add a flag to track if we've calculated the ship selection width
+    let shipSelectionWidth = 0;
+    
+    // Function to save the ship selection width when it's rendered
+    function saveShipSelectionWidth(node: HTMLElement) {
+        // Only calculate once when ships are visible
+        if (!allShipsPlaced && shipSelectionWidth === 0) {
+            setTimeout(() => {
+                shipSelectionWidth = node.offsetWidth;
+            }, 100);
+        }
+        
+        return {
+            destroy() {}
+        };
+    }
 </script>
 
 {#if showRetreatConfirm}
@@ -650,7 +687,9 @@
                 </button>
             </div>
             
-            <div class="ship-selection">
+            <div class="ship-selection" 
+                 use:saveShipSelectionWidth
+                 style={shipSelectionWidth ? `width: ${shipSelectionWidth}px;` : ''}>
                 {#if allShipsPlaced}
                     <p class="fleet-deployed">{getLocalizedText(pageTexts, "fleet_deployed")}</p>
                 {:else}
@@ -705,7 +744,7 @@
     </div>
 
     <div class="board-container">
-        <div class="board">
+        <div class="board" bind:this={boardElement}>
             {#if showTurnOverlay && inPlayMode }
                 <div class="turn-overlay"></div>
             {/if}
@@ -744,19 +783,18 @@
                 {#each ships as ship}
                     {#if ship.placed && ship.position && ship.length > 1 && (!isDragging || selectedShip?.id !== ship.id)}
                         <!-- Calculate the exact center point of the ship -->
-                        {@const cellSize = 40}
-                        {@const gap = 2}
+                        {@const totalCellSize = cellSize + cellGap}
                         {@const isEvenLength = ship.length % 2 === 0}
                         {@const offset = isEvenLength ? 0.5 : 0}
                         
                         <!-- Position is different for even vs odd length ships -->
                         {@const centerX = ship.orientation === 'horizontal' 
-                            ? (ship.position.x + (ship.length - 1) / 2) * (cellSize + gap) + (cellSize / 2)
-                            : ship.position.x * (cellSize + gap) + (cellSize / 2)}
+                            ? (ship.position.x + (ship.length - 1) / 2) * totalCellSize + (cellSize / 2)
+                            : ship.position.x * totalCellSize + (cellSize / 2)}
                             
                         {@const centerY = ship.orientation === 'vertical'
-                            ? (ship.position.y + (ship.length - 1) / 2) * (cellSize + gap) + (cellSize / 2)
-                            : ship.position.y * (cellSize + gap) + (cellSize / 2)}
+                            ? (ship.position.y + (ship.length - 1) / 2) * totalCellSize + (cellSize / 2)
+                            : ship.position.y * totalCellSize + (cellSize / 2)}
                         
                         <button 
                             class="rotate-button"
@@ -810,13 +848,13 @@
         <div class="drag-ghost" 
             style="
                 left: {currentOrientation === 'horizontal' 
-                    ? mousePosition.x - dragOffset.x * 40 
-                    : mousePosition.x - 20}px; 
+                    ? mousePosition.x - dragOffset.x * cellSize 
+                    : mousePosition.x - cellSize/2}px; 
                 top: {currentOrientation === 'vertical' 
-                    ? mousePosition.y - dragOffset.y * 40 
-                    : mousePosition.y - 20}px; 
-                width: {currentOrientation === 'horizontal' ? selectedShip.length * 40 : 40}px;
-                height: {currentOrientation === 'vertical' ? selectedShip.length * 40 : 40}px;
+                    ? mousePosition.y - dragOffset.y * cellSize 
+                    : mousePosition.y - cellSize/2}px; 
+                width: {currentOrientation === 'horizontal' ? selectedShip.length * cellSize : cellSize}px;
+                height: {currentOrientation === 'vertical' ? selectedShip.length * cellSize : cellSize}px;
             ">
             {selectedShip.id}
             
@@ -843,13 +881,15 @@
         max-width: 800px;
         margin: 0 auto;
         position: relative;
+        padding: 0.5rem;
+        box-sizing: border-box;
     }
 
     h2 {
         margin: 0;
         color: var(--title-color);
         font-weight: bold;
-        font-size: 2rem;
+        font-size: clamp(1.5rem, 5vw, 2rem);
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -861,7 +901,6 @@
         gap: 1rem;
         align-items: center;
         width: 100%;
-        max-width: 420px; /* 10 cells * 40px + 2px gap * 9 + 4px padding */
         margin: 0 auto;
     }
 
@@ -872,17 +911,74 @@
         justify-content: center;
     }
 
+    .ship-selection, .board, .ship-list {
+        width: 100%;
+        max-width: 420px;
+    }
+
     .ship-selection {
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
         justify-content: center;
-        width: 100%;
         border-radius: 8px;
         padding: 1rem;
         background-color: #ecf0f1;
         box-sizing: border-box;
         margin-bottom: 1rem;
+        max-width: 420px;
+        width: 100%;
+    }
+
+    @media (max-width: 450px) {
+        .ship-selection {
+            min-width: unset;
+        }
+    }
+
+    .fleet-deployed {
+        color: #0d1b2a;
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin: 0;
+        text-align: center;
+        width: 100%;
+    }
+
+    .board-container {
+        display: flex;
+        justify-content: center;
+        position: relative;
+        width: 100%;
+    }
+
+    .board {
+        display: grid;
+        grid-template-rows: repeat(10, 1fr);
+        gap: 2px;
+        background-color: var(--board-color);
+        padding: 2px;
+        border-radius: 5px;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        position: relative;
+        width: 100%;
+        max-width: 420px;
+        aspect-ratio: 1;
+    }
+
+    .ship-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 0.5rem;
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+        text-align: left;
+        border-radius: 8px;
     }
 
     .ship-button {
@@ -893,12 +989,12 @@
         color: white;
         cursor: pointer;
         transition: all 0.2s;
-        height: 40px;
+        height: clamp(30px, 8vw, 40px);
         text-align: center;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        font-size: 0.9rem;
+        font-size: clamp(0.7rem, 2vw, 0.9rem);
         position: relative;
         box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.5);
     }
@@ -919,14 +1015,6 @@
     .ship-button.placed:hover {
         background-color: #77797a;
         color: white;
-    }
-
-    .fleet-deployed {
-        color: #0d1b2a;
-        font-weight: bold;
-        font-size: 1.1rem;
-        margin: 0;
-        text-align: center;
     }
 
     .auto-place-button, .ready-button {
@@ -964,12 +1052,6 @@
         cursor: not-allowed;
     }
 
-    .board-container {
-        display: flex;
-        justify-content: center;
-        position: relative;
-    }
-
     .turn-overlay {
         position: absolute;
         top: 0;
@@ -980,54 +1062,6 @@
         z-index: 100;
         pointer-events: none;
         border-radius: 5px;
-    }
-
-    .board {
-        display: grid;
-        grid-template-rows: repeat(10, 1fr);
-        gap: 2px;
-        background-color: var(--board-color);
-        padding: 2px;
-        border-radius: 5px;
-        user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        position: relative;
-    }
-
-    .user-status {
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        min-height: 30px;
-        align-items: center;
-        justify-content: var(--justify, flex-start);
-        gap: 1rem;
-        margin: 0;
-        padding: 0px;
-        margin-top: -1rem;
-        margin-bottom: -0.5rem;
-    }
-
-    /* Set justify-content based on number of children using :has() */
-    .user-status:has(> :nth-child(2)) {
-        --justify: space-around;
-    }
-
-    .opponent-info {
-        font-size: 1rem;
-        display: inline-block;
-    }
-
-    .difficulty-display {
-        font-size: 1rem;
-        display: inline-block;
-    }
-
-    .winning-streak {
-        font-size: 1rem;
-        display: inline-block;
     }
 
     .row {
@@ -1042,8 +1076,8 @@
 
     .cell {
         position: relative;
-        width: 40px;
-        height: 40px;
+        width: 100%;
+        aspect-ratio: 1;
         background-color: #ecf0f1;
         border-radius: 2px;
         transition: background-color 0.2s;
@@ -1052,11 +1086,6 @@
         -moz-user-select: none;
         -ms-user-select: none;
     }
-
-    /* Remove the general hover effect */
-    /*.cell:hover:not(.locked):not(.clickable):not(.ship):not(.preview):not(.player) {
-        background-color: rgba(231, 77, 60, 0.85);
-    }*/
 
     .cell.ship {
         background-color: #34495e;
@@ -1087,13 +1116,13 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 24px;
-        height: 24px;
+        width: clamp(20px, 5vw, 24px);
+        height: clamp(20px, 5vw, 24px);
         background-color: #3498db;
         color: white;
         border: none;
         border-radius: 50%;
-        font-size: 16px;
+        font-size: clamp(14px, 4vw, 16px);
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -1101,7 +1130,7 @@
         z-index: 10;
         opacity: 0.8;
         transition: opacity 0.2s;
-        pointer-events: all; /* Ensure clicks are captured */
+        pointer-events: all;
     }
 
     .rotate-button:hover {
@@ -1113,7 +1142,7 @@
         position: absolute;
         top: 1px;
         left: 2px;
-        font-size: 0.6rem;
+        font-size: clamp(0.5rem, 1.5vw, 0.6rem);
         color: white;
         pointer-events: none;
         z-index: 1;
@@ -1124,7 +1153,7 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        font-size: 1.5rem;
+        font-size: clamp(1rem, 3vw, 1.5rem);
         font-weight: bold;
         pointer-events: none;
         color: #000000;
@@ -1234,29 +1263,13 @@
         font-size: 1em;
     }
 
-
-    .ship-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        padding: 0.5rem;
-        max-width: 420px;
-        text-align: left;
-        border-radius: 8px;
-    }
-
-    .ship-list h3 {
-        margin: 0;
-        padding: 0;
-        font-size: 1.3rem;
-    }
-
     .ship-items-container {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
         align-items: center;
         line-height: 1.2;
+        font-size: clamp(0.8rem, 2.5vw, 0.9rem);
     }
 
     .ship-item {
@@ -1272,14 +1285,14 @@
 
     .ship-list .ship-name {
         display: inline;
-        font-size: 0.9rem;
+        font-size: clamp(0.7rem, 2vw, 0.9rem);
         text-align: left;
         color: #ecf0f1;
     }
 
     .ship-list .shiplist-shipid {
         display: inline;
-        font-size: 0.7rem;
+        font-size: clamp(0.6rem, 1.8vw, 0.7rem);
         font-style: italic;
         text-align: left;
         color: #ecf0f1;
@@ -1352,7 +1365,7 @@
 
     .dialog-content {
         background-color: #1b263b;
-        padding: 2rem;
+        padding: clamp(1rem, 3vw, 2rem);
         border-radius: 10px;
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         max-width: 400px;
@@ -1363,13 +1376,13 @@
     .dialog-content h2 {
         color: #e0e1dd;
         margin: 0 0 1rem 0;
-        font-size: 1.5rem;
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
     }
 
     .dialog-content p {
         color: #e0e1dd;
         margin: 0 0 1.5rem 0;
-        font-size: 1.1rem;
+        font-size: clamp(0.9rem, 2.8vw, 1.1rem);
     }
 
     .dialog-actions {
@@ -1379,10 +1392,10 @@
     }
 
     .dialog-actions button {
-        padding: 0.75rem 1.5rem;
+        padding: clamp(0.5rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
         border: none;
         border-radius: 5px;
-        font-size: 1rem;
+        font-size: clamp(0.9rem, 2.5vw, 1rem);
         font-weight: bold;
         cursor: pointer;
         transition: all 0.3s ease;
