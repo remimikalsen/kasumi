@@ -81,7 +81,7 @@
     
     {#if isUsernameValid && initialsSubmitted}
         <div class="game-mode-sections">
-            <div class="mode-section">
+            <div class="glowing mode-section">
                 <h3>Play against CPU</h3>
                 <div class="difficulty-selector">
                     <button 
@@ -102,7 +102,7 @@
                 </button>
             </div>
             
-            <div class="mode-section">
+            <div class="glowing mode-section">
                 <h3>Multiplayer (Coming Soon)</h3>
                 <div class="multiplayer-options">
                     <button 
@@ -203,9 +203,12 @@
         flex-direction: column;
         gap: 1rem;
         padding: 1rem;
-        border-radius: 5px;
-        background-color: #f7f9fc;
-        border: 1px solid #e1e8ed;
+        width: 100%;
+        padding-bottom: 2rem;
+    }
+
+    .mode-section:hover {
+        background-color: transparent;
     }
 
     .difficulty-selector, .multiplayer-options {
@@ -217,21 +220,23 @@
     .mode-button {
         padding: 0.8rem 1rem;
         font-size: 1rem;
-        border: 2px solid #3498db;
         border-radius: 5px;
+        border: 2px solid #314875;
         background-color: white;
-        color: #3498db;
+        color: #314875;
         cursor: pointer;
         transition: all 0.2s;
+        width: 75%;
+        margin: 0 auto;
     }
 
-    .mode-button:hover:not(.disabled) {
-        background-color: #2980b9;
-        color: white;
+    .mode-button:hover:not(.disabled):not(.selected) {
+        background-color: #7da7fc;
+        transform: translateY(-2px);
     }
 
     .mode-button.selected {
-        background-color: #3498db;
+        background-color: #314875;
         color: white;
     }
 
@@ -242,7 +247,7 @@
     }
 
     .start-button {
-        background-color: #3498db;
+        background-color: #314875;
         color: white;
         border: none;
         padding: 1rem 2rem;
@@ -250,11 +255,14 @@
         font-size: 1.2rem;
         cursor: pointer;
         transition: background-color 0.2s;
+        width: 75%;
+        margin: 0 auto;
         margin-top: 0.5rem;
     }
 
     .start-button:hover {
-        background-color: #2980b9;
+        filter: brightness(90%);
+        transform: translateY(-2px);
     }
 
     .start-button:disabled {
