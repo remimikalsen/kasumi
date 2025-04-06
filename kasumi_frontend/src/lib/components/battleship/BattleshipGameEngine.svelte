@@ -400,6 +400,7 @@
         width: 100%;
         max-width: 1200px;
         margin: 0 auto;
+        margin-bottom: 2rem;
     }
     
     .game-status {
@@ -436,18 +437,7 @@
         margin-left: 0.5rem;
         text-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
     }
-    
-    .winning-streak {
-        font-weight: bold;
-        color: #2ecc71;
-        margin-top: 0.5rem;
-        text-align: center;
-    }
-    
-    .opponent-streak {
-        color: #e94560;
-    }
-    
+        
     .board-container {
         display: flex;
         flex-direction: column;

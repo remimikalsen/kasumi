@@ -155,6 +155,7 @@
         max-width: 400px;
         margin: 0 auto;
         align-items: center;
+        margin-bottom: 2rem;
     }
 
     h2 {
