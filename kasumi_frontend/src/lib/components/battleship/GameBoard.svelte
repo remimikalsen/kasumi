@@ -646,7 +646,7 @@
                 <div class="row">
                     {#each row as cell, x}
                         <div 
-                            class="cell {cell === 'empty' && debugMode && isCPU && shipGrid?.[y]?.[x] ? 'ship' : cell} {inPlayMode && isOpponent && !shotInProgress && cell !== 'hit' && cell !== 'miss' ? 'clickable' : ''} {previewCells.some(p => p.x === x && p.y === y) ? `preview ${previewState}` : ''} {cell === 'ship' && isReady ? 'locked' : ''}"
+                            class="cell {!isOpponent ? 'player' : 'opponent'} {cell === 'empty' && debugMode && isOpponent && shipGrid?.[y]?.[x] ? 'ship' : cell} {inPlayMode && isOpponent && !shotInProgress && cell !== 'hit' && cell !== 'miss' ? 'clickable' : ''} {previewCells.some(p => p.x === x && p.y === y) ? `preview ${previewState}` : ''} {cell === 'ship' && isReady ? 'locked' : ''}"
                             on:mousedown={(e) => handleBoardCellMouseDown(e, x, y)}
                             on:touchstart={(e) => handleBoardCellMouseDown(e, x, y)}
                             on:click={() => handleCellClick(x, y)}
@@ -966,9 +966,9 @@
     }
 
     /* Remove the general hover effect */
-    .cell:hover:not(.locked):not(.clickable):not(.ship):not(.preview) {
-        background-color: #ecf0f1;
-    }
+    /*.cell:hover:not(.locked):not(.clickable):not(.ship):not(.preview):not(.player) {
+        background-color: rgba(231, 77, 60, 0.85);
+    }*/
 
     .cell.ship {
         background-color: #34495e;
@@ -1093,28 +1093,29 @@
     }
     
     /* Clickable states - only for opponent board */
-    .cell.clickable:not(.hit):not(.miss):hover {
+    .cell.opponent.clickable:not(.hit):not(.miss):hover {
         cursor: crosshair;
         background-color: rgba(46, 204, 112, 0.85);
     }
     
-    .cell.clickable.hit:hover,
-    .cell.clickable.miss:hover {
+    .cell.opponent.clickable.hit:hover,
+    .cell.opponent.clickable.miss:hover {
         cursor: not-allowed;
         background-color: rgba(231, 76, 60, 0.7); /* Red background for better visual indication */
     }
     
-    .cell.hit:hover,
-    .cell.miss:hover {
+    .cell.opponent.hit:hover,
+    .cell.opponent.miss:hover {
         cursor: not-allowed;
         background-color: rgba(231, 76, 60, 0.7); /* Red background for better visual indication */
     }
     
     /* Remove the not-clickable hover effect */
+    /*
     .cell:not(.clickable):not(.ship):hover {
         cursor: default;
         background-color: #ecf0f1;
-    }
+    }*/
 
     .ship-name {
         font-size: 0.8rem;
