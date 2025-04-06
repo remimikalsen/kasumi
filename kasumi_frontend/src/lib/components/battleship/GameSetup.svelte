@@ -234,10 +234,11 @@
                         <span class="emoji">🤝</span> {getLocalizedText(pageTexts, "join_game")}
                     </button>
                     <button 
-                        class="mode-button {multiplayerMode === 'discover' ? 'selected' : ''}"
-                        on:click={() => handleMultiplayerModeSelect('discover')}
+                        class="mode-button disabled"
+                        disabled
                     >
-                        <span class="emoji">🔍</span> {getLocalizedText(pageTexts, "find_local_players")}
+                        <span class="emoji">🔍</span> {getLocalizedText(pageTexts, "find_local_players")} 
+                        <span class="coming-soon">{getLocalizedText(pageTexts, "coming_soon") || "Coming soon"}</span>
                     </button>
                 </div>
             </div>
@@ -245,7 +246,7 @@
             {#if hostedGameId}
                 <div class="glowing mode-section">
                     <h3>{getLocalizedText(pageTexts, "game_hosted")}</h3>
-                    <div class="emoji-sequence">
+                    <div class="emoji-sequence" aria-label="Game pin emoji sequence">
                         {#each emojiSequence as emoji}
                             <span class="emoji">{emoji}</span>
                         {/each}
@@ -312,25 +313,27 @@
     .game-setup {
         display: flex;
         flex-direction: column;
-        gap: 2rem;
+        gap: 1.5rem;
         width: 100%;
         max-width: 400px;
         margin: 0 auto;
         align-items: center;
         margin-bottom: 2rem;
+        padding: 0 1rem;
+        box-sizing: border-box;
     }
 
     h2 {
         color: #3498db;
-        margin-bottom: 1rem;
-        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-size: clamp(1.25rem, 5vw, 1.5rem);
         text-align: center;
     }
 
     h3 {
         color: #3498db;
-        margin: 0 0 1rem 0;
-        font-size: 1.2rem;
+        margin: 0 0 0.75rem 0;
+        font-size: clamp(1rem, 4vw, 1.2rem);
         text-align: center;
     }
 
@@ -338,10 +341,12 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .initials-display p {
-        font-size: 1.5rem;
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
         margin: 0;
         display: flex;
         align-items: center;
@@ -358,7 +363,7 @@
         background: none;
         border: none;
         cursor: pointer;
-        font-size: 1.2rem;
+        font-size: clamp(1rem, 4vw, 1.2rem);
         padding: 0;
         margin-left: 5px;
     }
@@ -370,17 +375,20 @@
     .game-mode-sections {
         display: flex;
         flex-direction: column;
-        gap: 2rem;
+        gap: 1.5rem;
         width: 100%;
     }
 
     .mode-section {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
-        padding: 1rem;
+        gap: 0.75rem;
+        padding: 0.75rem 10px;
         width: 100%;
-        padding-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        box-sizing: border-box;
+        max-width: 100%;
+        overflow-x: hidden;
     }
 
     .mode-section:hover {
@@ -394,16 +402,21 @@
     }
 
     .mode-button {
-        padding: 0.8rem 1rem;
-        font-size: 1rem;
+        padding: 0.75rem 0.75rem;
+        font-size: clamp(0.85rem, 3vw, 1rem);
         border-radius: 5px;
         border: 2px solid #314875;
         background-color: white;
         color: #314875;
         cursor: pointer;
         transition: all 0.2s;
-        width: 75%;
+        width: 100%;
+        max-width: 280px;
         margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
     }
 
     .mode-button:hover:not(.disabled):not(.selected) {
@@ -418,22 +431,35 @@
 
     .mode-button.disabled {
         border-color: #bdc3c7;
-        color: #bdc3c7;
+        color: #7f8c8d;
         cursor: not-allowed;
+        opacity: 0.8;
+    }
+
+    .coming-soon {
+        font-size: 0.7rem;
+        color: #e67e22;
+        margin-left: 5px;
+        font-style: italic;
     }
 
     .start-button {
         background-color: #314875;
         color: white;
         border: none;
-        padding: 1rem 2rem;
+        padding: 0.75rem 1.5rem;
         border-radius: 5px;
-        font-size: 1.2rem;
+        font-size: clamp(1rem, 3.5vw, 1.2rem);
         cursor: pointer;
         transition: background-color 0.2s;
-        width: 75%;
+        width: 100%;
+        max-width: 280px;
         margin: 0 auto;
         margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
     }
 
     .start-button:hover {
@@ -450,10 +476,11 @@
         color: #e74c3c;
         text-align: center;
         margin: 0;
+        font-size: clamp(0.85rem, 3vw, 1rem);
     }
     
     .emoji {
-        font-size: 1.5em;
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
         line-height: 1;
         vertical-align: middle;
     }
@@ -461,23 +488,26 @@
     .emoji-sequence {
         display: flex;
         justify-content: center;
-        gap: 0.5rem;
-        margin: 1rem 0;
-        font-size: 2rem;
+        gap: 0.4rem;
+        margin: 0.75rem 0;
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
+        flex-wrap: wrap;
+        padding: 0 10px;
     }
 
     .game-id {
         text-align: center;
         font-family: monospace;
-        font-size: 1.2rem;
+        font-size: clamp(1rem, 3.5vw, 1.2rem);
         color: #3498db;
         margin: 0.5rem 0;
+        word-break: break-all;
     }
 
     .instruction {
         text-align: center;
         color: #7f8c8d;
-        font-size: 0.9rem;
+        font-size: clamp(0.8rem, 3vw, 0.9rem);
         margin: 0.5rem 0;
     }
     
@@ -485,15 +515,12 @@
         display: flex;
         justify-content: center;
         gap: 0.5rem;
-        margin: 1rem 0;
-    }
-    
-    .emoji {
-        font-size: 1.5rem;
+        margin: 0.75rem 0;
+        flex-wrap: wrap;
     }
     
     .emoji.selected {
-        font-size: 2rem;
+        font-size: clamp(1.5rem, 5vw, 2rem);
         animation: pulse 1.5s infinite;
     }
     
@@ -504,8 +531,8 @@
     }
     
     .emoji-placeholder {
-        width: 2rem;
-        height: 2rem;
+        width: clamp(1.5rem, 5vw, 2rem);
+        height: clamp(1.5rem, 5vw, 2rem);
         border: 2px dashed #7f8c8d;
         border-radius: 50%;
     }
@@ -514,7 +541,8 @@
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 0.5rem;
-        margin: 1rem 0;
+        margin: 0.75rem 0;
+        width: 100%;
     }
     
     .emoji-button {
@@ -523,9 +551,13 @@
         border: none;
         border-radius: 5px;
         padding: 0.5rem;
-        font-size: 1.5rem;
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
         cursor: pointer;
         transition: all 0.2s;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .emoji-button:hover {
@@ -537,23 +569,27 @@
         display: flex;
         justify-content: center;
         gap: 0.5rem;
-        margin: 1rem 0;
+        margin: 0.75rem 0;
+        flex-wrap: wrap;
     }
     
     .control-button, .back-button, .join-button, .cancel-button {
-        padding: 0.5rem 1rem;
+        padding: 0.5rem 0.75rem;
         border: none;
         border-radius: 5px;
         cursor: pointer;
         transition: all 0.2s;
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 0.5rem;
+        font-size: clamp(0.85rem, 3vw, 1rem);
     }
     
     .control-button {
         background-color: #3498db;
         color: white;
+        min-width: 100px;
     }
     
     .back-button {
@@ -565,15 +601,17 @@
     .join-button {
         background-color: #27ae60;
         color: white;
-        font-size: 1.1rem;
-        padding: 0.75rem 1.5rem;
-        margin: 1rem auto;
+        font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+        padding: 0.75rem 1rem;
+        margin: 0.75rem auto;
+        width: 100%;
+        max-width: 200px;
     }
     
     .cancel-button {
         background-color: #e74c3c;
         color: white;
-        margin: 1rem auto 0;
+        margin: 0.75rem auto 0;
     }
     
     .control-button:hover, .back-button:hover, .join-button:hover, .cancel-button:hover {
@@ -592,15 +630,17 @@
         align-items: center;
         background-color: rgba(0, 0, 0, 0.8);
         z-index: 1000;
+        padding: 1rem;
+        box-sizing: border-box;
     }
 
     .modal-content {
         background-color: #1b263b;
-        padding: 2rem;
+        padding: clamp(1rem, 5vw, 2rem);
         border-radius: 10px;
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         max-width: 400px;
-        width: 90%;
+        width: 100%;
         text-align: center;
     }
     
@@ -613,112 +653,56 @@
 
     .modal-content h2 {
         color: #e0e1dd;
-        margin: 0 0 1rem 0;
-        font-size: 1.5rem;
+        margin: 0 0 0.75rem 0;
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
     }
 
     .modal-content p {
         color: #e0e1dd;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
+        font-size: clamp(0.85rem, 3vw, 1rem);
     }
     
-    .selected-emojis {
-        display: flex;
-        justify-content: center;
-        gap: 0.5rem;
-        margin: 1rem 0;
+    @media (max-width: 400px) {
+        .emoji-sequence {
+            gap: 0.3rem;
+            font-size: clamp(1rem, 3.5vw, 1.2rem);
+        }
+        
+        .mode-section h3 {
+            font-size: 1rem;
+        }
+        
+        .game-id {
+            font-size: 0.9rem;
+        }
+        
+        .instruction {
+            font-size: 0.8rem;
+        }
     }
     
-    .emoji {
-        font-size: 1.5rem;
-    }
-    
-    .emoji.selected {
-        font-size: 2rem;
-        animation: pulse 1.5s infinite;
-    }
-    
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-    
-    .emoji-placeholder {
-        width: 2rem;
-        height: 2rem;
-        border: 2px dashed #7f8c8d;
-        border-radius: 50%;
-    }
-    
-    .emoji-keyboard {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.5rem;
-        margin: 1rem 0;
-    }
-    
-    .emoji-button {
-        background-color: #314875;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        padding: 0.5rem;
-        font-size: 1.5rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .emoji-button:hover {
-        transform: translateY(-2px);
-        background-color: #486794;
-    }
-    
-    .emoji-controls {
-        display: flex;
-        justify-content: center;
-        gap: 0.5rem;
-        margin: 1rem 0;
-    }
-    
-    .control-button, .back-button, .join-button, .cancel-button {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .control-button {
-        background-color: #3498db;
-        color: white;
-    }
-    
-    .back-button {
-        background-color: #7f8c8d;
-        color: white;
-        margin-top: 1rem;
-    }
-    
-    .join-button {
-        background-color: #27ae60;
-        color: white;
-        font-size: 1.1rem;
-        padding: 0.75rem 1.5rem;
-        margin: 1rem auto;
-    }
-    
-    .cancel-button {
-        background-color: #e74c3c;
-        color: white;
-        margin: 1rem auto 0;
-    }
-    
-    .control-button:hover, .back-button:hover, .join-button:hover, .cancel-button:hover {
-        transform: translateY(-2px);
-        filter: brightness(90%);
+    @media (max-width: 350px) {
+        .emoji-controls {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .control-button {
+            width: 100%;
+        }
+        
+        .game-setup {
+            gap: 1rem;
+        }
+        
+        .game-mode-sections {
+            gap: 1rem;
+        }
+        
+        .mode-section {
+            gap: 0.5rem;
+            padding: 0.5rem;
+        }
     }
 </style> 
