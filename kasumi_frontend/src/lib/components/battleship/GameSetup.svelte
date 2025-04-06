@@ -75,7 +75,7 @@
         <VirtualKeyboard onSubmit={handleUsernameChange} />
     {:else}
         <div class="initials-display">
-            <p>Your initials: <span>{username}</span> <button class="pencil-button" on:click={editUsername}>✏️</button></p>
+            <p>Admiral <span>{username}</span> <button class="pencil-button" on:click={editUsername}>✏️</button></p>
         </div>
     {/if}
     

@@ -608,7 +608,7 @@
         {#if !isReady && !isOpponent}
             <div class="ship-placement-controls">
                 <button class="auto-place-button" on:click={handleAutoPlaceClick}>
-                    Auto-place Fleet
+                    Auto-place fleet
                 </button>
                 
                 <button 
@@ -907,21 +907,23 @@
     }
 
     .auto-place-button {
-        background-color: #3498db;
+        background-color: #314875;
         color: white;
     }
 
     .auto-place-button:hover {
-        background-color: #2980b9;
+        filter: brightness(90%);
+        transform: translateY(-2px);
     }
 
     .ready-button {
-        background-color: #2ecc71;
+        background-color: #0b5d0b;
         color: white;
     }
 
     .ready-button:hover:not(:disabled) {
-        background-color: #27ae60;
+        filter: brightness(90%);
+        transform: translateY(-2px);
     }
 
     .ready-button:disabled {
@@ -1259,7 +1261,7 @@
     }
 
     div.retreat-button button {
-        background-color: #ca3049;
+        background-color: #e13e59;
         color: #e0e1dd;
         padding: 8px 14px;
         font-size: 1rem;
@@ -1269,11 +1271,15 @@
         cursor: pointer;
         box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
         transition: all 0.3s ease;
-        text-transform: uppercase;
         user-select: none;  /* Prevent text selection */
         -webkit-user-select: none;
         -ms-user-select: none;
         -moz-user-select: none;
+    }
+
+    div.retreat-button button:hover {
+        filter: brightness(90%);
+        transform: translateY(-2px);
     }
 
     .dialog-overlay {
@@ -1338,12 +1344,12 @@
     }
 
     .confirm-button {
-        background-color: #ca3049;
+        background-color: #e13e59;
         color: #e0e1dd;
     }
 
     .confirm-button:hover {
-        background-color: #e13e59;
+        filter: brightness(90%);
         transform: translateY(-2px);
     }
 

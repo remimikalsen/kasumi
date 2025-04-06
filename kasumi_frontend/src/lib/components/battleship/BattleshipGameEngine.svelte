@@ -496,23 +496,23 @@
     }
     
     .rematch-button {
-        background-color: #2ecc71;
+        background-color: #0b5d0b;
         color: white;
     }
     
     .rematch-button:hover {
-        background-color: #27ae60;
+        filter: brightness(90%);
         transform: translateY(-2px);
         box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
     }
     
     .done-button {
-        background-color: #e74c3c;
+        background-color: #e13e59;
         color: white;
     }
     
     .done-button:hover {
-        background-color: #c0392b;
+        filter: brightness(90%);
         transform: translateY(-2px);
         box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
     }
