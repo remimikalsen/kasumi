@@ -52,6 +52,15 @@
     "done_battling": "Já acabaste de jogar contra este adversário?",
     "rematch": "Revanche",
     "im_done": "Já está",
-    "initials_label": "Os teus iniciais",
-    "submit_label": "Enviar"
+    "initials_label": "Iniciais do Almirante",
+    "submit_label": "Enviar",
+
+    "high_score": "Almirantes top",
+    "rank": "Posição",
+    "initials": "Almirante",
+    "battle_complete": "Batalha completa!",
+    "win_streak_text": "Sequência de vitórias: {0}",
+    "submit_score_prompt": "Almirante {0}, queres guardar a tua sequência de vitórias?",
+    "skip": "Não", 
+    "leaderboard_score": "Sequência de vitórias"
 } 

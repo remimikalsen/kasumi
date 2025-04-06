@@ -737,15 +737,70 @@ router.post('/battleship/timeout_bonus_shot', (req, res) => {
 
 // Endpoint to submit a score
 router.post('/battleship/submit_score', (req, res) => {
-  const { initials, win_streak } = req.body;
+  const { gameId, initials } = req.body;
+  
+  // Validate required parameters
+  if (!gameId || !initials) {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'Game ID and player initials required' 
+    });
+  }
+  
+  // Find the game
+  const gameState = battleship_games.get(gameId);
+  
+  if (!gameState) {
+    return res.status(404).json({ 
+      status: 'error', 
+      message: 'Game not found' 
+    });
+  }
+  
+  // Verify player is in this game
+  if (!gameState.players.includes(initials)) {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'Player not in this game' 
+    });
+  }
+  
+  // Check if game has winStreaks and the player has a streak
+  if (!gameState.winStreaks || !gameState.winStreaks[initials]) {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'No valid win streak found for this player' 
+    });
+  }
+  
+  const win_streak = gameState.winStreaks[initials];
+  
+  // Only save scores with a win streak > 0
+  if (win_streak <= 0) {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'Win streak must be greater than 0' 
+    });
+  }
+  
+  // Insert the score into the leaderboard
   const stmt = db.prepare('INSERT INTO battleship_leaderboard (initials, win_streak) VALUES (?, ?)');
+  
   stmt.run(initials, win_streak, function(err) {
     if (err) {
-      res.status(500).send('Database error');
+      res.status(500).json({
+        status: 'error',
+        message: 'Database error'
+      });
     } else {
-      res.sendStatus(200);
+      res.status(200).json({
+        status: 'success',
+        message: 'Score submitted successfully',
+        win_streak: win_streak
+      });
     }
   });
+  
   stmt.finalize();
 });
 

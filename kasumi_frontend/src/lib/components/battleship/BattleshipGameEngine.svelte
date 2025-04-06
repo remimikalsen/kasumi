@@ -41,6 +41,10 @@
     let boardSwitchTimer: number | null = null;
     let lastTurn: string | null = null;
     
+    // Add game over delay timer and victory message
+    let gameOverDelayTimer: number | null = null;
+    let victoryMessage: string | null = null;
+    
     // Add board order tracking - with delay logic
     $: {
         if (gameState?.currentTurn && !boardSwitchDelayActive) {
@@ -192,17 +196,38 @@
                 
                 break;
             case 'player_won':
-                gameOver = true;
                 gameMessage = getLocalizedText(pageTexts, "you_won");
                 lastGameResult = 'win';
+                victoryMessage = getLocalizedText(pageTexts, "congratulations");
+                
+                // Clear existing timer if any
+                if (gameOverDelayTimer) {
+                    clearTimeout(gameOverDelayTimer);
+                }
+                
+                // Set 1-second delay before showing game over screen
+                gameOverDelayTimer = window.setTimeout(() => {
+                    gameOver = true;
+                    gameOverDelayTimer = null;
+                }, 1000);
                 
                 stopPolling();
                 clearBoardSwitchDelay();
                 break;
             case 'opponent_won':
-                gameOver = true;
                 gameMessage = getLocalizedText(pageTexts, "you_lost");
                 lastGameResult = 'loss';
+                
+                // Clear existing timer if any
+                if (gameOverDelayTimer) {
+                    clearTimeout(gameOverDelayTimer);
+                }
+                
+                // Set 1-second delay before showing game over screen
+                gameOverDelayTimer = window.setTimeout(() => {
+                    gameOver = true;
+                    gameOverDelayTimer = null;
+                }, 1000);
                 
                 stopPolling();
                 clearBoardSwitchDelay();
@@ -346,6 +371,7 @@
             opponentReady = false;
             gameActive = false;
             lastGameResult = null;
+            victoryMessage = null;
             
             // Call re-match API
             const response = await battleshipApi.reMatch(gameId!, username);
@@ -370,13 +396,20 @@
         clearBonusShotTimer();
         clearBoardSwitchDelay();
         stopPolling();
-        dispatch('done');
+        const playerWinStreak = gameState?.winStreaks?.[username] || 0;
+        dispatch('done', { winStreak: playerWinStreak });
     }
 
     onDestroy(() => {
         stopPolling();
         clearBonusShotTimer();
         clearBoardSwitchDelay();
+        
+        // Clear game over timer if exists
+        if (gameOverDelayTimer) {
+            clearTimeout(gameOverDelayTimer);
+            gameOverDelayTimer = null;
+        }
     });
 </script>
 
@@ -430,6 +463,9 @@
         <div class="game-over-actions">
             <div class="dialog-content">
                 <h2>{getLocalizedText(pageTexts, "done_battling")}</h2>
+                {#if victoryMessage}
+                    <p class="victory-message">{victoryMessage}</p>
+                {/if}
                 <div class="dialog-actions">
                     <button class="rematch-button" on:click={handleRematch}>
                         {getLocalizedText(pageTexts, "rematch")}
@@ -532,6 +568,20 @@
         color: #e0e1dd;
         margin: 0 0 1.5rem 0;
         font-size: 1.5rem;
+    }
+
+    .victory-message {
+        color: #f1c40f;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 1.5rem;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 0.7; }
+        50% { opacity: 1; }
+        100% { opacity: 0.7; }
     }
 
     .dialog-actions {

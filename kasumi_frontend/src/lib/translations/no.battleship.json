@@ -52,6 +52,15 @@
     "done_battling": "Er du ferdig med å kjempe mot denne motstanderen?",
     "rematch": "Omkamp",
     "im_done": "Jeg er ferdig",
-    "initials_label": "Dine initialer",
-    "submit_label": "Send"
+    "initials_label": "Admiralens initialer",
+    "submit_label": "Send",
+
+    "high_score": "Toppadmiraler",
+    "rank": "Rang",
+    "initials": "Admiral",
+    "battle_complete": "Slaget er ferdig!",
+    "win_streak_text": "Din seiersrekke: {0}",
+    "submit_score_prompt": "Admiral {0}, vil du registrere seiersrekken din?",
+    "skip": "Nei",
+    "leaderboard_score": "Seiersrekke"
 } 

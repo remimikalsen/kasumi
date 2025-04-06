@@ -52,6 +52,15 @@
     "done_battling": "Are you done battling this opponent?",
     "rematch": "Re-match",
     "im_done": "I'm done",
-    "initials_label": "Your initials",
-    "submit_label": "Submit"
+    "initials_label": "Admiral's initials",
+    "submit_label": "Submit",
+
+    "high_score": "Top admirals",
+    "rank": "Rank",
+    "initials": "Admiral",
+    "battle_complete": "Battle Complete!",
+    "win_streak_text": "Your win streak: {0}",
+    "submit_score_prompt": "Admiral {0}, would you like to submit your score?",
+    "skip": "No",
+    "leaderboard_score": "Win Streak"
 }

@@ -155,17 +155,44 @@ export const battleshipApi = {
         return response.json();
     },
 
-    async submitScore(initials: string, winStreak: number): Promise<void> {
-        const response = await fetch(`${API_BASE_URL}/submit_score`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ initials, win_streak: winStreak })
-        });
-        return response.json();
+    async submitScore(gameId: string, initials: string): Promise<void> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/submit_score`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ gameId, initials })
+            });
+            
+            // Check if response is OK before trying to parse JSON
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+            }
+            
+            // Try to parse JSON, but don't fail if the response is empty or not JSON
+            const text = await response.text();
+            if (text) {
+                return JSON.parse(text);
+            }
+        } catch (error) {
+            console.error('Error submitting score:', error);
+            throw error;
+        }
     },
 
     async getLeaderboard(): Promise<LeaderboardEntry[]> {
-        const response = await fetch(`${API_BASE_URL}/get_leaderboard`);
-        return response.json();
+        try {
+            const response = await fetch(`${API_BASE_URL}/get_leaderboard`);
+            
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching leaderboard:', error);
+            return [];
+        }
     }
 }; 
