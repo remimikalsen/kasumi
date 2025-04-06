@@ -62,5 +62,15 @@
     "win_streak_text": "Sequência de vitórias: {0}",
     "submit_score_prompt": "Almirante {0}, queres guardar a tua sequência de vitórias?",
     "skip": "Não", 
-    "leaderboard_score": "Sequência de vitórias"
+    "leaderboard_score": "Sequência de vitórias",
+
+    "waiting_opponent_join_message": "Aguardando adversário...",
+    "share_emoji_sequence": "Compartilhe a sequência de emojis com o seu adversário.",
+    "abort_game": "Abortar jogo",
+    "join_now": "Entrar agora",
+    "back": "Voltar",
+    "clear": "Limpar",
+    "backspace": "Apagar",
+    "invalid_emoji_sequence": "Sequência de emojis inválida",
+    "failed_join_game": "Não foi possível entrar no jogo"
 } 

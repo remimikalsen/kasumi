@@ -10,8 +10,8 @@
     "difficulty_hard": "Vanskelig",
     "start_cpu_game": "Start spill",
     "multiplayer": "Flerspiller",
-    "host_game": "Vert spill",
-    "join_game": "Bli med i spill",
+    "host_game": "Start et spill",
+    "join_game": "Bli med i et spill",
     "find_local_players": "Finn lokale spillere",
     "failed_start_game": "Kunne ikke starte spillet. Vennligst prøv igjen.",
     
@@ -62,5 +62,15 @@
     "win_streak_text": "Din seiersrekke: {0}",
     "submit_score_prompt": "Admiral {0}, vil du registrere seiersrekken din?",
     "skip": "Nei",
-    "leaderboard_score": "Seiersrekke"
+    "leaderboard_score": "Seiersrekke",
+
+    "waiting_opponent_join_message": "Venter på motstander...",
+    "share_emoji_sequence": "Del emoji-sekvensen med motstanderen din.",
+    "abort_game": "Avbryt spill",
+    "join_now": "Bli med nå",
+    "back": "Tilbake",
+    "clear": "Tøm",
+    "backspace": "Slett",
+    "invalid_emoji_sequence": "Ugyldig emoji-sekvens",
+    "failed_join_game": "Kunne ikke bli med i spillet"
 } 
