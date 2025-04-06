@@ -578,7 +578,7 @@ router.post('/battleship/fire', (req, res) => {
       // If opponent is CPU, make a CPU move
       if (gameState.mode === 'cpu' && opponent === gameState.config.cpuName) {
         // Schedule CPU move asynchronously
-        setTimeout(() => makeCpuMove(gameState), 1000);
+        setTimeout(() => makeCpuMove(gameState), 2000);
       }
     } else {
       // Player gets a bonus shot
