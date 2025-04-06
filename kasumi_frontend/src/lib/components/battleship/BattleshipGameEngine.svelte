@@ -4,14 +4,25 @@
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
     import { battleshipApi, type GameState, type Ship } from '$lib/services/battleshipServices';
     import { createEventDispatcher } from 'svelte';
+    import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
+
+    const pageTexts = 'battleship';
+    let isLoadingTexts = true;
+
+    async function fetchTexts() {
+        isLoadingTexts = true;
+        await loadTexts(pageTexts);
+        isLoadingTexts = false;
+    }
+
+    $: $activeLanguage, fetchTexts();
 
     const dispatch = createEventDispatcher();
 
     export let username: string = "Player";
     export let gameState: GameState | null = null;
 
-    const startGameMessage = 'Position your ships for battle!';
-
+    const startGameMessage = getLocalizedText(pageTexts, "start_game_message");
 
     let gameId = gameState?.gameId;
    
@@ -76,28 +87,28 @@
         // Update game status based on state
         switch (newState.status) {
             case 'waiting_for_opponent':
-                gameMessage = 'Waiting for opponent to join...';
+                gameMessage = getLocalizedText(pageTexts, "waiting_opponent_join");
                 gameActive = false;
                 break;
             case 'setup':
                 if (!playerReady) {
-                    gameMessage = 'Place your ships on the board';
+                    gameMessage = getLocalizedText(pageTexts, "start_game_message");
                 } else if (!opponentReady) {
                     // For CPU games, the CPU is already ready
                     if (newState.mode === 'cpu') {
-                        gameMessage = 'Game is starting...';
+                        gameMessage = getLocalizedText(pageTexts, "game_starting");
                         opponentReady = true;
                     } else {
                         // Check if opponent has placed their ships
                         if (opponent && newState.playerBoards[opponent]?.ready) {
-                            gameMessage = 'Both players ready! Game starting...';
+                            gameMessage = getLocalizedText(pageTexts, "both_ready");
                             opponentReady = true;
                         } else {
-                            gameMessage = 'Waiting for opponent to place ships...';
+                            gameMessage = getLocalizedText(pageTexts, "waiting_opponent_ships");
                         }
                     }
                 } else {
-                    gameMessage = 'Both players ready! Game starting...';
+                    gameMessage = getLocalizedText(pageTexts, "both_ready");
                 }
                 gameActive = false;
                 break;
@@ -114,63 +125,66 @@
                     if (lastMove.playerId === username) {
                         // Player's move
                         if (lastMove.result === 'miss') {
-                            message = 'You missed!';
+                            message = getLocalizedText(pageTexts, "you_missed");
                         } else if (lastMove.result === 'hit') {
-                            message = 'You hit a ship!';
+                            message = getLocalizedText(pageTexts, "you_hit");
                         } else if (lastMove.result === 'sunk') {
                             const shipName = getShipNameFromId(lastMove.shipId ?? undefined);
-                            message = `You sunk ${opponent}'s ${shipName}!`;
+                            // Use template with parameters
+                            message = getLocalizedText(pageTexts, "you_sunk").replace("{0}", opponent || "").replace("{1}", shipName);
                         }
                         
                         // Add bonus shot message if applicable
                         if (newState.bonusShotActive) {
-                            message += ' You have a bonus shot!';
+                            message += ' ' + getLocalizedText(pageTexts, "bonus_shot");
                         } else {
-                            message += ` ${opponent}'s turn!`;
+                            message += ' ' + getLocalizedText(pageTexts, "opponent_turn").replace("{0}", opponent || "");
                         }
                     } else {
                         // Opponent's move
                         if (lastMove.result === 'miss') {
-                            message = `${opponent} missed!`;
+                            message = getLocalizedText(pageTexts, "opponent_missed").replace("{0}", opponent || "");
                         } else if (lastMove.result === 'hit') {
-                            message = `${opponent} hit your ship!`;
+                            message = getLocalizedText(pageTexts, "opponent_hit").replace("{0}", opponent || "");
                         } else if (lastMove.result === 'sunk') {
                             const shipName = getShipNameFromId(lastMove.shipId ?? undefined);
-                            message = `${opponent} sunk your ${shipName}!`;
+                            message = getLocalizedText(pageTexts, "opponent_sunk").replace("{0}", opponent || "").replace("{1}", shipName);
                         }
                         
                         // Add bonus shot message if applicable
                         if (newState.bonusShotActive) {
-                            message += ` ${opponent} has a bonus shot!`;
+                            message += ' ' + getLocalizedText(pageTexts, "opponent_bonus").replace("{0}", opponent || "");
                         } else {
-                            message += ' Your turn!';
+                            message += ' ' + getLocalizedText(pageTexts, "your_turn");
                         }
                     }
                     gameMessage = message;
 
                 } else {
-                    gameMessage = newState.currentTurn === username ? 'Your turn!' : `${opponent}'s turn!`;
+                    gameMessage = newState.currentTurn === username ? 
+                        getLocalizedText(pageTexts, "your_turn") : 
+                        getLocalizedText(pageTexts, "opponent_turn").replace("{0}", opponent || "");
                 }
                 
                 gameActive = true;
                 break;
             case 'player_won':
                 gameOver = true;
-                gameMessage = 'Congratulations! You won!';
+                gameMessage = getLocalizedText(pageTexts, "you_won");
                 lastGameResult = 'win';
                 
                 stopPolling();
                 break;
             case 'opponent_won':
                 gameOver = true;
-                gameMessage = 'Game Over! You lost!';
+                gameMessage = getLocalizedText(pageTexts, "you_lost");
                 lastGameResult = 'loss';
                 
                 stopPolling();
                 break;
             case 'retreated':
                 gameOver = true;
-                gameMessage = 'Game Over! You retreated!';
+                gameMessage = getLocalizedText(pageTexts, "you_retreated");
                 lastGameResult = 'retreated';
 
                 stopPolling();
@@ -290,7 +304,7 @@
                 gameState = response.gameState;
                 
                 // Update game message
-                gameMessage = 'Place your ships on the board';
+                gameMessage = getLocalizedText(pageTexts, "start_game_message");
 
             } else {
                 throw new Error('Failed to get updated game state');
@@ -302,13 +316,10 @@
     }
     
     function handleDone() {
-
         clearBonusShotTimer();
         stopPolling();
-
         dispatch('done');
     }
-
 
     onDestroy(() => {
         stopPolling();
@@ -316,12 +327,13 @@
     });
 </script>
 
+{#if !isLoadingTexts}
 <div class="battleship-game">
 
     <div class="game-status {playerReady && opponentReady ? 'game-status-wide' : ''}">
 
         <h2 class="hq-title">
-            Message from HQ:
+            {getLocalizedText(pageTexts, "message_hq")}
         </h2>
        
         <div class="game-status-message">
@@ -365,19 +377,20 @@
     {#if gameOver}
         <div class="game-over-actions">
             <div class="dialog-content">
-                <h2>Are you done battling this opponent?</h2>
+                <h2>{getLocalizedText(pageTexts, "done_battling")}</h2>
                 <div class="dialog-actions">
                     <button class="rematch-button" on:click={handleRematch}>
-                        Re-match
+                        {getLocalizedText(pageTexts, "rematch")}
                     </button>
                     <button class="done-button" on:click={handleDone}>
-                        I'm done
+                        {getLocalizedText(pageTexts, "im_done")}
                     </button>
                 </div>
             </div>
         </div>
     {/if}
 </div>
+{/if}
 
 <style>
     .battleship-game {

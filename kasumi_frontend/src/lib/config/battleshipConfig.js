@@ -19,5 +19,28 @@ export const battleshipConfig = {
     frigate: { length: 3, count: 1, prefix: 'F' },
     corvette: { length: 2, count: 2, prefix: 'C' },
     uboat: { length: 1, count: 3, prefix: 'U' }
+  },
+
+  shipTypeTranslations: {
+    battleship: {
+      en: 'Battleship',
+      no: 'Slagskip',
+      pt: 'Couraçado'
+    },
+    frigate: {
+      en: 'Frigate', 
+      no: 'Fregatt',
+      pt: 'Fragata'
+    },
+    corvette: {
+      en: 'Corvette',
+      no: 'Korvett',
+      pt: 'Corveta'
+    },
+    uboat: {
+      en: 'U-Boat',
+      no: 'U-båt',
+      pt: 'Submarino'
+    }
   }
 }; 

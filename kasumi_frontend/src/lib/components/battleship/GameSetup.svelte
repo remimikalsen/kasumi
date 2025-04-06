@@ -3,9 +3,20 @@
     import VirtualKeyboard from '$lib/components/common/VirtualKeyboard.svelte';
     import { battleshipApi, type BattleshipConfig } from '$lib/services/battleshipServices';
     import { battleshipConfig } from '$lib/config/battleshipConfig.js';
+    import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
+
+    const pageTexts = 'battleship';
+    let isLoadingTexts = true;
+
+    async function fetchTexts() {
+        isLoadingTexts = true;
+        await loadTexts(pageTexts);
+        isLoadingTexts = false;
+    }
+
+    $: $activeLanguage, fetchTexts();
 
     const dispatch = createEventDispatcher();
-
 
     let defaultConfig: BattleshipConfig = battleshipConfig;
     let username = '';
@@ -58,70 +69,71 @@
                     gameId
                 });
             } else {
-                errorMessage = 'Failed to start game. Please try again.';
+                errorMessage = getLocalizedText(pageTexts, "failed_start_game");
             }
         } catch (error) {
             console.error('Failed to start game:', error);
-            errorMessage = 'Failed to start game. Please try again.';
+            errorMessage = getLocalizedText(pageTexts, "failed_start_game");
         }
     }
 
 </script>
 
+{#if !isLoadingTexts}
 <div class="game-setup">
-    <h2>Getting ready to play</h2>
+    <h2>{getLocalizedText(pageTexts, "setup_title")}</h2>
     
     {#if !initialsSubmitted}
-        <VirtualKeyboard onSubmit={handleUsernameChange} />
+        <VirtualKeyboard onSubmit={handleUsernameChange} initials_label={getLocalizedText(pageTexts, "initials_label")} submit_label={getLocalizedText(pageTexts, "submit_label")} />
     {:else}
         <div class="initials-display">
-            <p>Admiral <span>{username}</span> <button class="pencil-button" on:click={editUsername}>✏️</button></p>
+            <p>{getLocalizedText(pageTexts, "admiral")} <span>{username}</span> <button class="pencil-button" on:click={editUsername}>✏️</button></p>
         </div>
     {/if}
     
     {#if isUsernameValid && initialsSubmitted}
         <div class="game-mode-sections">
             <div class="glowing mode-section">
-                <h3>Play against CPU</h3>
+                <h3>{getLocalizedText(pageTexts, "play_against_cpu")}</h3>
                 <div class="difficulty-selector">
                     <button 
                         class="mode-button {cpuDifficulty === 'easy' ? 'selected' : ''}"
                         on:click={() => handleCpuDifficultySelect('easy')}
                     >
-                        <span class="emoji">🌱</span> Easy {cpuDifficulty === 'easy' ? '✓' : ''}
+                        <span class="emoji">🌱</span> {getLocalizedText(pageTexts, "difficulty_easy")} {cpuDifficulty === 'easy' ? '✓' : ''}
                     </button>
                     <button 
                         class="mode-button {cpuDifficulty === 'hard' ? 'selected' : ''}"
                         on:click={() => handleCpuDifficultySelect('hard')}
                     >
-                        <span class="emoji">🔥</span> Hard {cpuDifficulty === 'hard' ? '✓' : ''}
+                        <span class="emoji">🔥</span> {getLocalizedText(pageTexts, "difficulty_hard")} {cpuDifficulty === 'hard' ? '✓' : ''}
                     </button>
                 </div>
                 <button class="start-button" on:click={handleStartCpuGame}>
-                    <span class="emoji">🤖</span> Start CPU Game
+                    <span class="emoji">🤖</span> {getLocalizedText(pageTexts, "start_cpu_game")}
                 </button>
             </div>
             
             <div class="glowing mode-section">
-                <h3>Multiplayer (Coming Soon)</h3>
+                <h3>{getLocalizedText(pageTexts, "multiplayer_coming_soon")}</h3>
                 <div class="multiplayer-options">
                     <button 
                         class="mode-button disabled"
                         disabled
                     >
-                        <span class="emoji">👑</span> Host Game
+                        <span class="emoji">👑</span> {getLocalizedText(pageTexts, "host_game")}
                     </button>
                     <button 
                         class="mode-button disabled"
                         disabled
                     >
-                        <span class="emoji">🤝</span> Join Game
+                        <span class="emoji">🤝</span> {getLocalizedText(pageTexts, "join_game")}
                     </button>
                     <button 
                         class="mode-button disabled"
                         disabled
                     >
-                        <span class="emoji">🔍</span> Find Local Players
+                        <span class="emoji">🔍</span> {getLocalizedText(pageTexts, "find_local_players")}
                     </button>
                 </div>
             </div>
@@ -132,6 +144,7 @@
         <p class="error-message">{errorMessage}</p>
     {/if}
 </div>
+{/if}
 
 <style>
     .game-setup {

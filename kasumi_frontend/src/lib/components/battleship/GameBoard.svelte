@@ -3,6 +3,24 @@
     import { createEventDispatcher } from 'svelte';
     import type { Ship } from '@lib/services/battleshipServices';
     import type { GameState } from '@lib/services/battleshipServices';
+    import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
+    import { battleshipConfig } from '@lib/config/battleshipConfig.js';
+
+    const pageTexts = 'battleship';
+
+    type ShipType = 'battleship' | 'frigate' | 'corvette' | 'uboat';
+    type Language = 'en' | 'no' | 'pt';
+
+    let isLoadingTexts = true;
+
+    async function fetchTexts() {
+        isLoadingTexts = true;
+        await loadTexts(pageTexts);
+        isLoadingTexts = false;
+    }
+
+    $: $activeLanguage, fetchTexts();
+    
     const dispatch = createEventDispatcher();
     
     export let username: string;
@@ -577,38 +595,50 @@
             dragOffset.y = tempX;
         }
     }
+
+    function getShipName(shipType: string): string {
+        const translations = battleshipConfig.shipTypeTranslations;
+        if (shipType in translations) {
+            const typedShipType = shipType as ShipType;
+            const typedLanguage = $activeLanguage as Language;
+            // Try current language first, fall back to English if not found
+            return translations[typedShipType][typedLanguage] || translations[typedShipType]['en'];
+        }
+        return shipType.charAt(0).toUpperCase() + shipType.slice(1);
+    }
 </script>
 
 {#if showRetreatConfirm}
     <div class="dialog-overlay">
         <div class="dialog-content">
-            <h2>Confirm Retreat</h2>
-            <p>Are you sure you want to retreat from this battle?</p>
+            <h2>{getLocalizedText(pageTexts, "confirm_retreat")}</h2>
+            <p>{getLocalizedText(pageTexts, "retreat_confirmation")}</p>
             <div class="dialog-actions">
                 <button class="cancel-button" on:click={cancelRetreat}>
-                    Cancel
+                    {getLocalizedText(pageTexts, "cancel")}
                 </button>
                 <button class="confirm-button" on:click={confirmRetreat}>
-                    Retreat
+                    {getLocalizedText(pageTexts, "retreat")}
                 </button>
             </div>
         </div>
     </div>
 {/if}
 
+{#if showBoard}
 <div class="game-board {debugMode ? 'debug-mode' : ''} {!showBoard ? 'hidden' : ''}" 
     style="
         --title-color: {isOpponent ? '#e94560' : '#3498db'};
     ">
     <div class="game-info">
         <h2>
-            {username}'s Fleet
+            {getLocalizedText(pageTexts, "fleet").replace("{0}", username)}
         </h2>
         
         {#if !isReady && !isOpponent}
             <div class="ship-placement-controls">
                 <button class="auto-place-button" on:click={handleAutoPlaceClick}>
-                    Auto-place fleet
+                    {getLocalizedText(pageTexts, "auto_place_fleet")}
                 </button>
                 
                 <button 
@@ -616,13 +646,13 @@
                     on:click={handleReadyClick}
                     disabled={!allShipsPlaced}
                 >
-                    I'm ready
+                    {getLocalizedText(pageTexts, "im_ready")}
                 </button>
             </div>
             
             <div class="ship-selection">
                 {#if allShipsPlaced}
-                    <p class="fleet-deployed">Your fleet is deployed.</p>
+                    <p class="fleet-deployed">{getLocalizedText(pageTexts, "fleet_deployed")}</p>
                 {:else}
                     {#each ships as ship}
                         <button 
@@ -631,7 +661,7 @@
                             on:mousedown={(e) => handleShipDragStart(e, ship)}
                             on:touchstart={(e) => handleShipDragStart(e, ship)}
                         >
-                            <span class="ship-name">{ship.type.charAt(0).toUpperCase() + ship.type.slice(1)}</span>
+                            <span class="ship-name">{getShipName(ship.type)}</span>
                             <span class="ship-id">{ship.id}</span>
                         </button>
                     {/each}
@@ -645,29 +675,29 @@
             {#if isCPU && !isOpponent}
                 <div class="difficulty-display">
                     <span class="emoji">{gameState.config.cpuDifficulty === 'easy' ? '🌱' : '🔥'}</span>
-                    Playing it {gameState.config.cpuDifficulty}
+                    {getLocalizedText(pageTexts, "playing_it")} {getLocalizedText(pageTexts, gameState.config.cpuDifficulty === 'easy' ? 'difficulty_easy' : 'difficulty_hard')}
                 </div>
             {/if}   
     
             {#if isCPU && isOpponent }
                 <div class="opponent-info">
                     {#if gameState.config.cpuDifficulty === 'easy'}
-                        CPU Opponent
+                        {getLocalizedText(pageTexts, "cpu_opponent")}
                     {:else}
-                        Advanced AI Bot
+                        {getLocalizedText(pageTexts, "advanced_ai_bot")}
                     {/if}
                 </div>
             {/if}   
 
             {#if  !isCPU && isOpponent}
                 <div class="opponent-info">
-                        Human Opponent
+                        {getLocalizedText(pageTexts, "human_opponent")}
                 </div>
             {/if}               
     
             {#if (winStreak > 0) }
                 <div class="winning-streak">
-                    Win Streak: {winStreak}
+                    {getLocalizedText(pageTexts, "win_streak")}: {winStreak}
                 </div>
             {/if}        
         </div>        
@@ -741,12 +771,12 @@
 
     {#if isReady}
     <div class="ship-list">
-        <h3>Fleet status</h3>
+        <h3>{getLocalizedText(pageTexts, "fleet_status")}</h3>
         <div class="ship-items-container">
             {#each [...ships].sort((a, b) => b.length - a.length) as ship, i}
                 <span class="ship-item">
                     <span class="ship-name {ship.sunk ? 'sunk' : ''}">
-                        {ship.type[0].toUpperCase() + ship.type.slice(1)}
+                        {getShipName(ship.type)} {#if !isOpponent} <span class="shiplist-shipid">({ship.id})</span>{/if} 
                     </span>
                     {#if !isOpponent}
                         {#if ship.sunk}
@@ -767,7 +797,7 @@
         </div>
         {#if !isOpponent}
         <div class="retreat-button">
-            <button on:click={handleRetreatClick}>Retreat</button>
+            <button on:click={handleRetreatClick}>{getLocalizedText(pageTexts, "retreat")}</button>
         </div>
         {/if}
     </div>
@@ -800,6 +830,7 @@
         </div>
     {/if}
 </div>
+{/if}
 
 <style>
     .game-board {
@@ -1229,6 +1260,15 @@
         font-size: 0.9rem;
         text-align: left;
         color: #ecf0f1;
+    }
+
+    .ship-list .shiplist-shipid {
+        display: inline;
+        font-size: 0.7rem;
+        font-style: italic;
+        text-align: left;
+        color: #ecf0f1;
+        margin-left: -0.5rem;
     }
 
     .ship-list .ship-name.sunk {
