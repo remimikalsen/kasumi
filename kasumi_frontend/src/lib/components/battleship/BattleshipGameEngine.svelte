@@ -36,6 +36,21 @@
     let timeRemaining: number = 0;
     let pollingInterval: number | null = null;
     
+    // Add board switching delay variables
+    let boardSwitchDelayActive = false;
+    let boardSwitchTimer: number | null = null;
+    let lastTurn: string | null = null;
+    
+    // Add board order tracking - with delay logic
+    $: {
+        if (gameState?.currentTurn && !boardSwitchDelayActive) {
+            lastTurn = gameState.currentTurn;
+        }
+    }
+    $: boardOrder = boardSwitchDelayActive && lastTurn !== gameState?.currentTurn 
+        ? (lastTurn === username ? 'opponent-first' : 'player-first')
+        : (gameState?.currentTurn === username ? 'opponent-first' : 'player-first');
+    
     // Component references
     let playerBoardComponent: GameBoard;
 
@@ -74,6 +89,9 @@
     }
 
     function handleGameStateUpdate(newState: GameState) {
+        // Track if turn changed
+        const turnChanged = gameState?.currentTurn !== newState.currentTurn;
+        
         // Store old win streak values to detect changes
         const previousWinStreaks = gameState?.winStreaks || {};
         const previousStatus = gameState?.status;
@@ -159,7 +177,6 @@
                         }
                     }
                     gameMessage = message;
-
                 } else {
                     gameMessage = newState.currentTurn === username ? 
                         getLocalizedText(pageTexts, "your_turn") : 
@@ -167,6 +184,12 @@
                 }
                 
                 gameActive = true;
+                
+                // If turn changed and we're in active game, activate board switch delay
+                if (turnChanged && gameActive && !newState.bonusShotActive) {
+                    activateBoardSwitchDelay();
+                }
+                
                 break;
             case 'player_won':
                 gameOver = true;
@@ -174,6 +197,7 @@
                 lastGameResult = 'win';
                 
                 stopPolling();
+                clearBoardSwitchDelay();
                 break;
             case 'opponent_won':
                 gameOver = true;
@@ -181,6 +205,7 @@
                 lastGameResult = 'loss';
                 
                 stopPolling();
+                clearBoardSwitchDelay();
                 break;
             case 'retreated':
                 gameOver = true;
@@ -188,6 +213,7 @@
                 lastGameResult = 'retreated';
 
                 stopPolling();
+                clearBoardSwitchDelay();
                 break;
         }
 
@@ -197,6 +223,30 @@
         } else {
             clearBonusShotTimer();
         }
+    }
+    
+    // Function to delay board switching
+    function activateBoardSwitchDelay() {
+        // Clear any existing timers first
+        clearBoardSwitchDelay();
+        
+        // Set delay active
+        boardSwitchDelayActive = true;
+        
+        // Set timeout to disable delay after 1.5 seconds
+        boardSwitchTimer = window.setTimeout(() => {
+            boardSwitchDelayActive = false;
+            boardSwitchTimer = null;
+        }, 1500); // 1.5 second delay
+    }
+    
+    // Function to clear board switch delay
+    function clearBoardSwitchDelay() {
+        if (boardSwitchTimer) {
+            clearTimeout(boardSwitchTimer);
+            boardSwitchTimer = null;
+        }
+        boardSwitchDelayActive = false;
     }
 
     function startBonusShotTimer(lastMoveTime: number) {
@@ -288,6 +338,7 @@
     async function handleRematch() {
         try {
             stopPolling(); // Stop polling first to avoid race conditions
+            clearBoardSwitchDelay(); // Clear any active board switch delay
             
             // Reset game state variables
             gameOver = false;
@@ -317,6 +368,7 @@
     
     function handleDone() {
         clearBonusShotTimer();
+        clearBoardSwitchDelay();
         stopPolling();
         dispatch('done');
     }
@@ -324,6 +376,7 @@
     onDestroy(() => {
         stopPolling();
         clearBonusShotTimer();
+        clearBoardSwitchDelay();
     });
 </script>
 
@@ -344,9 +397,9 @@
         </div>
     </div>
     
-    <div class="game-boards">
+    <div class="game-boards {boardOrder}">
         {#if gameId && gameState}
-            <div class="board-container">
+            <div class="board-container player-board">
                 <GameBoard
                     bind:this={playerBoardComponent}
                     {username}
@@ -357,7 +410,7 @@
                 />
             </div>
         
-            <div class="board-container">
+            <div class="board-container opponent-board">
                 {#if gameState.players && gameState.players.length > 1}
                     {@const opponent = gameState.players.find(player => player !== username) || ''}
                     <GameBoard
@@ -368,7 +421,6 @@
                         showBoard={playerReady && opponentReady}
                         on:fire={handleFireShot}
                     />
-
                 {/if}
             </div>
         {/if}
@@ -536,6 +588,32 @@
     @media (max-width: 1200px) {
         .game-status-wide {
             max-width: 420px; /* 420px * 2 + gap between boards */
+        }
+        .game-boards.player-first .player-board {
+            order: 1;
+        }
+        .game-boards.player-first .opponent-board {
+            order: 2;
+        }
+        .game-boards.opponent-first .player-board {
+            order: 2;
+        }
+        .game-boards.opponent-first .opponent-board {
+            order: 1;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .game-boards {
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 2rem;
+        }
+        /* Reset order for desktop */
+        .game-boards .player-board,
+        .game-boards .opponent-board {
+            order: 0;
         }
     }
 </style> 
