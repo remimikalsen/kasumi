@@ -705,8 +705,10 @@
     </div>
 
     <div class="board-container">
-
         <div class="board">
+            {#if inPlayMode && gameState.currentTurn == username}
+                <div class="turn-overlay"></div>
+            {/if}
             {#each board as row, y}
                 <div class="row">
                     {#each row as cell, x}
@@ -965,6 +967,19 @@
     .board-container {
         display: flex;
         justify-content: center;
+        position: relative;
+    }
+
+    .turn-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 100;
+        pointer-events: none;
+        border-radius: 5px;
     }
 
     .board {
