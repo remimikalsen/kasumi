@@ -96,10 +96,6 @@
         // Track if turn changed
         const turnChanged = gameState?.currentTurn !== newState.currentTurn;
         
-        // Store old win streak values to detect changes
-        const previousWinStreaks = gameState?.winStreaks || {};
-        const previousStatus = gameState?.status;
-        
         // Update game state
         gameState = newState;
         
@@ -440,6 +436,7 @@
                     isReady={playerReady}
                     on:ready={handlePlayerReady}
                     on:retreat={handleRetreat}
+                    showTurnOverlay={boardOrder !== 'player-first'}
                 />
             </div>
         
@@ -453,6 +450,7 @@
                         isReady={opponentReady}
                         showBoard={playerReady && opponentReady}
                         on:fire={handleFireShot}
+                        showTurnOverlay={boardOrder !== 'opponent-first'}
                     />
                 {/if}
             </div>

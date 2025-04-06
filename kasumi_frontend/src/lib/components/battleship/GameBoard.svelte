@@ -29,6 +29,7 @@
     export let showBoard: boolean = true;
     export let isReady: boolean = false;
     export let onReady: ((event: CustomEvent) => void) | null = null;
+    export let showTurnOverlay: boolean = false;
 
     const isCPU = gameState.mode === 'cpu';
     const debugMode = gameState.config.debugOpponentBoard || false;
@@ -706,7 +707,7 @@
 
     <div class="board-container">
         <div class="board">
-            {#if inPlayMode && gameState.currentTurn == username}
+            {#if showTurnOverlay && inPlayMode }
                 <div class="turn-overlay"></div>
             {/if}
             {#each board as row, y}
