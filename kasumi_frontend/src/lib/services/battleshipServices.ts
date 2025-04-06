@@ -1,3 +1,5 @@
+import { env } from '$env/dynamic/public'; 
+
 // Types based on the API implementation
 export interface BattleshipConfig {
   boardSize: number;
@@ -59,15 +61,24 @@ export interface LeaderboardEntry {
   win_streak: number;
 }
 
-// API base URL
-const API_BASE_URL = 'http://localhost:3000/api/battleship';
+// API base URL - changed from localhost:3000 to relative URL
+const API_BASE_URL = '/api/battleship';
+
+// Get the public API key from app data if available
+const getApiHeaders = () => {
+    let apiKey = env.PUBLIC_API_KEY
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey
+    };
+};
 
 // API service
 export const battleshipApi = {
     async createGame(initials: string, mode: 'cpu' | 'multiplayer', config?: Partial<BattleshipConfig>): Promise<{ gameId: string; status: string }> {
         const response = await fetch(`${API_BASE_URL}/create_game`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getApiHeaders(),
             body: JSON.stringify({ initials, mode, config })
         });
         return response.json();
@@ -76,7 +87,7 @@ export const battleshipApi = {
     async retreat(gameId: string, initials: string): Promise<{ status: string }> {
         const response = await fetch(`${API_BASE_URL}/retreat`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getApiHeaders(),
             body: JSON.stringify({ gameId, initials })
         });
         return response.json();
@@ -85,7 +96,7 @@ export const battleshipApi = {
     async reMatch(gameId: string, initials: string): Promise<{ status: string; gameState?: GameState }> {
         const response = await fetch(`${API_BASE_URL}/re_match`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getApiHeaders(),
             body: JSON.stringify({ gameId, initials })
         });
         return response.json();
@@ -94,7 +105,7 @@ export const battleshipApi = {
     async leaveGame(gameId: string, initials: string): Promise<{ status: string }> {
         const response = await fetch(`${API_BASE_URL}/leave_game`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getApiHeaders(),
             body: JSON.stringify({ gameId, initials })
         });
         return response.json();
@@ -103,7 +114,7 @@ export const battleshipApi = {
     async joinGame(gameId: string, initials: string): Promise<{ status: string }> {
         const response = await fetch(`${API_BASE_URL}/join_game`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getApiHeaders(),
             body: JSON.stringify({ gameId, initials })
         });
         return response.json();
@@ -112,7 +123,7 @@ export const battleshipApi = {
     async placeFleet(gameId: string, initials: string, shipGrid: (string | null)[][], ships: Ship[]): Promise<{ status: string; message: string }> {
         const response = await fetch(`${API_BASE_URL}/place_fleet`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getApiHeaders(),
             body: JSON.stringify({ gameId, initials, shipGrid, ships })
         });
         return response.json();
@@ -141,7 +152,7 @@ export const battleshipApi = {
     async fire(gameId: string, initials: string, position: { x: number; y: number }): Promise<{ result: 'hit' | 'miss' | 'sunk'; shipId: string | null; status: string; message?: string }> {
         const response = await fetch(`${API_BASE_URL}/fire`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getApiHeaders(),
             body: JSON.stringify({ gameId, initials, position })
         });
         return response.json();
@@ -151,14 +162,16 @@ export const battleshipApi = {
         const params = new URLSearchParams({ gameId, initials });
         if (lastUpdate) params.append('lastUpdate', lastUpdate.toString());
         
-        const response = await fetch(`${API_BASE_URL}/game_state?${params}`);
+        const response = await fetch(`${API_BASE_URL}/game_state?${params}`, {
+            headers: getApiHeaders()
+        });
         return response.json();
     },
 
     async timeoutBonusShot(gameId: string, initials: string): Promise<{ gameState: GameState; status: string }> {
         const response = await fetch(`${API_BASE_URL}/timeout_bonus_shot`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getApiHeaders(),
             body: JSON.stringify({ gameId, initials })
         });
         return response.json();
@@ -168,9 +181,7 @@ export const battleshipApi = {
         try {
             const response = await fetch(`${API_BASE_URL}/submit_score`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json'
-                },
+                headers: getApiHeaders(),
                 body: JSON.stringify({ gameId, initials })
             });
             
@@ -192,7 +203,9 @@ export const battleshipApi = {
 
     async getLeaderboard(): Promise<LeaderboardEntry[]> {
         try {
-            const response = await fetch(`${API_BASE_URL}/get_leaderboard`);
+            const response = await fetch(`${API_BASE_URL}/get_leaderboard`, {
+                headers: getApiHeaders()
+            });
             
             if (!response.ok) {
                 throw new Error(`Server returned ${response.status}: ${response.statusText}`);
