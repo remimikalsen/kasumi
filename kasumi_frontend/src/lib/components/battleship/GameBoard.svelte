@@ -1239,6 +1239,8 @@
         display: block;
         width: 100%;
         text-align: center;
+        margin-top: 5px;
+        margin-left: -1px;
     }
 
     .ship-id {
