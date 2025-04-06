@@ -2,7 +2,7 @@
     import { createEventDispatcher } from 'svelte';
     import VirtualKeyboard from '$lib/components/common/VirtualKeyboard.svelte';
     import { battleshipApi, type BattleshipConfig } from '$lib/services/battleshipServices';
-    import { battleshipConfig } from '$lib/config/battleshipConfig.js';
+    import { battleshipConfig, type GameIdLetter } from '$lib/config/battleshipConfig';
     import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
 
     const pageTexts = 'battleship';
@@ -29,6 +29,12 @@
     let initialsSubmitted = false;
     let cpuDifficulty: 'easy' | 'hard' = defaultConfig.cpuDifficulty || 'easy';
     let multiplayerMode: 'host' | 'join' | 'discover' | null = null;
+    let hostedGameId: string | null = null;
+    let emojiSequence: string[] = [];
+    let joiningGame = false;
+    let selectedEmojis: string[] = [];
+    
+    const emojisArray = Object.values(battleshipConfig.gameIdEmojis);
 
     function handleUsernameChange(initials: string) {
         username = initials.toUpperCase();
@@ -47,7 +53,105 @@
 
     function handleMultiplayerModeSelect(mode: 'host' | 'join' | 'discover') {
         multiplayerMode = mode;
-        // For now, these are inactive
+        if (mode === 'host') {
+            handleHostGame();
+        } else if (mode === 'join') {
+            joiningGame = true;
+            selectedEmojis = [];
+        } else {
+            joiningGame = false;
+        }
+    }
+
+    function selectEmoji(emoji: string) {
+        if (selectedEmojis.length < 6) {
+            selectedEmojis = [...selectedEmojis, emoji];
+        }
+        
+        // If we have 6 emojis, try to join the game
+        if (selectedEmojis.length === 6) {
+            handleJoinGame();
+        }
+    }
+    
+    function removeLastEmoji() {
+        if (selectedEmojis.length > 0) {
+            selectedEmojis = selectedEmojis.slice(0, -1);
+        }
+    }
+    
+    function clearEmojiSelection() {
+        selectedEmojis = [];
+    }
+    
+    function emojiToLetter(emoji: string): GameIdLetter | null {
+        for (const [letter, mappedEmoji] of Object.entries(battleshipConfig.gameIdEmojis)) {
+            if (mappedEmoji === emoji) {
+                return letter as GameIdLetter;
+            }
+        }
+        return null;
+    }
+
+    async function handleJoinGame() {
+        if (!isUsernameValid || selectedEmojis.length !== 6) return;
+        
+        // Convert emoji sequence to game ID
+        const gameIdLetters = selectedEmojis.map(emoji => emojiToLetter(emoji));
+        
+        // Make sure all emojis were valid
+        if (gameIdLetters.includes(null)) {
+            errorMessage = getLocalizedText(pageTexts, "invalid_emoji_sequence");
+            return;
+        }
+        
+        const joinGameId = gameIdLetters.join('');
+        
+        try {
+            const response = await battleshipApi.joinGame(joinGameId, username);
+            if (response.status === 'success') {
+                gameId = joinGameId;
+                gameMode = 'token';
+                gameStarted = true;
+                
+                // Dispatch event to start the game
+                dispatch('gameStart', {
+                    username,
+                    gameId: joinGameId
+                });
+            } else {
+                errorMessage = getLocalizedText(pageTexts, "failed_join_game");
+            }
+        } catch (error) {
+            console.error('Failed to join game:', error);
+            errorMessage = getLocalizedText(pageTexts, "failed_join_game");
+        }
+    }
+
+    async function handleHostGame() {
+        if (!isUsernameValid) return;
+
+        try {
+            const response = await battleshipApi.createGame(username, 'multiplayer', defaultConfig);
+            if (response.status === 'success') {
+                hostedGameId = response.gameId;
+                // Start the game immediately instead of just showing emoji sequence
+                gameId = response.gameId;
+                gameMode = 'token';
+                gameStarted = true;
+                
+                // Dispatch event to start the game
+                dispatch('gameStart', {
+                    username,
+                    gameId: response.gameId
+                });
+            } else {
+                errorMessage = getLocalizedText(pageTexts, "failed_start_game");
+            }
+        } catch (error) {
+            console.error('Failed to host game:', error);
+            errorMessage = getLocalizedText(pageTexts, "failed_start_game");
+        }
     }
 
     function handleStartCpuGame() {
@@ -115,28 +219,41 @@
             </div>
             
             <div class="glowing mode-section">
-                <h3>{getLocalizedText(pageTexts, "multiplayer_coming_soon")}</h3>
+                <h3>{getLocalizedText(pageTexts, "multiplayer")}</h3>
                 <div class="multiplayer-options">
                     <button 
-                        class="mode-button disabled"
-                        disabled
+                        class="mode-button {multiplayerMode === 'host' ? 'selected' : ''}"
+                        on:click={() => handleMultiplayerModeSelect('host')}
                     >
                         <span class="emoji">👑</span> {getLocalizedText(pageTexts, "host_game")}
                     </button>
                     <button 
-                        class="mode-button disabled"
-                        disabled
+                        class="mode-button {multiplayerMode === 'join' ? 'selected' : ''}"
+                        on:click={() => handleMultiplayerModeSelect('join')}
                     >
                         <span class="emoji">🤝</span> {getLocalizedText(pageTexts, "join_game")}
                     </button>
                     <button 
-                        class="mode-button disabled"
-                        disabled
+                        class="mode-button {multiplayerMode === 'discover' ? 'selected' : ''}"
+                        on:click={() => handleMultiplayerModeSelect('discover')}
                     >
                         <span class="emoji">🔍</span> {getLocalizedText(pageTexts, "find_local_players")}
                     </button>
                 </div>
             </div>
+
+            {#if hostedGameId}
+                <div class="glowing mode-section">
+                    <h3>{getLocalizedText(pageTexts, "game_hosted")}</h3>
+                    <div class="emoji-sequence">
+                        {#each emojiSequence as emoji}
+                            <span class="emoji">{emoji}</span>
+                        {/each}
+                    </div>
+                    <p class="game-id">{hostedGameId}</p>
+                    <p class="instruction">{getLocalizedText(pageTexts, "share_emoji_sequence")}</p>
+                </div>
+            {/if}
         </div>
     {/if}
 
@@ -144,6 +261,51 @@
         <p class="error-message">{errorMessage}</p>
     {/if}
 </div>
+
+{#if joiningGame}
+    <div class="join-modal">
+        <div class="modal-content join-modal-content">
+            <h2>{getLocalizedText(pageTexts, "join_game")}</h2>
+            <p>{getLocalizedText(pageTexts, "enter_emoji_sequence")}</p>
+            
+            <div class="selected-emojis">
+                {#each selectedEmojis as emoji}
+                    <span class="emoji selected">{emoji}</span>
+                {/each}
+                {#each Array(6 - selectedEmojis.length) as _}
+                    <span class="emoji-placeholder"></span>
+                {/each}
+            </div>
+            
+            <div class="emoji-keyboard">
+                {#each emojisArray as emoji}
+                    <button class="emoji-button" on:click={() => selectEmoji(emoji)}>
+                        <span class="emoji">{emoji}</span>
+                    </button>
+                {/each}
+            </div>
+            
+            <div class="emoji-controls">
+                <button class="control-button" on:click={removeLastEmoji}>
+                    <span class="emoji">⬅️</span> {getLocalizedText(pageTexts, "backspace")}
+                </button>
+                <button class="control-button" on:click={clearEmojiSelection}>
+                    <span class="emoji">🔄</span> {getLocalizedText(pageTexts, "clear")}
+                </button>
+            </div>
+            
+            {#if selectedEmojis.length === 6}
+                <button class="join-button" on:click={handleJoinGame}>
+                    <span class="emoji">🔗</span> {getLocalizedText(pageTexts, "join_now")}
+                </button>
+            {/if}
+            
+            <button class="cancel-button" on:click={() => { joiningGame = false; multiplayerMode = null; }}>
+                <span class="emoji">❌</span> {getLocalizedText(pageTexts, "cancel")}
+            </button>
+        </div>
+    </div>
+{/if}
 {/if}
 
 <style>
@@ -294,5 +456,269 @@
         font-size: 1.5em;
         line-height: 1;
         vertical-align: middle;
+    }
+
+    .emoji-sequence {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+        font-size: 2rem;
+    }
+
+    .game-id {
+        text-align: center;
+        font-family: monospace;
+        font-size: 1.2rem;
+        color: #3498db;
+        margin: 0.5rem 0;
+    }
+
+    .instruction {
+        text-align: center;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin: 0.5rem 0;
+    }
+    
+    .selected-emojis {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .emoji {
+        font-size: 1.5rem;
+    }
+    
+    .emoji.selected {
+        font-size: 2rem;
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .emoji-placeholder {
+        width: 2rem;
+        height: 2rem;
+        border: 2px dashed #7f8c8d;
+        border-radius: 50%;
+    }
+    
+    .emoji-keyboard {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .emoji-button {
+        background-color: #314875;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 0.5rem;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .emoji-button:hover {
+        transform: translateY(-2px);
+        background-color: #486794;
+    }
+    
+    .emoji-controls {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .control-button, .back-button, .join-button, .cancel-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .control-button {
+        background-color: #3498db;
+        color: white;
+    }
+    
+    .back-button {
+        background-color: #7f8c8d;
+        color: white;
+        margin-top: 1rem;
+    }
+    
+    .join-button {
+        background-color: #27ae60;
+        color: white;
+        font-size: 1.1rem;
+        padding: 0.75rem 1.5rem;
+        margin: 1rem auto;
+    }
+    
+    .cancel-button {
+        background-color: #e74c3c;
+        color: white;
+        margin: 1rem auto 0;
+    }
+    
+    .control-button:hover, .back-button:hover, .join-button:hover, .cancel-button:hover {
+        transform: translateY(-2px);
+        filter: brightness(90%);
+    }
+
+    .join-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background-color: #1b263b;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+    }
+    
+    .join-modal-content {
+        min-height: 60vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .modal-content h2 {
+        color: #e0e1dd;
+        margin: 0 0 1rem 0;
+        font-size: 1.5rem;
+    }
+
+    .modal-content p {
+        color: #e0e1dd;
+        margin-bottom: 1rem;
+    }
+    
+    .selected-emojis {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .emoji {
+        font-size: 1.5rem;
+    }
+    
+    .emoji.selected {
+        font-size: 2rem;
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .emoji-placeholder {
+        width: 2rem;
+        height: 2rem;
+        border: 2px dashed #7f8c8d;
+        border-radius: 50%;
+    }
+    
+    .emoji-keyboard {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .emoji-button {
+        background-color: #314875;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 0.5rem;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .emoji-button:hover {
+        transform: translateY(-2px);
+        background-color: #486794;
+    }
+    
+    .emoji-controls {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .control-button, .back-button, .join-button, .cancel-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .control-button {
+        background-color: #3498db;
+        color: white;
+    }
+    
+    .back-button {
+        background-color: #7f8c8d;
+        color: white;
+        margin-top: 1rem;
+    }
+    
+    .join-button {
+        background-color: #27ae60;
+        color: white;
+        font-size: 1.1rem;
+        padding: 0.75rem 1.5rem;
+        margin: 1rem auto;
+    }
+    
+    .cancel-button {
+        background-color: #e74c3c;
+        color: white;
+        margin: 1rem auto 0;
+    }
+    
+    .control-button:hover, .back-button:hover, .join-button:hover, .cancel-button:hover {
+        transform: translateY(-2px);
+        filter: brightness(90%);
     }
 </style> 

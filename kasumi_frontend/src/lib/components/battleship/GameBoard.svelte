@@ -4,7 +4,7 @@
     import type { Ship } from '@lib/services/battleshipServices';
     import type { GameState } from '@lib/services/battleshipServices';
     import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
-    import { battleshipConfig } from '@lib/config/battleshipConfig.js';
+    import { battleshipConfig } from '@lib/config/battleshipConfig';
 
     const pageTexts = 'battleship';
 

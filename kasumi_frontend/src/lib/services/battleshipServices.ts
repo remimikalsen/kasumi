@@ -91,6 +91,15 @@ export const battleshipApi = {
         return response.json();
     },
 
+    async leaveGame(gameId: string, initials: string): Promise<{ status: string }> {
+        const response = await fetch(`${API_BASE_URL}/leave_game`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gameId, initials })
+        });
+        return response.json();
+    },
+    
     async joinGame(gameId: string, initials: string): Promise<{ status: string }> {
         const response = await fetch(`${API_BASE_URL}/join_game`, {
             method: 'POST',

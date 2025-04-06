@@ -140,7 +140,7 @@ router.post('/battleship/join_game', (req, res) => {
 });
 
 /*
- * Retreat from a game
+ * Retreat from a battle
  * 
  * @route POST /api/battleship/retreat
  */
@@ -249,7 +249,8 @@ router.post('/battleship/re_match', (req, res) => {
   // Return success if game is in setup phase
   if (gameState.status === 'setup') {
     return res.json({
-      status: 'success'
+      status: 'success',
+      gameState: sanitizeGameState(gameState, initials)
     });
   }
 
@@ -298,6 +299,47 @@ router.post('/battleship/re_match', (req, res) => {
   });
 });
 
+
+/*
+ * Leave the game - this will destroy the game state
+ * 
+ * @route POST /api/battleship/leave_game
+ */
+router.post('/battleship/leave_game', (req, res) => {
+  const { gameId, initials } = req.body;
+
+  if (!gameId || !initials) {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'Game ID and player initials required' 
+    });
+  }
+
+  const gameState = battleship_games.get(gameId);
+
+  if (!gameState) {
+    return res.status(404).json({ 
+      status: 'error', 
+      message: 'Game not found' 
+    });
+  }
+
+  if (!gameState.players.includes(initials)) {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'Player not in this game' 
+    });
+  }
+
+  // Delete the game state from memory
+  battleship_games.delete(gameId);
+
+  // Return success status
+  res.json({
+    status: 'success'
+  });
+
+});
 
 
 /**

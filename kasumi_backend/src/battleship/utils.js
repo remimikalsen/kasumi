@@ -22,7 +22,12 @@ const defaultBattleshipConfig = {
  * @returns {string} A 6-character uppercase game ID
  */
 function generateGameId() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  const letters = 'ABCDEFGHI';
+  let id = '';
+  for (let i = 0; i < 6; i++) {
+    id += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+  return id;
 }
 
 /**

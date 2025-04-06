@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import BattleshipGameEngine from './BattleshipGameEngine.svelte';
     import GameSetup from './GameSetup.svelte';
-    import { battleshipConfig } from '$lib/config/battleshipConfig.js';
+    import { battleshipConfig } from '$lib/config/battleshipConfig.ts';
     import type { GameState, LeaderboardEntry } from '$lib/services/battleshipServices';
     import { battleshipApi } from '$lib/services/battleshipServices';
     import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';

@@ -9,7 +9,7 @@
     "difficulty_easy": "Easy",
     "difficulty_hard": "Hard",
     "start_cpu_game": "Start CPU Game",
-    "multiplayer_coming_soon": "Multiplayer (Coming Soon)",
+    "multiplayer": "Multiplayer",
     "host_game": "Host Game",
     "join_game": "Join Game",
     "find_local_players": "Find Local Players",
@@ -62,5 +62,15 @@
     "win_streak_text": "Your win streak: {0}",
     "submit_score_prompt": "Admiral {0}, would you like to submit your score?",
     "skip": "No",
-    "leaderboard_score": "Win Streak"
+    "leaderboard_score": "Win Streak",
+
+    "waiting_opponent_join_message": "Waiting for opponent...",
+    "share_emoji_sequence": "Share the emoji sequence with your opponent to join the game.",
+    "abort_game": "Abort Game",
+    "join_now": "Join Now",
+    "back": "Back",
+    "clear": "Clear",
+    "backspace": "Backspace",
+    "invalid_emoji_sequence": "Invalid emoji sequence",
+    "failed_join_game": "Failed to join game"
 }

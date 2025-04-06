@@ -1,5 +1,7 @@
 import { env } from '$env/dynamic/public';
 
+export type GameIdLetter = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I';
+
 export const battleshipConfig = {
   // Debug mode to show the CPU's ships during gameplay
   debugOpponentBoard: env.PUBLIC_BATTLESHIP_DEBUG_OPPONENT_BOARD?.toLowerCase() === 'true',
@@ -42,5 +44,18 @@ export const battleshipConfig = {
       no: 'U-båt',
       pt: 'Submarino'
     }
-  }
+  },
+
+  // Game ID emoji mapping
+  gameIdEmojis: {
+    'A': '⚓', // Anchor
+    'B': '🚢', // Ship
+    'C': '🌊', // Wave
+    'D': '🏝️', // Island
+    'E': '🌅', // Sunrise
+    'F': '🐬', // Dolphin
+    'G': '⚡', // Lightning
+    'H': '🌪️', // Tornado
+    'I': '🦈'  // Shark
+  } as Record<GameIdLetter, string>
 }; 

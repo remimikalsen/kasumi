@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onDestroy } from 'svelte';
     import GameBoard from './GameBoard.svelte';
-    import { battleshipConfig } from '$lib/config/battleshipConfig.js';
+    import { battleshipConfig, type GameIdLetter } from '$lib/config/battleshipConfig';
     import { battleshipApi, type GameState, type Ship } from '$lib/services/battleshipServices';
     import { createEventDispatcher } from 'svelte';
     import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
@@ -34,6 +34,34 @@
     let lastGameResult: 'win' | 'loss' | 'retreated' | null = null;
     let countdownIntervalId: number | null = null;
     let timeRemaining: number = 0;
+    let emojiSequence: string[] = [];
+    let waitingForOpponent = false;
+    let gameWentAway = false;
+
+    // Generate emoji sequence from game ID
+    $: {
+        if (gameState?.gameId && gameState.status === 'waiting_for_opponent') {
+            emojiSequence = gameState.gameId.split('').map(letter => 
+                battleshipConfig.gameIdEmojis[letter as GameIdLetter]
+            );
+            waitingForOpponent = true;
+        } else {
+            waitingForOpponent = false;
+        }
+    }
+
+    $: {
+        if (gameState?.mode === 'multiplayer' && gameState.status === 'waiting_for_opponent' && !pollingInterval) {
+            startPolling();
+        }
+    }
+
+    $: {
+        if (gameState?.mode === 'multiplayer' && gameState.status === 'setup' && pollingInterval && !playerReady) {
+            stopPolling();
+        }
+    }
+
     let pollingInterval: number | null = null;
     
     // Add board switching delay variables
@@ -87,7 +115,9 @@
                     handleGameStateUpdate(response.gameState);
                 }
             } catch (error) {
+                gameWentAway = true;
                 console.error('Failed to poll game state:', error);
+                
             }
         }, 500);
     }
@@ -101,12 +131,13 @@
         
         // Get opponent's initials
         const opponent = newState.players.find(player => player !== username);
-        
+
         // Update game status based on state
         switch (newState.status) {
             case 'waiting_for_opponent':
                 gameMessage = getLocalizedText(pageTexts, "waiting_opponent_join");
                 gameActive = false;
+                waitingForOpponent = true;
                 break;
             case 'setup':
                 if (!playerReady) {
@@ -131,10 +162,7 @@
                 gameActive = false;
                 break;
             case 'active':
-                // For CPU games, ensure opponent is marked as ready when game becomes active
-                if (newState.mode === 'cpu') {
-                    opponentReady = true;
-                }
+                opponentReady = true;
                 
                 // Get the last move to determine the message
                 const lastMove = newState.moves[newState.moves.length - 1];
@@ -370,30 +398,48 @@
             victoryMessage = null;
             
             // Call re-match API
-            const response = await battleshipApi.reMatch(gameId!, username);
-            
-            if (response.status === 'success' && response.gameState) {
-                // Update game state with the new state from server
-                gameState = response.gameState;
-                
-                // Update game message
-                gameMessage = getLocalizedText(pageTexts, "start_game_message");
+            try {
+                const response = await battleshipApi.reMatch(gameId!, username);
 
-            } else {
-                throw new Error('Failed to get updated game state');
+                if (response.status === 'success' && response.gameState) {
+                    // Update game state with the new state from server
+                    gameState = response.gameState;
+                    
+                    // Update game message
+                    gameMessage = getLocalizedText(pageTexts, "start_game_message");
+
+                } else {
+                    gameWentAway = true;
+                }
+            } catch (error) {
+                gameWentAway = true;
+                console.error('Failed to re-match:', error);
             }
+
         } catch (error) {
             console.error('Failed to restart game:', error);
             gameMessage = 'Failed to restart game. Please try again.';
         }
     }
     
-    function handleDone() {
+    async function handleDone() {
         clearBonusShotTimer();
         clearBoardSwitchDelay();
         stopPolling();
         const playerWinStreak = gameState?.winStreaks?.[username] || 0;
+        try {
+            await battleshipApi.leaveGame(gameId!, username);
+        } catch (error) {
+            console.error('Error leaving game:', error);
+        }
         dispatch('done', { winStreak: playerWinStreak });
+    }
+
+    function handleGameTerminated() {
+        clearBonusShotTimer();
+        clearBoardSwitchDelay();
+        stopPolling();
+        dispatch('done', { winStreak: 0 });
     }
 
     onDestroy(() => {
@@ -456,6 +502,40 @@
             </div>
         {/if}
     </div>
+    
+    {#if waitingForOpponent && emojiSequence.length > 0}
+        <div class="waiting-modal">
+            <div class="modal-content">
+                <h2>{getLocalizedText(pageTexts, "waiting_opponent_join_message")}</h2>
+                <p>{getLocalizedText(pageTexts, "share_emoji_sequence")}</p>
+                
+                <div class="emoji-sequence">
+                    {#each emojiSequence as emoji}
+                        <span class="emoji">{emoji}</span>
+                    {/each}
+                </div>
+                
+                <button class="abort-button" on:click={handleRetreat}>
+                    {getLocalizedText(pageTexts, "abort_game")}
+                </button>
+            </div>
+        </div>
+    {/if}
+    
+    {#if gameWentAway}
+        <div class="game-terminated-modal">
+            <div class="modal-content">
+                <h2>{getLocalizedText(pageTexts, "game_terminated") || "Game Terminated"}</h2>
+                <p>{getLocalizedText(pageTexts, "game_terminated_message") || "The connection to the game has been lost."}</p>
+                
+                <div class="error-icon">❌</div>
+                
+                <button class="restart-button" on:click={handleGameTerminated}>
+                    {getLocalizedText(pageTexts, "return_to_menu") || "Return to Menu"}
+                </button>
+            </div>
+        </div>
+    {/if}
     
     {#if gameOver}
         <div class="game-over-actions">
@@ -536,6 +616,97 @@
         flex-direction: column;
         gap: 3rem;
         align-items: center;
+    }
+    
+    .waiting-modal, .game-terminated-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+    }
+
+    .game-terminated-modal .modal-content {
+        border: 2px solid #e74c3c;
+    }
+
+    .error-icon {
+        font-size: 4rem;
+        color: #e74c3c;
+        margin: 1rem 0;
+        animation: pulse 1.5s infinite;
+    }
+
+    .modal-content {
+        background-color: #1b263b;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+    }
+
+    .modal-content h2 {
+        color: #e0e1dd;
+        margin: 0 0 1rem 0;
+        font-size: 1.5rem;
+    }
+
+    .modal-content p {
+        color: #e0e1dd;
+        margin-bottom: 1rem;
+        font-sized: 0.9rem;
+    }
+
+    .emoji-sequence {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1.5rem 0;
+        font-size: 2.5rem;
+    }
+
+    .emoji {
+        display: inline-block;
+        animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .game-id {
+        text-align: center;
+        font-family: monospace;
+        font-size: 1.2rem;
+        color: #3498db;
+        margin: 1rem 0;
+    }
+
+    .abort-button {
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 5px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+    }
+
+    .abort-button:hover {
+        filter: brightness(90%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
     
     .game-over-actions {
@@ -663,5 +834,24 @@
         .game-boards .opponent-board {
             order: 0;
         }
+    }
+
+    .restart-button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 5px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+    }
+
+    .restart-button:hover {
+        filter: brightness(90%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 </style> 
