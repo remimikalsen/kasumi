@@ -28,7 +28,6 @@
     export let isOpponent: boolean = false;
     export let showBoard: boolean = true;
     export let isReady: boolean = false;
-    export let onReady: ((event: CustomEvent) => void) | null = null;
     export let showTurnOverlay: boolean = false;
 
     const isCPU = gameState.mode === 'cpu';
