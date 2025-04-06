@@ -20,6 +20,7 @@ All games are featured on the front page, with the currently highest score also 
 - DogRun: Save the dog from the dog catchers, avoid holes and collect bones on the way to its home.
 - PacMaze: Guide the scared kid through the maze, away from the ghosts and safely to its home.
 - Paws vs Claws: A variation of tic-tac-toe, but with dogs, cats, dragons, frogs and more.
+- Battleship: A CPU and two-player battleship game
 
 ## Installation
 Docker with docker compose are pre-requirements.
