@@ -17,5 +17,10 @@
     "spaceAdventureTopScoreIntro": "Melhor Astronauta",
     "spaceAdventureImgAltText": "Captura de ecrã de Aventura no espaço",
     "spaceAdventureTopScore": "<INITIALS> - <POINTS> <POINTS_TEXT>",
-    "points": "pontos"
+    "points": "pontos",
+    "battleshipTopScoreIntro": "Melhor Jogador de Battleship",
+    "battleshipImgAltText": "Captura de ecrã de Battleship",
+    "battleshipTopScore": "<INITIALS> - <STREAK> <STREAK_TEXT>",
+    "streak_singular": "vitoria seguida",
+    "streak_plural": "vitórias seguidas"
 }

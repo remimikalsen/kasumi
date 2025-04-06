@@ -20,21 +20,24 @@
     let dogrunLeaderboard = [];
     let pacmazeLeaderboard = [];
     let spaceAdventureLeaderboard = [];
+    let battleshipLeaderboard = [];
 
     async function loadLeaderboards() {
         const headers = {
             'Authorization': `Bearer ${env.PUBLIC_API_KEY}`
         };
 
-        const [dogrunResponse, pacmazeResponse, spaceAdventureResponse] = await Promise.all([
+        const [dogrunResponse, pacmazeResponse, spaceAdventureResponse, battleshipResponse] = await Promise.all([
             fetch('/api/dogrun/get_leaderboard', { headers }),
             fetch('/api/pacmaze/get_leaderboard', { headers }),
-            fetch('/api/space-adventure/get_leaderboard', { headers })
+            fetch('/api/space-adventure/get_leaderboard', { headers }),
+            fetch('/api/battleship/get_leaderboard', { headers })
         ]);
 
         const dogrunData = await dogrunResponse.json();
         const pacmazeData = await pacmazeResponse.json();
         const spaceAdventureData = await spaceAdventureResponse.json();
+        const battleshipData = await battleshipResponse.json();
 
         if (Array.isArray(dogrunData) && dogrunData.length > 0) {
             dogrunLeaderboard = [...dogrunData];
@@ -46,8 +49,12 @@
         
         if (Array.isArray(spaceAdventureData) && spaceAdventureData.length > 0) {
             spaceAdventureLeaderboard = [...spaceAdventureData];
-        }        
-                
+        }       
+        
+        if (Array.isArray(battleshipData) && battleshipData.length > 0) {
+            battleshipLeaderboard = [...battleshipData];
+        }
+
     }
 
     onMount(async () => {
@@ -83,6 +90,25 @@
             </p>
         </div>
         <div class="content">
+            <div class="preview">
+                <a href="/spill/battleship" class="glowing">
+                    <img src="/images/front-page/battleship-preview.png" alt="{getLocalizedText(pageTexts, 'battleshipImgAltText')}" />
+                </a>
+                {#if battleshipLeaderboard?.length > 0}
+                    <div class="score">
+                        <p class="topScore">{getLocalizedText(pageTexts, 'battleshipTopScoreIntro')}</p>
+                        <p class="goldenLight">
+                            {@html getLocalizedText(pageTexts, 'battleshipTopScore')
+                                .replace('<INITIALS>', `<span style="text-transform: uppercase;">${battleshipLeaderboard[0]?.initials || ''}</span>`)
+                                .replace('<STREAK>', battleshipLeaderboard[0]?.win_streak || '')
+                                .replace('<STREAK_TEXT>', battleshipLeaderboard[0]?.win_streak === 1
+                                    ? getLocalizedText(pageTexts, 'streak_singular')
+                                    : getLocalizedText(pageTexts, 'streak_plural'))}
+                        </p>
+                    </div>
+                {/if}
+            </div>
+
             <div class="preview">
                 <a href="/spill/dogrun" class="glowing">
                     <img src="/images/front-page/dogrun-preview.png" alt="{getLocalizedText(pageTexts, 'dogRunImgAltText')}" />

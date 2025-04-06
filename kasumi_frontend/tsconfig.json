@@ -10,8 +10,11 @@
 		"sourceMap": true,
 		"strict": true,
 		"moduleResolution": "bundler",
+		"lib": ["es2017", "dom"],
+		"target": "es2017",
 		"types": ["svelte", "@sveltejs/kit"]
-	}
+	},
+	"exclude": [".svelte-kit/**", "node_modules/**"]
 	// Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
 	// except $lib which is handled by https://kit.svelte.dev/docs/configuration#files
 	//

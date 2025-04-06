@@ -2,6 +2,8 @@
     export let onSubmit;
   
     let initials = '';
+    export let initials_label = 'Your initials';
+    export let submit_label = 'Submit';
   
     function addLetter(letter) {
       if (initials.length < 3) {
@@ -19,7 +21,7 @@
   </script>
   
 
-  <p>Your initials: <span>
+  <p>{initials_label}: <span>
     {#each Array.from({ length: 3 }, (_, i) => initials[i] || ' _ ') as letter}
       {letter}
     {/each}
@@ -29,7 +31,7 @@
       <button class="letter" on:click={() => addLetter(letter)}>{letter}</button>
     {/each}
     <button class="remove" on:click={removeLetter}>⌫</button>
-    <button class="submit" on:click={submit} disabled={initials.length === 0}>Submit</button>
+    <button class="submit" on:click={submit} disabled={initials.length === 0}>{submit_label}</button>
   </div>  
   
   <style>
