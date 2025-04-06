@@ -49,6 +49,7 @@ router.post('/battleship/create_game', (req, res) => {
     // - 'setup': Initial ship placement phase (CPU games start here)
     // - 'active': Game in progress after ships placed
     // - 'player_won'/'opponent_won': Game complete
+    // - 'retreated': Game ended due to player retreating
     status: mode === 'multiplayer' ? 'waiting_for_opponent' : 'setup',
     currentTurn: null,
     players: [initials],
@@ -138,7 +139,74 @@ router.post('/battleship/join_game', (req, res) => {
   });
 });
 
+/*
+ * Retreat from a game
+ * 
+ * @route POST /api/battleship/retreat
+ */
+router.post('/battleship/retreat', (req, res) => {
+  const { gameId, initials } = req.body;
 
+  if (!gameId || !initials) {
+    return res.status(400).json({ 
+      status: 'error',  
+      message: 'Game ID and player initials required' 
+    });
+  }
+
+  const gameState = battleship_games.get(gameId); 
+
+  if (!gameState) {
+    return res.status(404).json({ 
+      status: 'error', 
+      message: 'Game not found' 
+    });
+  } 
+
+  if (!gameState.players.includes(initials)) {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'Player not in this game' 
+    });
+  } 
+
+  if (gameState.status !== 'active') {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'Game is not active' 
+    });
+  }
+
+  // Find the opponent
+  const opponent = gameState.players.find(player => player !== initials);
+  if (!opponent) {
+    return res.status(500).json({  
+      status: 'error', 
+      message: 'No opponent found' 
+    });
+  }
+
+  // Update game state to retreat 
+  gameState.status = 'retreated';
+  gameState.winner = opponent;
+
+  // Initialize winStreaks object if it doesn't exist
+  if (!gameState.winStreaks) {
+    gameState.winStreaks = {};
+    for (const player of gameState.players) {
+      gameState.winStreaks[player] = 0;
+    }
+  }
+
+  // Reset winstreak for player with initials, and increment winstreak for opponent
+  gameState.winStreaks[initials] = 0;
+  gameState.winStreaks[opponent] = (gameState.winStreaks[opponent] || 0) + 1;
+
+  // Return success status
+  res.json({
+    status: 'success'
+  }); 
+});
 
 /*
  * Re-match a game

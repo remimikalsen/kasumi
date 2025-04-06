@@ -20,7 +20,7 @@
     let gameActive = false;
     $: gameMessage = startGameMessage;
     let gameOver = false;
-    let lastGameResult: 'win' | 'loss' | null = null;
+    let lastGameResult: 'win' | 'loss' | 'retreated' | null = null;
     let countdownIntervalId: number | null = null;
     let timeRemaining: number = 0;
     let pollingInterval: number | null = null;
@@ -168,6 +168,13 @@
                 
                 stopPolling();
                 break;
+            case 'retreated':
+                gameOver = true;
+                gameMessage = 'Game Over! You retreated!';
+                lastGameResult = 'retreated';
+
+                stopPolling();
+                break;
         }
 
         // Handle bonus shot timer
@@ -234,7 +241,17 @@
             gameMessage = 'Failed to place fleet. Please try again.';
         }
     }
-    
+
+    async function handleRetreat() {
+        if (!gameId || !gameState) return;
+        try {
+            const response = await battleshipApi.retreat(gameId, username);
+        } catch (error) {
+            console.error('Failed to retreat:', error);
+            gameMessage = 'Failed to retreat. Please try again.';
+        }
+    }
+
     async function handleFireShot(event: CustomEvent) {
         if (!gameId || !gameState || gameState.currentTurn !== username) return;
         
@@ -324,6 +341,7 @@
                     {gameState}
                     isReady={playerReady}
                     on:ready={handlePlayerReady}
+                    on:retreat={handleRetreat}
                 />
             </div>
         
@@ -338,13 +356,7 @@
                         showBoard={playerReady && opponentReady}
                         on:fire={handleFireShot}
                     />
-                    
-                    <!-- Show opponent win streak if available -->
-                    {#if gameState.winStreaks && opponent && gameState.winStreaks[opponent] > 0}
-                        <div class="winning-streak opponent-streak">
-                            Win Streak: {gameState.winStreaks[opponent]}
-                        </div>
-                    {/if}
+
                 {/if}
             </div>
         {/if}
@@ -352,12 +364,17 @@
     
     {#if gameOver}
         <div class="game-over-actions">
-            <button class="rematch-button" on:click={handleRematch}>
-                Re-match
-            </button>
-            <button class="done-button" on:click={handleDone}>
-                I'm done
-            </button>
+            <div class="dialog-content">
+                <h2>Are you done battling this opponent?</h2>
+                <div class="dialog-actions">
+                    <button class="rematch-button" on:click={handleRematch}>
+                        Re-match
+                    </button>
+                    <button class="done-button" on:click={handleDone}>
+                        I'm done
+                    </button>
+                </div>
+            </div>
         </div>
     {/if}
 </div>
@@ -433,19 +450,49 @@
     }
     
     .game-over-actions {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         display: flex;
         justify-content: center;
+        align-items: center;
         gap: 2rem;
-        margin-top: 2rem;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+    }
+
+    .dialog-content {
+        background-color: #1b263b;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+    }
+
+    .dialog-content h2 {
+        color: #e0e1dd;
+        margin: 0 0 1.5rem 0;
+        font-size: 1.5rem;
+    }
+
+    .dialog-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
     }
     
     .rematch-button, .done-button {
-        padding: 1rem 2rem;
+        padding: 0.75rem 1.5rem;
         border: none;
         border-radius: 5px;
-        font-size: 1.2rem;
+        font-size: 1rem;
+        font-weight: bold;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: all 0.3s ease;
     }
     
     .rematch-button {
@@ -455,6 +502,8 @@
     
     .rematch-button:hover {
         background-color: #27ae60;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
     }
     
     .done-button {
@@ -464,6 +513,8 @@
     
     .done-button:hover {
         background-color: #c0392b;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
     }
     
     @media (min-width: 1200px) {

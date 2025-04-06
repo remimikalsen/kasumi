@@ -32,6 +32,9 @@
     let previewCells: {x: number, y: number}[] = [];
     let previewState: string | null = null;
     let lastPreviewPosition = { x: -1, y: -1 }; // Track last preview position
+    let winStreak = 0;
+    
+    let showRetreatConfirm = false;
     
     // React to gameState changes
     $: {
@@ -42,6 +45,8 @@
             inPlayMode = gameState.status === 'active';
             // Reset shot in progress when game state updates
             shotInProgress = false;
+
+            winStreak = gameState.winStreaks?.[username] || 0;
 
             if (gameState.status === 'setup') {
                 allShipsPlaced = false;
@@ -528,6 +533,19 @@
             });
         }
     }
+
+    function handleRetreatClick() {
+        showRetreatConfirm = true;
+    }
+
+    function confirmRetreat() {
+        showRetreatConfirm = false;
+        dispatch('retreat');
+    }
+
+    function cancelRetreat() {
+        showRetreatConfirm = false;
+    }
     
     function handleCellClick(x: number, y: number) {
         if (!inPlayMode || shotInProgress) return;
@@ -560,6 +578,23 @@
         }
     }
 </script>
+
+{#if showRetreatConfirm}
+    <div class="dialog-overlay">
+        <div class="dialog-content">
+            <h2>Confirm Retreat</h2>
+            <p>Are you sure you want to retreat from this battle?</p>
+            <div class="dialog-actions">
+                <button class="cancel-button" on:click={cancelRetreat}>
+                    Cancel
+                </button>
+                <button class="confirm-button" on:click={confirmRetreat}>
+                    Retreat
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
 
 <div class="game-board {debugMode ? 'debug-mode' : ''} {!showBoard ? 'hidden' : ''}" 
     style="
@@ -604,7 +639,7 @@
             </div>
         {/if}
 
-
+        
         <div class="user-status">
             <!-- Show player win streak - prioritize server data but fall back to local -->
             {#if isCPU && !isOpponent}
@@ -614,7 +649,7 @@
                 </div>
             {/if}   
     
-            {#if isCPU && isOpponent}
+            {#if isCPU && isOpponent }
                 <div class="opponent-info">
                     {#if gameState.config.cpuDifficulty === 'easy'}
                         CPU Opponent
@@ -624,15 +659,15 @@
                 </div>
             {/if}   
 
-            {#if !isCPU && isOpponent}
+            {#if  !isCPU && isOpponent}
                 <div class="opponent-info">
                         Human Opponent
                 </div>
             {/if}               
     
-            {#if (gameState.winStreaks && gameState.winStreaks[username] > 0) }
+            {#if (winStreak > 0) }
                 <div class="winning-streak">
-                    Win Streak: {(gameState.winStreaks && gameState.winStreaks[username]) || gameState.winStreaks[username]}
+                    Win Streak: {winStreak}
                 </div>
             {/if}        
         </div>        
@@ -730,6 +765,11 @@
                 {/if}
             {/each}
         </div>
+        {#if !isOpponent}
+        <div class="retreat-button">
+            <button on:click={handleRetreatClick}>Retreat</button>
+        </div>
+        {/if}
     </div>
     {/if}
     
@@ -1211,4 +1251,100 @@
         color: #2ecc71;
         font-weight: bold;
     }
+
+    div.retreat-button {
+        width: 100%;
+        margin-top: 1rem;
+        text-align: center;
+    }
+
+    div.retreat-button button {
+        background-color: #ca3049;
+        color: #e0e1dd;
+        padding: 8px 14px;
+        font-size: 1rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        user-select: none;  /* Prevent text selection */
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        -moz-user-select: none;
+    }
+
+    .dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .dialog-content {
+        background-color: #1b263b;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+    }
+
+    .dialog-content h2 {
+        color: #e0e1dd;
+        margin: 0 0 1rem 0;
+        font-size: 1.5rem;
+    }
+
+    .dialog-content p {
+        color: #e0e1dd;
+        margin: 0 0 1.5rem 0;
+        font-size: 1.1rem;
+    }
+
+    .dialog-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .dialog-actions button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .cancel-button {
+        background-color: #415a77;
+        color: #e0e1dd;
+    }
+
+    .cancel-button:hover {
+        background-color: #526d8e;
+        transform: translateY(-2px);
+    }
+
+    .confirm-button {
+        background-color: #ca3049;
+        color: #e0e1dd;
+    }
+
+    .confirm-button:hover {
+        background-color: #e13e59;
+        transform: translateY(-2px);
+    }
+
 </style> 

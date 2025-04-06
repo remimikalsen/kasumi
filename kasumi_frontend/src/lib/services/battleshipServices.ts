@@ -36,7 +36,7 @@ export interface PlayerBoard {
 export interface GameState {
   gameId: string;
   mode: 'cpu' | 'multiplayer';
-  status: 'waiting_for_opponent' | 'setup' | 'active' | 'player_won' | 'opponent_won';
+  status: 'waiting_for_opponent' | 'setup' | 'active' | 'player_won' | 'opponent_won' | 'retreated';
   currentTurn: string | null;
   players: string[];
   playerBoards: { [key: string]: PlayerBoard };
@@ -69,6 +69,15 @@ export const battleshipApi = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ initials, mode, config })
+        });
+        return response.json();
+    },
+
+    async retreat(gameId: string, initials: string): Promise<{ status: string }> {
+        const response = await fetch(`${API_BASE_URL}/retreat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gameId, initials })
         });
         return response.json();
     },
