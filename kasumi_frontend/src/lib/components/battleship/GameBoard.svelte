@@ -60,6 +60,19 @@
     let cellGap = 2;
     let resizeObserver: ResizeObserver;
     
+    // Function to get ship image URL based on ship ID, orientation and length
+    function getShipImageUrl(shipId: string | null, orientation?: 'horizontal' | 'vertical') {
+        if (!shipId) return null;
+        
+        const ship = ships.find(s => s.id === shipId);
+        if (!ship) return null;
+        
+        const shipOrientation = orientation || ship.orientation || 'horizontal';
+        const orientationSuffix = shipOrientation === 'horizontal' ? 'h' : 'v';
+        
+        return `/images/battleship/ship-${ship.length}-tile-${orientationSuffix}.png`;
+    }
+    
     // Update cellSize when the board is visible and resized
     function updateCellSize() {
         if (boardElement) {
@@ -696,7 +709,13 @@
                     {#each ships as ship}
                         <button 
                             class="ship-button {ship.placed ? 'placed' : ''}"
-                            style="width: {ship.length * 40}px;"
+                            style="
+                                width: {ship.length * 40}px;
+                                background-image: url('{getShipImageUrl(ship.id, 'horizontal')}');
+                                background-size: contain;
+                                background-position: center;
+                                background-repeat: no-repeat;
+                            "
                             on:mousedown={(e) => handleShipDragStart(e, ship)}
                             on:touchstart={(e) => handleShipDragStart(e, ship)}
                         >
@@ -748,15 +767,49 @@
             {#if showTurnOverlay && inPlayMode }
                 <div class="turn-overlay"></div>
             {/if}
+            
+            <!-- Ship images layer - placed above the cells but below markers -->
+            <div class="ship-images-layer">
+                {#each ships as ship}
+                    {@const shouldShow = (!isOpponent && ship.placed) || (isOpponent && ship.sunk)}
+                    {#if shouldShow && ship.position}
+                        {@const posX = ship.position.x}
+                        {@const posY = ship.position.y}
+                        {@const isHorizontal = ship.orientation === 'horizontal'}
+                        {@const imgSrc = getShipImageUrl(ship.id)}
+                        
+                        <div 
+                            class="ship-overlay {ship.orientation || 'horizontal'}"
+                            style="
+                                top: calc(({posY} * (100% / 10)) + 2px);
+                                left: calc(({posX} * (100% / 10)) + 2px);
+                                width: calc({isHorizontal ? ship.length : 1} * (100% / 10) - 2px);
+                                height: calc({!isHorizontal ? ship.length : 1} * (100% / 10) - 2px);
+                                background-image: url('{imgSrc}');
+                            "
+                        ></div>
+                    {/if}
+                {/each}
+            </div>
+            
             {#each board as row, y}
                 <div class="row">
                     {#each row as cell, x}
+                        {@const shipId = shipGrid[y][x]}
+                        {@const ship = shipId ? ships.find(s => s.id === shipId) : null}
+                        
                         <div 
                             class="cell {!isOpponent ? 'player' : 'opponent'} {cell === 'empty' && debugMode && isOpponent && shipGrid?.[y]?.[x] ? 'ship' : cell} {inPlayMode && isOpponent && !shotInProgress && cell !== 'hit' && cell !== 'miss' ? 'clickable' : ''} {previewCells.some(p => p.x === x && p.y === y) ? `preview ${previewState}` : ''} {cell === 'ship' && isReady ? 'locked' : ''}"
                             on:mousedown={(e) => handleBoardCellMouseDown(e, x, y)}
                             on:touchstart={(e) => handleBoardCellMouseDown(e, x, y)}
                             on:click={() => handleCellClick(x, y)}
+                            data-ship-id={shipId}
+                            data-position-x={x}
+                            data-position-y={y}
                         >
+                            <!-- Ocean background layer -->
+                            <div class="ocean-layer"></div>
+                            
                             {#if shipGrid[y][x] && (!isOpponent || debugMode)}
                                 <span class="ship-label">
                                     {shipGrid[y][x]}
@@ -764,12 +817,7 @@
                             {/if}
                             
                             {#if cell === 'hit'}
-                                {@const ship = ships.find(ship => ship.id === shipGrid[y][x])}
-                                {#if ship && ship.sunk}
-                                    <div class="hit-marker sunk">S</div>
-                                {:else}
-                                    <div class="hit-marker"></div>
-                                {/if}
+                                <div class="hit-marker {ship?.sunk ? 'sunk' : ''}"></div>
                             {:else if cell === 'miss'}
                                 <div class="miss-marker"></div>
                             {/if}
@@ -856,7 +904,17 @@
                 width: {currentOrientation === 'horizontal' ? selectedShip.length * cellSize : cellSize}px;
                 height: {currentOrientation === 'vertical' ? selectedShip.length * cellSize : cellSize}px;
             ">
-            {selectedShip.id}
+            <div 
+                class="ghost-ship-image"
+                style="
+                    background-image: url('${getShipImageUrl(selectedShip.id, currentOrientation)}');
+                    width: 100%;
+                    height: 100%;
+                    background-size: contain;
+                    background-position: center;
+                    background-repeat: no-repeat;
+                "
+            ></div>
             
             <!-- Rotation button on ghost ship -->
             {#if selectedShip.length > 1}
@@ -998,7 +1056,6 @@
         padding: 0.25rem 2px;
         border: none;
         border-radius: 5px;
-        background-color: #34495e;
         color: white;
         cursor: pointer;
         transition: all 0.2s;
@@ -1010,23 +1067,24 @@
         font-size: clamp(0.7rem, 2vw, 0.9rem);
         position: relative;
         box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.5);
+        background-color: transparent;
     }
 
     .ship-button:hover:not(.placed) {
-        background-color: #3498db;
-        color: white;
+        filter: brightness(110%);
+        transform: translateY(-2px);
     }
 
     .ship-button.placed {
-        background-color: #6f828c;
-        color: white;
+        opacity: 0.5;
         cursor: not-allowed;
         pointer-events: none;
+        filter: grayscale(70%);
     }
 
     /* Remove the general hover effect for placed ships */
     .ship-button.placed:hover {
-        background-color: #77797a;
+        background-color: transparent;
         color: white;
     }
 
@@ -1091,10 +1149,6 @@
         position: relative;
         width: 100%;
         aspect-ratio: 1;
-        background-image: url('/images/battleship/tile-ocean.png');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
         border-radius: 2px;
         transition: all 0.2s;
         user-select: none;
@@ -1103,52 +1157,71 @@
         -ms-user-select: none;
     }
 
-    .cell.ship {
-        background-color: #34495e;
-        background-image: none;
+    /* Ocean background layer */
+    .ocean-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('/images/battleship/tile-ocean.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: 1;
     }
 
+    /* Ship images layer positioned above the board */
+    .ship-images-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 3;
+        pointer-events: none;
+    }
+    
+    /* Ship overlay styling */
+    .ship-overlay {
+        position: absolute;
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        background-position: center;
+        z-index: 3;
+        pointer-events: none;
+    }
+
+    /* Remove redundant ship image styles */
+    .ship-image,
+    .ship-image.horizontal,
+    .ship-image.vertical,
+    .cell.with-ship-image,
+    .cell.with-ship-image.first-tile.horizontal,
+    .cell.with-ship-image.first-tile.vertical,
+    .cell.ship-part {
+        /* Removed styles as we're using overlay approach now */
+    }
+
+    /* Remove the pseudo-elements as we're using explicit ocean layer */
+    .cell.ship {
+        background-image: none;
+    }
+    
     .cell.ship.locked {
         cursor: default;
     }
 
     .cell.preview.valid {
         background-color: rgba(46, 204, 113, 0.5) !important;
-        background-image: none !important;
+        background-blend-mode: overlay;
     }
 
     .cell.preview.invalid {
         background-color: rgba(231, 77, 60, 0.85) !important;
-        background-image: none !important;
+        background-blend-mode: overlay;
     }
-
-    .rotate-button {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: clamp(20px, 5vw, 24px);
-        height: clamp(20px, 5vw, 24px);
-        background-color: #3498db;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        font-size: clamp(14px, 4vw, 16px);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10;
-        opacity: 0.8;
-        transition: opacity 0.2s;
-        pointer-events: all;
-    }
-
-    .rotate-button:hover {
-        opacity: 1;
-        background-color: #2980b9;
-    }
-
+    
     .ship-label {
         position: absolute;
         top: 1px;
@@ -1156,7 +1229,7 @@
         font-size: clamp(0.5rem, 1.5vw, 0.6rem);
         color: white;
         pointer-events: none;
-        z-index: 1;
+        z-index: 5;
     }
 
     .hit-marker, .miss-marker {
@@ -1174,6 +1247,7 @@
         background-position: center;
         background-repeat: no-repeat;
         font-size: 0;
+        z-index: 4;
     }
     
     .hit-marker {
@@ -1181,10 +1255,7 @@
     }
 
     .hit-marker.sunk {
-        background-color: rgba(231, 76, 60, 0.7);
-        background-image: none;
-        font-size: 18px;
-        color: #000000;
+        /* Removed special background */
     }
 
     .miss-marker {
@@ -1193,9 +1264,8 @@
 
     .drag-ghost {
         position: fixed;
-        background-color: rgba(52, 152, 219, 0.5);
         border: 2px dashed #3498db;
-        color: #2c3e50;
+        color: transparent; /* Hide any text */
         border-radius: 5px;
         display: flex;
         align-items: center;
@@ -1203,6 +1273,13 @@
         pointer-events: none;
         z-index: 1000;
         font-weight: bold;
+        background-color: rgba(52, 152, 219, 0.2); /* Light blue background */
+        overflow: visible;
+    }
+
+    .ghost-ship-image {
+        position: relative;
+        z-index: 1001;
     }
 
     .ghost-rotate {
@@ -1246,14 +1323,24 @@
         text-align: center;
         margin-top: 5px;
         margin-left: -1px;
+        text-shadow: 
+            1px 1px 1px rgba(0,0,0,0.8),
+            -1px -1px 1px rgba(0,0,0,0.8),
+            1px -1px 1px rgba(0,0,0,0.8),
+            -1px 1px 1px rgba(0,0,0,0.8);
     }
 
     .ship-id {
         position: absolute;
         top: 1px;
         left: 2px;
-        font-size: 0.6rem;
+        font-size: 0.7rem;
         opacity: 0.7;
+        text-shadow: 
+            2px 2px 2px rgba(0,0,0,0.8),
+            -2px -2px 2px rgba(0,0,0,0.8),
+            2px -2px 2px rgba(0,0,0,0.8),
+            -2px 2px 2px rgba(0,0,0,0.8);
     }
 
     .difficulty-display {
@@ -1426,6 +1513,33 @@
     .confirm-button:hover {
         filter: brightness(90%);
         transform: translateY(-2px);
+    }
+
+    .rotate-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: clamp(20px, 5vw, 24px);
+        height: clamp(20px, 5vw, 24px);
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: clamp(14px, 4vw, 16px);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+        pointer-events: all;
+    }
+
+    .rotate-button:hover {
+        opacity: 1;
+        background-color: #2980b9;
     }
 
 </style> 
