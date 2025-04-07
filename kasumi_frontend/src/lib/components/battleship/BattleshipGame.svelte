@@ -58,6 +58,14 @@
             winStreak = event.detail.winStreak;
             showScoreModal = true;
         } else {
+
+            // Leave the game if no win streak
+            try {
+                await battleshipApi.leaveGame(gameId!);
+            } catch (error) {
+                console.error('Error leaving game:', error);
+            }
+
             gameStarted = false;
         }
     }
@@ -68,6 +76,14 @@
             await loadLeaderboard();
             showScoreModal = false;
             gameStarted = false;
+
+            // Leave the game in the end
+            try {
+                await battleshipApi.leaveGame(gameId!);
+            } catch (error) {
+                console.error('Error leaving game:', error);
+            }
+
         } catch (error) {
             console.error('Failed to submit score:', error);
             // Continue to end the game even if score submission fails

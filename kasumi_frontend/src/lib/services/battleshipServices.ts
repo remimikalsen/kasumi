@@ -1,4 +1,4 @@
-import { env } from '$env/dynamic/public'; 
+import { env } from '$env/dynamic/public';
 
 // Types based on the API implementation
 export interface BattleshipConfig {
@@ -66,10 +66,9 @@ const API_BASE_URL = '/api/battleship';
 
 // Get the public API key from app data if available
 const getApiHeaders = () => {
-    let apiKey = env.PUBLIC_API_KEY
     return {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + apiKey
+        'Authorization': `Bearer ${env.PUBLIC_API_KEY || ''}`
     };
 };
 
@@ -102,11 +101,11 @@ export const battleshipApi = {
         return response.json();
     },
 
-    async leaveGame(gameId: string, initials: string): Promise<{ status: string }> {
+    async leaveGame(gameId: string): Promise<{ status: string }> {
         const response = await fetch(`${API_BASE_URL}/leave_game`, {
             method: 'POST',
             headers: getApiHeaders(),
-            body: JSON.stringify({ gameId, initials })
+            body: JSON.stringify({ gameId })
         });
         return response.json();
     },
@@ -177,7 +176,7 @@ export const battleshipApi = {
         return response.json();
     },
 
-    async submitScore(gameId: string, initials: string): Promise<void> {
+    async submitScore(gameId: string, initials: string): Promise<{status: string, message?: string, win_streak?: number}> {
         try {
             const response = await fetch(`${API_BASE_URL}/submit_score`, {
                 method: 'POST',
@@ -190,13 +189,10 @@ export const battleshipApi = {
                 throw new Error(`Server returned ${response.status}: ${response.statusText}`);
             }
             
-            // Try to parse JSON, but don't fail if the response is empty or not JSON
-            const text = await response.text();
-            if (text) {
-                return JSON.parse(text);
-            }
+            // Parse and return the JSON response
+            return await response.json();
         } catch (error) {
-            console.error('Error submitting score:', error);
+            console.error('Error    submitting score:', error);
             throw error;
         }
     },

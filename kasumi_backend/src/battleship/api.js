@@ -386,12 +386,12 @@ router.post('/battleship/re_match', async (req, res) => {
  * @route POST /api/battleship/leave_game
  */
 router.post('/battleship/leave_game', async (req, res) => {
-  const { gameId, initials } = req.body;
+  const { gameId } = req.body;
 
-  if (!gameId || !initials) {
+  if (!gameId) {
     return res.status(400).json({ 
       status: 'error', 
-      message: 'Game ID and player initials required' 
+      message: 'Game ID required' 
     });
   }
 
@@ -401,13 +401,6 @@ router.post('/battleship/leave_game', async (req, res) => {
     return res.status(404).json({ 
       status: 'error', 
       message: 'Game not found' 
-    });
-  }
-
-  if (!gameState.players.includes(initials)) {
-    return res.status(400).json({ 
-      status: 'error', 
-      message: 'Player not in this game' 
     });
   }
 
@@ -866,10 +859,14 @@ router.post('/battleship/timeout_bonus_shot', async (req, res) => {
   });
 });
 
-// Endpoint to submit a score
+/**
+ * Submit a score
+ * 
+ * @route POST /api/battleship/submit_score
+ */
 router.post('/battleship/submit_score', async (req, res) => {
   const { gameId, initials } = req.body;
-  
+
   // Validate required parameters
   if (!gameId || !initials) {
     return res.status(400).json({ 
@@ -880,7 +877,7 @@ router.post('/battleship/submit_score', async (req, res) => {
   
   // Find the game
   const gameState = await getGame(gameId);
-  
+
   if (!gameState) {
     return res.status(404).json({ 
       status: 'error', 
@@ -913,29 +910,41 @@ router.post('/battleship/submit_score', async (req, res) => {
       message: 'Win streak must be greater than 0' 
     });
   }
-  
-  // Insert the score into the leaderboard
-  const stmt = db.prepare('INSERT INTO battleship_leaderboard (initials, win_streak) VALUES (?, ?)');
-  
-  stmt.run(initials, win_streak, function(err) {
-    if (err) {
-      res.status(500).json({
-        status: 'error',
-        message: 'Database error'
+
+  try {
+    // Insert the score into the leaderboard using a Promise
+    await new Promise((resolve, reject) => {
+      const stmt = db.prepare('INSERT INTO battleship_leaderboard (initials, win_streak) VALUES (?, ?)');
+      
+      stmt.run(initials, win_streak, function(err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+        stmt.finalize();
       });
-    } else {
-      res.status(200).json({
-        status: 'success',
-        message: 'Score submitted successfully',
-        win_streak: win_streak
-      });
-    }
-  });
-  
-  stmt.finalize();
+    });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Score submitted successfully',
+      win_streak: win_streak
+    });
+  } catch (err) {
+
+    res.status(500).json({
+      status: 'error',
+      message: 'Database error'
+    });
+  }
 });
 
-// Endpoint to get the leaderboard
+/**
+ * Get the leaderboard
+ * 
+ * @route GET /api/battleship/get_leaderboard
+ */
 router.get('/battleship/get_leaderboard', (req, res) => {
   db.all(`
     SELECT initials, MAX(win_streak) as win_streak 
@@ -952,7 +961,11 @@ router.get('/battleship/get_leaderboard', (req, res) => {
   });
 });
 
-// Endpoint to clear initials with certain scores from leaderboard
+/**
+ * Delete a score
+ * 
+ * @route POST /api/battleship/delete_score
+ */
 router.post('/battleship/delete_score', (req, res) => {
   const { initials, win_streak } = req.body;
   

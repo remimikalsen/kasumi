@@ -132,8 +132,6 @@
         // Get opponent's initials
         const opponent = newState.players.find(player => player !== username);
 
-        console.log(newState);
-
         // Update game status based on state
         switch (newState.status) {
             case 'waiting_for_opponent':
@@ -428,11 +426,6 @@
         clearBoardSwitchDelay();
         stopPolling();
         const playerWinStreak = gameState?.winStreaks?.[username] || 0;
-        try {
-            await battleshipApi.leaveGame(gameId!, username);
-        } catch (error) {
-            console.error('Error leaving game:', error);
-        }
         dispatch('done', { winStreak: playerWinStreak });
     }
 
