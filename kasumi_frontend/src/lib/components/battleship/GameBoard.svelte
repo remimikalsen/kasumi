@@ -768,10 +768,10 @@
                                 {#if ship && ship.sunk}
                                     <div class="hit-marker sunk">S</div>
                                 {:else}
-                                    <div class="hit-marker">H</div>
+                                    <div class="hit-marker"></div>
                                 {/if}
                             {:else if cell === 'miss'}
-                                <div class="miss-marker">X</div>
+                                <div class="miss-marker"></div>
                             {/if}
                         </div>
                     {/each}
@@ -967,6 +967,19 @@
         width: 100%;
         max-width: 420px;
         aspect-ratio: 1;
+        --cursor-offset: 20;
+    }
+
+    @media (max-width: 600px) {
+        .board {
+            --cursor-offset: 16;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .board {
+            --cursor-offset: 12;
+        }
     }
 
     .ship-list {
@@ -1078,9 +1091,12 @@
         position: relative;
         width: 100%;
         aspect-ratio: 1;
-        background-color: #ecf0f1;
+        background-image: url('/images/battleship/tile-ocean.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
         border-radius: 2px;
-        transition: background-color 0.2s;
+        transition: all 0.2s;
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
@@ -1089,26 +1105,21 @@
 
     .cell.ship {
         background-color: #34495e;
+        background-image: none;
     }
 
     .cell.ship.locked {
         cursor: default;
     }
 
-    .cell.hit {
-        background-color: #f39c12;
-    }
-
-    .cell.miss {
-        background-color: #95a5a6;
-    }
-
     .cell.preview.valid {
         background-color: rgba(46, 204, 113, 0.5) !important;
+        background-image: none !important;
     }
 
     .cell.preview.invalid {
         background-color: rgba(231, 77, 60, 0.85) !important;
+        background-image: none !important;
     }
 
     .rotate-button {
@@ -1153,34 +1164,31 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        font-size: clamp(1rem, 3vw, 1.5rem);
-        font-weight: bold;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         pointer-events: none;
-        color: #000000;
+        background-size: 80%;
+        background-position: center;
+        background-repeat: no-repeat;
+        font-size: 0;
     }
     
     .hit-marker {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 18px;
+        background-image: url('/images/battleship/tile-hit.png');
     }
 
     .hit-marker.sunk {
-        background-color: #e74c3c;
+        background-color: rgba(231, 76, 60, 0.7);
+        background-image: none;
+        font-size: 18px;
+        color: #000000;
     }
 
     .miss-marker {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 18px;
+        background-image: url('/images/battleship/tile-miss2.png');
     }
 
     .drag-ghost {
@@ -1209,31 +1217,28 @@
         display: none;
     }
     
-    /* Clickable states - only for opponent board */
-    .cell.opponent.clickable:not(.hit):not(.miss):hover {
-        cursor: crosshair;
-        background-color: rgba(46, 204, 112, 0.85);
+    /* Base clickable states */
+    .board .cell.opponent.clickable:not(.hit):not(.miss):hover {
+        cursor: url('/images/battleship/tile-crosshair.ico') 32 32, crosshair;
+        background-image: url('/images/battleship/tile-ocean.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+    
+    /* Disable hover effects when turn overlay is active */
+    .board .turn-overlay ~ .row .cell.opponent.clickable:not(.hit):not(.miss):hover {
+        cursor: not-allowed;
+        background-image: url('/images/battleship/tile-ocean.png');
     }
     
     .cell.opponent.clickable.hit:hover,
-    .cell.opponent.clickable.miss:hover {
-        cursor: not-allowed;
-        background-color: rgba(231, 76, 60, 0.7); /* Red background for better visual indication */
-    }
-    
+    .cell.opponent.clickable.miss:hover,
     .cell.opponent.hit:hover,
     .cell.opponent.miss:hover {
         cursor: not-allowed;
-        background-color: rgba(231, 76, 60, 0.7); /* Red background for better visual indication */
     }
     
-    /* Remove the not-clickable hover effect */
-    /*
-    .cell:not(.clickable):not(.ship):hover {
-        cursor: default;
-        background-color: #ecf0f1;
-    }*/
-
     .ship-name {
         font-size: 0.8rem;
         display: block;
