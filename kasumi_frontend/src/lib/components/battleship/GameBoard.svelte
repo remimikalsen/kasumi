@@ -907,7 +907,7 @@
             <div 
                 class="ghost-ship-image"
                 style="
-                    background-image: url('${getShipImageUrl(selectedShip.id, currentOrientation)}');
+                    background-image: url('{getShipImageUrl(selectedShip.id, currentOrientation)}');
                     width: 100%;
                     height: 100%;
                     background-size: contain;
