@@ -893,7 +893,7 @@
     
     {#if isDragging && selectedShip}
         <!-- Ghost ship -->
-        <div class="drag-ghost" 
+        <div class="drag-ghost {previewState || ''}" 
             style="
                 left: {currentOrientation === 'horizontal' 
                     ? mousePosition.x - dragOffset.x * cellSize 
@@ -1275,6 +1275,18 @@
         font-weight: bold;
         background-color: rgba(52, 152, 219, 0.2); /* Light blue background */
         overflow: visible;
+    }
+
+    .drag-ghost.valid {
+        border: 2px dashed #2ecc71; /* Green */
+        background-color: rgba(46, 204, 113, 0.2); /* Light green background */
+        filter: drop-shadow(0 0 5px rgba(46, 204, 113, 0.5));
+    }
+
+    .drag-ghost.invalid {
+        border: 2px dashed #e74c3c; /* Red */
+        background-color: rgba(231, 77, 60, 0.2); /* Light red background */
+        filter: drop-shadow(0 0 5px rgba(231, 77, 60, 0.5));
     }
 
     .ghost-ship-image {
