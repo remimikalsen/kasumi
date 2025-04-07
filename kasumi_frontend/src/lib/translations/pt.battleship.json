@@ -12,6 +12,7 @@
     "multiplayer": "Multijogador",
     "host_game": "Criar jogo",
     "join_game": "Entrar no jogo",
+    "enter_emoji_sequence": "Introduza a sequência de emojis para entrar no jogo.",
     "find_local_players": "Procurar jogadores locais",
     "failed_start_game": "Não foi possível começar o jogo. Tenta outra vez.",
     

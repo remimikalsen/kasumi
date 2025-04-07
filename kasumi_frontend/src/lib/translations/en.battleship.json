@@ -12,6 +12,7 @@
     "multiplayer": "Multiplayer",
     "host_game": "Host Game",
     "join_game": "Join Game",
+    "enter_emoji_sequence": "Enter the emoji sequence to join the game.",
     "find_local_players": "Find Local Players",
     "failed_start_game": "Failed to start game. Please try again.",
     

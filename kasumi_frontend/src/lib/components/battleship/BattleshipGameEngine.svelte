@@ -364,6 +364,17 @@
         }
     }
 
+    async function handleAbortGame() {
+        if (!gameId || !gameState) return;
+            stopPolling();
+            clearBonusShotTimer();
+            clearBoardSwitchDelay();
+
+            // Dispatch event to parent component
+            dispatch('done', { winStreak: 0 });
+    }
+    
+
     async function handleFireShot(event: CustomEvent) {
         if (!gameId || !gameState || gameState.currentTurn !== username) return;
         
@@ -509,7 +520,7 @@
                     {/each}
                 </div>
                 
-                <button class="abort-button" on:click={handleRetreat}>
+                <button class="abort-button" on:click={handleAbortGame}>
                     {getLocalizedText(pageTexts, "abort_game")}
                 </button>
             </div>

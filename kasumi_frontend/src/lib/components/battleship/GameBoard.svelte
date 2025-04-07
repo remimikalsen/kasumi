@@ -1389,6 +1389,10 @@
         opacity: 0.7;
     }
 
+    .ship-list .ship-item {
+        white-space: nowrap;
+    }
+
     .ship-list .ship-name {
         display: inline;
         font-size: clamp(0.7rem, 2vw, 0.9rem);
@@ -1552,6 +1556,28 @@
     .rotate-button:hover {
         opacity: 1;
         background-color: #2980b9;
+    }
+
+    .user-status {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+        width: calc(100% - 1rem);
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 0.25rem 0.5rem;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    .user-status::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+
+    .difficulty-display, .opponent-info, .winning-streak {
+        flex-shrink: 0;
+        padding: 0 0.25rem;
     }
 
 </style> 
