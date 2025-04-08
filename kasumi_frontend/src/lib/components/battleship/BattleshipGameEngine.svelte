@@ -63,6 +63,10 @@
     }
 
     let pollingInterval: number | null = null;
+    // Add variables to track polling failures
+    let pollingFailures = 0;
+    let pollingFailureStartTime: number | null = null;
+    let isSlowPolling = false;
     
     // Add board switching delay variables
     let boardSwitchDelayActive = false;
@@ -107,19 +111,50 @@
     function startPolling() {
         if (!gameId) return;
         
-        // Poll every 0,5 seconds
+        // Determine polling interval based on failure state
+        const pollingDelay = isSlowPolling ? 2000 : 500; // 2 seconds if in slow mode, 0.5 seconds normally
+        
+        // Poll at the determined interval
         pollingInterval = window.setInterval(async () => {
             try {
                 const response = await battleshipApi.getGameState(gameId!, username);
                 if (response.status === 'success') {
+                    // Reset failure tracking on successful poll
+                    pollingFailures = 0;
+                    pollingFailureStartTime = null;
+                    isSlowPolling = false;
                     handleGameStateUpdate(response.gameState);
                 }
             } catch (error) {
-                gameWentAway = true;
-                console.error('Failed to poll game state:', error);
+                // Handle polling failure
+                pollingFailures++;
                 
+                // Start tracking time on first failure
+                if (pollingFailureStartTime === null) {
+                    pollingFailureStartTime = Date.now();
+                }
+                
+                // Check if we've been failing for more than 1 minute
+                const failingForTooLong = pollingFailureStartTime && 
+                                         (Date.now() - pollingFailureStartTime > 60000); // 1 minute
+                
+                if (failingForTooLong) {
+                    // Stop polling and show game went away message
+                    gameWentAway = true;
+                    stopPolling();
+                    console.error('Polling failed for over a minute, stopped polling:', error);
+                } else if (!isSlowPolling) {
+                    // Switch to slow polling after first failure
+                    isSlowPolling = true;
+                    stopPolling(); // Clear current interval
+                    startPolling(); // Restart with new interval
+                    console.warn('Polling failed, switching to slow polling mode:', error);
+                } else {
+                    // Continue in slow polling mode
+                    console.error('Polling failed in slow mode:', error);
+                }
             }
-        }, 500);
+        }, pollingDelay);
     }
 
     function handleGameStateUpdate(newState: GameState) {
@@ -328,10 +363,16 @@
         }
     }
 
-    function stopPolling() {
+    
+    function stopPolling(connectionLost = false) {
         if (pollingInterval) {
             clearInterval(pollingInterval);
             pollingInterval = null;
+            
+            // Set gameWentAway to true if connection was lost
+            if (connectionLost) {
+                gameWentAway = true;
+            }
         }
     }
     
