@@ -44,7 +44,7 @@
     "opponent_missed": "{0} missed!",
     "opponent_hit": "{0} hit your ship!",
     "opponent_sunk": "{0} sunk your {1}!",
-    "opponent_bonus": "{0} has a bonus shot!",
+    "opponent_bonus": "Your opponent has a bonus shot!",
     "your_turn": "Your turn!",
     "you_won": "Congratulations! You won!",
     "you_lost": "Game Over! You lost!",

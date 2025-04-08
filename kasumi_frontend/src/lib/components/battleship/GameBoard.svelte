@@ -30,7 +30,8 @@
     export let showBoard: boolean = true;
     export let isReady: boolean = false;
     export let showTurnOverlay: boolean = false;
-
+    export let timeRemaining: number = 0;
+    export let gameMessage: string = '';
     const isCPU = gameState.mode === 'cpu';
     const debugMode = gameState.config.debugOpponentBoard || false;
     
@@ -744,40 +745,8 @@
             </div>
         {/if}
 
-        
-        <div class="user-status">
-            <!-- Show player win streak - prioritize server data but fall back to local -->
-            {#if isCPU && !isOpponent}
-                <div class="difficulty-display">
-                    <span class="emoji">{gameState.config.cpuDifficulty === 'easy' ? '🌱' : '🔥'}</span>
-                    {getLocalizedText(pageTexts, "playing_it")} {getLocalizedText(pageTexts, gameState.config.cpuDifficulty === 'easy' ? 'difficulty_easy' : 'difficulty_hard')}
-                </div>
-            {/if}   
-    
-            {#if isCPU && isOpponent }
-                <div class="opponent-info">
-                    {#if gameState.config.cpuDifficulty === 'easy'}
-                        {getLocalizedText(pageTexts, "cpu_opponent")}
-                    {:else}
-                        {getLocalizedText(pageTexts, "advanced_ai_bot")}
-                    {/if}
-                </div>
-            {/if}   
-
-            {#if  !isCPU && isOpponent}
-                <div class="opponent-info">
-                        {getLocalizedText(pageTexts, "human_opponent")}
-                </div>
-            {/if}               
-    
-            {#if (winStreak > 0) }
-                <div class="winning-streak">
-                    {getLocalizedText(pageTexts, "win_streak")}: {winStreak}
-                </div>
-            {/if}        
-        </div>        
-
     </div>
+
 
     <div class="board-container">
         <div class="board" bind:this={boardElement}>
@@ -874,9 +843,35 @@
         </div>
     </div>
 
+    <div class="game-status">
+        <div class="game-message">
+            {gameMessage}
+            {#if timeRemaining > 0}
+               <br />{ isOpponent ? getLocalizedText(pageTexts, "bonus_shot") : getLocalizedText(pageTexts, "opponent_bonus")} <span class="bonus-shot-timer">({Math.ceil(timeRemaining / 1000)}s)</span>
+            {/if}
+        </div>
+    </div>
+
     {#if isReady}
     <div class="ship-list">
-        <h3>{getLocalizedText(pageTexts, "fleet_status")}</h3>
+        <h3>
+            {getLocalizedText(pageTexts, "fleet_status")}
+
+            {#if isCPU && isOpponent }
+                {#if gameState.config.cpuDifficulty === 'easy'}
+                    <span class="opponent-info">({getLocalizedText(pageTexts, "cpu_opponent")}</span>,
+                {:else}
+                    <span class="opponent-info">({getLocalizedText(pageTexts, "advanced_ai_bot")}</span>,
+                {/if}
+                <span class="opponent-info">{getLocalizedText(pageTexts, gameState.config.cpuDifficulty === 'easy' ? 'difficulty_easy' : 'difficulty_hard')})</span>
+            {/if}   
+
+            {#if  !isCPU && isOpponent}
+                <span class="opponent-info">({getLocalizedText(pageTexts, "human_opponent")})</span>
+            {/if}            
+
+        </h3>
+
         <div class="ship-items-container">
             {#each [...ships].sort((a, b) => b.length - a.length) as ship, i}
                 <span class="ship-item">
@@ -900,6 +895,13 @@
                 {/if}
             {/each}
         </div>
+
+        {#if (winStreak > 0) }
+            <div class="winning-streak">
+                {getLocalizedText(pageTexts, "win_streak")}: {winStreak}
+            </div>
+        {/if}        
+
         {#if !isOpponent}
         <div class="retreat-button">
             <button on:click={handleRetreatClick}>{getLocalizedText(pageTexts, "retreat")}</button>
@@ -1001,6 +1003,10 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
+    }
+
+    h3 {
+        margin: 0;
     }
 
     .game-info {
@@ -1242,17 +1248,6 @@
         pointer-events: none;
     }
 
-    /* Remove redundant ship image styles */
-    .ship-image,
-    .ship-image.horizontal,
-    .ship-image.vertical,
-    .cell.with-ship-image,
-    .cell.with-ship-image.first-tile.horizontal,
-    .cell.with-ship-image.first-tile.vertical,
-    .cell.ship-part {
-        /* Removed styles as we're using overlay approach now */
-    }
-
     /* Remove the pseudo-elements as we're using explicit ocean layer */
     .cell.ship {
         background-image: none;
@@ -1403,20 +1398,6 @@
             -2px -2px 2px rgba(0,0,0,0.8),
             2px -2px 2px rgba(0,0,0,0.8),
             -2px 2px 2px rgba(0,0,0,0.8);
-    }
-
-    .difficulty-display {
-        font-size: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        opacity: 0.8;
-        color: white;
-        text-shadow: none;
-    }
-
-    .difficulty-display .emoji {
-        font-size: 1em;
     }
 
     .ship-items-container {
@@ -1610,24 +1591,29 @@
 
     .user-status {
         display: flex;
-        flex-wrap: nowrap;
-        align-items: center;
         justify-content: space-between;
-        width: calc(100% - 1rem);
-        overflow-x: auto;
-        white-space: nowrap;
-        padding: 0.25rem 0.5rem;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE and Edge */
+        max-width: 420px;
+        min-height: 25px;
+        align-items: center;
+        margin-top: 0;
     }
 
     .user-status::-webkit-scrollbar {
         display: none; /* Chrome, Safari, Opera */
     }
 
-    .difficulty-display, .opponent-info, .winning-streak {
+    .winning-streak {
+        margin: 1.5rem;
+        max-width: 420px;
+        text-align: center;
+        font-size: 1.3rem;
         flex-shrink: 0;
-        padding: 0 0.25rem;
+    }
+
+    .opponent-info {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        font-weight: normal;
     }
 
     .drag-ghost.invalid {
@@ -1669,5 +1655,23 @@
         pointer-events: all; /* Enable clicking */
         z-index: 1001;
     }
+
+    .bonus-shot-timer {
+        color: #2ecc71;
+        font-weight: bold;
+        margin-left: 0.5rem;
+        text-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+    }
+
+    .game-status {
+        text-align: center;
+        width: 100%;
+        max-width: 420px; /* Match single game board width */
+        min-height: 35px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 0;
+    }    
+
 
 </style> 

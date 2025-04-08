@@ -44,7 +44,7 @@
     "opponent_missed": "{0} bommet!",
     "opponent_hit": "{0} traff ditt skip!",
     "opponent_sunk": "{0} senket ditt {1}!",
-    "opponent_bonus": "{0} har et ekstraskudd!",
+    "opponent_bonus": "Din motstander har et ekstraskudd!",
     "your_turn": "Din tur!",
     "you_won": "Gratulerer! Du vant!",
     "you_lost": "Spill slutt! Du tapte!",

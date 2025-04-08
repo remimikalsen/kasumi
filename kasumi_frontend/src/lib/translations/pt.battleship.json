@@ -44,7 +44,7 @@
     "opponent_missed": "O {0} falhou!",
     "opponent_hit": "O {0} acertou no teu navio!",
     "opponent_sunk": "O {0} afundou o teu {1}!",
-    "opponent_bonus": "O {0} tem um tiro extra!",
+    "opponent_bonus": "O teu adversário tem um tiro extra!",
     "your_turn": "É a tua vez!",
     "you_won": "Parabéns! Ganhaste!",
     "you_lost": "Fim do jogo! Perdeste!",
