@@ -242,8 +242,8 @@
         }
         
         // Calculate grid position on the board
-        const gridX = Math.floor((mousePosition.x - boardRect.left) / totalCellSize);
-        const gridY = Math.floor((mousePosition.y - boardRect.top) / totalCellSize);
+        const gridX = Math.floor((mousePosition.x +10 - boardRect.left) / totalCellSize);
+        const gridY = Math.floor((mousePosition.y +10 - boardRect.top) / totalCellSize);
         
         // Apply drag offset based on orientation
         let adjustedX, adjustedY;
@@ -284,8 +284,8 @@
         const totalCellSize = cellSize + cellGap;
         
         // Calculate grid position on the board
-        const gridX = Math.floor((mousePosition.x - boardRect.left) / totalCellSize);
-        const gridY = Math.floor((mousePosition.y - boardRect.top) / totalCellSize);
+        const gridX = Math.floor((mousePosition.x + 10 - boardRect.left) / totalCellSize);
+        const gridY = Math.floor((mousePosition.y + 10 - boardRect.top) / totalCellSize);
         
         // Apply drag offset based on orientation - same logic as in handleShipDragMove
         let adjustedX, adjustedY;
