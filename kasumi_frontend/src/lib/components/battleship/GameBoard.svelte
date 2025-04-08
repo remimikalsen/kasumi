@@ -7,6 +7,7 @@
     import { battleshipConfig } from '@lib/config/battleshipConfig';
 
     const pageTexts = 'battleship';
+    const boardSize = battleshipConfig.boardSize; // Get board size from config
 
     type ShipType = 'battleship' | 'frigate' | 'corvette' | 'uboat';
     type Language = 'en' | 'no' | 'pt';
@@ -84,7 +85,7 @@
     function updateCellSize() {
         if (boardElement) {
             const boardWidth = boardElement.clientWidth;
-            cellSize = (boardWidth - (9 * cellGap)) / 10; // 10 cells with 9 gaps
+            cellSize = (boardWidth - ((boardSize - 1) * cellGap)) / boardSize; // Use boardSize for calculation
         }
     }
     
@@ -299,8 +300,8 @@
         }
         
         // Check if the position is valid for placement
-        const isValidPlacement = adjustedX >= 0 && adjustedX < 10 && 
-                                adjustedY >= 0 && adjustedY < 10 && 
+        const isValidPlacement = adjustedX >= 0 && adjustedX < boardSize && 
+                                adjustedY >= 0 && adjustedY < boardSize && 
                                 canPlaceShip(adjustedX, adjustedY);
         
         if (isValidPlacement) {
@@ -352,8 +353,8 @@
             let attempts = 0;
             
             while (!placed && attempts < 100) {
-                const x = Math.floor(Math.random() * 10);
-                const y = Math.floor(Math.random() * 10);
+                const x = Math.floor(Math.random() * boardSize);
+                const y = Math.floor(Math.random() * boardSize);
                 currentOrientation = Math.random() < 0.5 ? 'horizontal' : 'vertical';
                 
                 selectedShip = ship;
@@ -501,7 +502,7 @@
             }
             
             // Check if any part of the ship would be outside the board
-            if (posX < 0 || posX >= 10 || posY < 0 || posY >= 10) {
+            if (posX < 0 || posX >= boardSize || posY < 0 || posY >= boardSize) {
                 return false;
             }
             
@@ -694,6 +695,7 @@
 <div class="game-board {debugMode ? 'debug-mode' : ''} {!showBoard ? 'hidden' : ''}" 
     style="
         --title-color: {isOpponent ? '#e94560' : '#3498db'};
+        --board-size: {boardSize};
     ">
     <div class="game-info">
         <h2>
@@ -796,10 +798,10 @@
                         <div 
                             class="ship-overlay {ship.orientation || 'horizontal'}"
                             style="
-                                top: calc(({posY} * (100% / 10)) + 2px);
-                                left: calc(({posX} * (100% / 10)) + 2px);
-                                width: calc({isHorizontal ? ship.length : 1} * (100% / 10) - 2px);
-                                height: calc({!isHorizontal ? ship.length : 1} * (100% / 10) - 2px);
+                                top: calc(({posY} * (100% / {boardSize})) + 2px);
+                                left: calc(({posX} * (100% / {boardSize})) + 2px);
+                                width: calc({isHorizontal ? ship.length : 1} * (100% / {boardSize}) - 2px);
+                                height: calc({!isHorizontal ? ship.length : 1} * (100% / {boardSize}) - 2px);
                                 background-image: url('{imgSrc}');
                             "
                         ></div>
@@ -988,6 +990,7 @@
         position: relative;
         padding: 0.5rem;
         box-sizing: border-box;
+        --board-size: {boardSize};
     }
 
     h2 {
@@ -1059,7 +1062,7 @@
 
     .board {
         display: grid;
-        grid-template-rows: repeat(10, 1fr);
+        grid-template-rows: repeat(var(--board-size, 10), 1fr);
         gap: 2px;
         background-color: var(--board-color);
         padding: 2px;
@@ -1184,7 +1187,7 @@
 
     .row {
         display: grid;
-        grid-template-columns: repeat(10, 1fr);
+        grid-template-columns: repeat(var(--board-size, 10), 1fr);
         gap: 2px;
         user-select: none;
         -webkit-user-select: none;

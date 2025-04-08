@@ -15,7 +15,7 @@ export const battleshipConfig = {
   bonusShotTimeout: parseInt(env.PUBLIC_BATTLESHIP_BONUS_SHOT_TIMEOUT || '5000', 10), // Default to 5 seconds
   
   // Other game settings
-  boardSize: 10,
+  boardSize: 8,
   shipTypes: {
     battleship: { length: 5, count: 1, prefix: 'B' },
     frigate: { length: 3, count: 1, prefix: 'F' },
