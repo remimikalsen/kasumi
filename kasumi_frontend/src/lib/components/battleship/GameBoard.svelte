@@ -52,6 +52,13 @@
     let lastPreviewPosition = { x: -1, y: -1 }; // Track last preview position
     let winStreak = 0;
     
+    // Add new variables for rotation preview
+    let showRotationPreview = false;
+    let rotationPreviewShip: Ship | null = null;
+    let rotationPreviewOrientation: 'horizontal' | 'vertical' = 'horizontal';
+    let rotationPreviewPosition = { x: 0, y: 0 };
+    let rotationPreviewValid = false;
+    
     let showRetreatConfirm = false;
     
     // Add a reactive variable for cell size calculation
@@ -398,9 +405,16 @@
             placeShip(previewX, previewY);
             selectedShip = null;
         } else {
-            // Show invalid placement preview briefly
+            // Show invalid placement preview briefly with both cell highlighting and ghost overlay
             previewCells = [];
             previewState = 'invalid';
+            
+            // Setup the rotation preview (ghost ship)
+            rotationPreviewShip = ship;
+            rotationPreviewOrientation = newOrientation;
+            rotationPreviewPosition = { x: previewX, y: previewY };
+            rotationPreviewValid = false;
+            showRotationPreview = true;
             
             for (let i = 0; i < ship.length; i++) {
                 const posX = newOrientation === 'horizontal' ? previewX + i : previewX;
@@ -414,6 +428,7 @@
             // Revert after a short delay
             setTimeout(() => {
                 previewCells = [];
+                showRotationPreview = false;
                 // Revert to original orientation and place back
                 currentOrientation = originalOrientation;
                 placeShip(originalPosition.x, originalPosition.y);
@@ -925,6 +940,38 @@
                     ⟳
                 </button>
             {/if}
+        </div>
+    {/if}
+
+    {#if showRotationPreview && rotationPreviewShip && boardElement}
+        <!-- Rotation preview ghost -->
+        {@const totalCellSize = cellSize + cellGap}
+        {@const isHorizontal = rotationPreviewOrientation === 'horizontal'}
+        {@const shipLength = rotationPreviewShip.length}
+        {@const boardRect = boardElement.getBoundingClientRect()}
+        {@const left = boardRect.left + rotationPreviewPosition.x * totalCellSize}
+        {@const top = boardRect.top + rotationPreviewPosition.y * totalCellSize}
+        {@const width = isHorizontal ? shipLength * totalCellSize - cellGap : totalCellSize - cellGap}
+        {@const height = isHorizontal ? totalCellSize - cellGap : shipLength * totalCellSize - cellGap}
+        
+        <div class="rotation-preview invalid" 
+            style="
+                left: {left}px; 
+                top: {top}px; 
+                width: {width}px;
+                height: {height}px;
+            ">
+            <div 
+                class="ghost-ship-image"
+                style="
+                    background-image: url('{getShipImageUrl(rotationPreviewShip.id, rotationPreviewOrientation)}');
+                    width: 100%;
+                    height: 100%;
+                    background-size: contain;
+                    background-position: center;
+                    background-repeat: no-repeat;
+                "
+            ></div>
         </div>
     {/if}
 </div>
@@ -1578,6 +1625,46 @@
     .difficulty-display, .opponent-info, .winning-streak {
         flex-shrink: 0;
         padding: 0 0.25rem;
+    }
+
+    .drag-ghost.invalid {
+        border: 2px dashed #e74c3c; /* Red */
+        background-color: rgba(231, 77, 60, 0.2); /* Light red background */
+        filter: drop-shadow(0 0 5px rgba(231, 77, 60, 0.5));
+    }
+
+    .rotation-preview {
+        position: fixed;
+        border: 2px dashed #3498db;
+        color: transparent;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 1000;
+        font-weight: bold;
+        background-color: rgba(52, 152, 219, 0.2);
+        overflow: visible;
+    }
+
+    .rotation-preview.invalid {
+        border: 2px dashed #e74c3c; /* Red */
+        background-color: rgba(231, 77, 60, 0.2); /* Light red background */
+        filter: drop-shadow(0 0 5px rgba(231, 77, 60, 0.5));
+    }
+
+    .ghost-ship-image {
+        position: relative;
+        z-index: 1001;
+    }
+
+    .ghost-rotate {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        pointer-events: all; /* Enable clicking */
+        z-index: 1001;
     }
 
 </style> 
