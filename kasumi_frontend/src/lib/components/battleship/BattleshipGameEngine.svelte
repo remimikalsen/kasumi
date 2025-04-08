@@ -173,8 +173,10 @@
 
 
     function showGameModal(type: 'setup' | 'start' | 'turn') {
-
-        const timer = type === 'setup' ? 2000 : type === 'start' ? 1000 : 1000;
+        // Set timer based on modal type - match turn modal with boardSwitchDelay timing
+        const timer = type === 'setup' ? 2000 : 
+                      type === 'turn' ? 1500 : // Changed from 1000 to 1500 to match boardSwitchDelay
+                      2000;
 
         // Set the modal type
         gameModalType = type;
@@ -192,6 +194,27 @@
         }, timer);
     }
 
+    // Function to delay board switching
+    function activateBoardSwitchDelay() {
+        // Clear any existing timers first
+        clearBoardSwitchDelay();
+        
+        // Set delay active
+        boardSwitchDelayActive = true;
+        
+        // Set timeout to disable delay after 1.5 seconds
+        boardSwitchTimer = window.setTimeout(() => {
+            boardSwitchDelayActive = false;
+            boardSwitchTimer = null;
+        }, 1500); // 1.5 second delay
+    }
+    
+    // Show turn modal with an optional delay
+    function showDelayedTurnModal(type: 'setup' | 'start' | 'turn', delay: number = 0) {
+        setTimeout(() => {
+            showGameModal(type);
+        }, delay);
+    }
 
     function handleGameStateUpdate(newState: GameState) {
         // Track if turn changed
@@ -276,9 +299,11 @@
                     if (isFirstTurn) {
                         showGameModal('start');
                     } else {    
-                        showGameModal('turn');
+                        // Add a small delay before showing turn modal to sync with board switch
+                        activateBoardSwitchDelay();
+                        // Use 200ms delay to allow the board switch animation to start first
+                        showDelayedTurnModal('turn', 1500);
                     }
-                    activateBoardSwitchDelay();
                 }
                 
                 break;
@@ -338,21 +363,6 @@
         } else {
             clearBonusShotTimer();
         }
-    }
-    
-    // Function to delay board switching
-    function activateBoardSwitchDelay() {
-        // Clear any existing timers first
-        clearBoardSwitchDelay();
-        
-        // Set delay active
-        boardSwitchDelayActive = true;
-        
-        // Set timeout to disable delay after 1.5 seconds
-        boardSwitchTimer = window.setTimeout(() => {
-            boardSwitchDelayActive = false;
-            boardSwitchTimer = null;
-        }, 1500); // 1.5 second delay
     }
     
     // Function to clear board switch delay
@@ -963,7 +973,7 @@
         margin-top: 1rem;
         text-shadow: 0 0 20px currentColor;
         letter-spacing: 2px;
-        animation: actionZoom 1s ease-out;
+        animation: actionZoom 1.5s ease-out;
     }
 
     .modal-message {
