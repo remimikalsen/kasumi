@@ -117,18 +117,15 @@
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
             if (gameContainer) {
-                const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-                // Only scroll if user is near the top (within 100px)
-                if (currentScroll < 100) {
-                    const rect = gameContainer.getBoundingClientRect();
-                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                    const elementTop = rect.top + scrollTop;
-                    
-                    window.scrollTo({
-                        top: Math.max(0, elementTop),
-                        behavior: 'smooth'
-                    });
-                }
+                // Always scroll to the game container to ensure the header is visible
+                const rect = gameContainer.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const elementTop = rect.top + scrollTop;
+                
+                window.scrollTo({
+                    top: Math.max(0, elementTop),
+                    behavior: 'smooth'
+                });
             }
         }, 100);
     }
@@ -274,7 +271,10 @@
                 if (soundInitialized) {
                     soundManager.startBackgroundMusic();
                 }
-
+                
+                // Add scroll to player board in setup mode for mobile
+                scrollToTop();
+                
                 break;
             case 'active':
                 opponentReady = true;
@@ -527,6 +527,9 @@
                     playerMessage = getLocalizedText(pageTexts, "waiting_opponent_ships");
                 }
                 
+                // Scroll to appropriate board after becoming ready
+                scrollToTop();
+                
                 // Start polling only after fleet is placed
                 startPolling();
             }
@@ -577,6 +580,10 @@
                 // Play shot sound when player fires
                 //soundManager.playSound('shot');
             }
+            
+            // Scroll to show the result of the shot on mobile
+            scrollToTop();
+            
         } catch (error) {
             console.error('Failed to fire shot:', error);
             opponentMessage = 'Failed to fire shot. Please try again.';
@@ -915,6 +922,34 @@
 
     .game-boards:has(> .board-container:nth-child(2)) {
         gap: 3rem;
+    }
+    
+    /* On mobile devices, add more spacing between boards to create page separation */
+    @media (max-width: 1199px) {
+        .game-boards:has(> .board-container:nth-child(2)) {
+            gap: 5rem; /* Increased from 3rem */
+        }
+        
+        /* Add bottom margin to the first board to push second board further down */
+        .game-boards.player-first .player-board,
+        .game-boards.opponent-first .opponent-board {
+            margin-bottom: 30vh; /* 30% viewport height as margin */
+            position: relative;
+        }
+        
+        /* Add a visual separator between boards */
+        .game-boards.player-first .player-board::after,
+        .game-boards.opponent-first .opponent-board::after {
+            content: '';
+            position: absolute;
+            bottom: -2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #3498db, transparent);
+            opacity: 0.7;
+        }
     }
     
     .waiting-modal, .game-terminated-modal {
