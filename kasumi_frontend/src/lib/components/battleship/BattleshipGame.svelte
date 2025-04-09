@@ -2,11 +2,11 @@
     import { onMount } from 'svelte';
     import BattleshipGameEngine from './BattleshipGameEngine.svelte';
     import GameSetup from './GameSetup.svelte';
-    import { battleshipConfig } from '$lib/config/battleshipConfig.ts';
+    import { battleshipConfig } from '$lib/config/battleshipConfig';
     import type { GameState, LeaderboardEntry } from '$lib/services/battleshipServices';
     import { battleshipApi } from '$lib/services/battleshipServices';
     import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
-    import VirtualKeyboard from '$lib/components/common/VirtualKeyboard.svelte';
+    import { soundManager } from '$lib/services/soundManager';
 
     const pageTexts = 'battleship';
     let isLoadingTexts = true;
@@ -53,12 +53,14 @@
     }
 
     async function handleGameDone(event: CustomEvent<{winStreak?: number}>) {
+        // Stop the background music when game is done
+        soundManager.stopBackgroundMusic();
+        
         // Check if player has a win streak to save
         if (event.detail?.winStreak && event.detail.winStreak > 0) {
             winStreak = event.detail.winStreak;
             showScoreModal = true;
         } else {
-
             // Leave the game if no win streak
             try {
                 await battleshipApi.leaveGame(gameId!);

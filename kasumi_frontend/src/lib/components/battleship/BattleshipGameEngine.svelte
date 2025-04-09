@@ -1,10 +1,11 @@
 <script lang="ts">
-    import { onDestroy } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import GameBoard from './GameBoard.svelte';
     import { battleshipConfig, type GameIdLetter } from '$lib/config/battleshipConfig';
     import { battleshipApi, type GameState, type Ship } from '$lib/services/battleshipServices';
     import { createEventDispatcher } from 'svelte';
     import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
+    import { soundManager } from '$lib/services/soundManager';
 
     const pageTexts = 'battleship';
     let isLoadingTexts = true;
@@ -44,6 +45,11 @@
     let gameModalType: 'setup' | 'start' | 'turn' | null = null;
     let gameModalTimeout: number | null = null;
     let setupModalDisplayed = false;
+
+    // Add sound state
+    let musicEnabled = true;
+    let soundEffectsEnabled = true;
+    let soundInitialized = false;
 
     // Generate emoji sequence from game ID
     $: {
@@ -234,6 +240,12 @@
                 gameActive = false;
                 waitingForOpponent = true;
                 break;
+            case 'setup':
+                // Start background music when entering setup mode
+                if (soundInitialized) {
+                    soundManager.startBackgroundMusic();
+                }
+                break;
             case 'active':
                 opponentReady = true;
                 
@@ -246,8 +258,20 @@
                 if (lastMove) {
                     let pMessage = '';
                     let oMessage = '';
+                    
+                    // Play sound effects for the last move if it's new
+                    if (isNewMove && soundInitialized) {
+                        // Play the appropriate sound effect based on the result
+                        if (lastMove.result === 'miss') {
+                            soundManager.playSound('missed');
+                        } else if (lastMove.result === 'hit') {
+                            soundManager.playSound('hit');
+                        } else if (lastMove.result === 'sunk') {
+                            soundManager.playSound('sinking');
+                        }
+                    }
+                    
                     if (lastMove.playerId === username) {
-
                         // Player's move
                         if (lastMove.result === 'miss') {
                             oMessage = getLocalizedText(pageTexts, "you_missed");
@@ -326,6 +350,12 @@
                 
                 stopPolling();
                 clearBoardSwitchDelay();
+                
+                // Stop background music when game is over
+                if (soundInitialized) {
+                    soundManager.stopBackgroundMusic();
+                }
+                
                 break;
             case 'opponent_won':
                 playerMessage = "";
@@ -345,6 +375,12 @@
                 
                 stopPolling();
                 clearBoardSwitchDelay();
+                
+                // Stop background music when game is over
+                if (soundInitialized) {
+                    soundManager.stopBackgroundMusic();
+                }
+                
                 break;
             case 'retreated':
                 gameOver = true;
@@ -354,6 +390,12 @@
 
                 stopPolling();
                 clearBoardSwitchDelay();
+                
+                // Stop background music when game is over
+                if (soundInitialized) {
+                    soundManager.stopBackgroundMusic();
+                }
+                
                 break;
         }
 
@@ -459,7 +501,7 @@
     }
     
 
-    async function handleFireShot(event: CustomEvent) {
+    async function handleFireShot(event: CustomEvent<any>) {
         if (!gameId || !gameState || gameState.currentTurn !== username) return;
         
         const { position } = event.detail;
@@ -472,6 +514,12 @@
                 opponentMessage = response.message;
                 playerMessage = "";
                 return;
+            }
+
+            // Add sound effects for shots
+            if (soundInitialized && soundEffectsEnabled) {
+                // Play shot sound when player fires
+                //soundManager.playSound('shot');
             }
         } catch (error) {
             console.error('Failed to fire shot:', error);
@@ -536,6 +584,32 @@
         dispatch('done', { winStreak: 0 });
     }
 
+    // Initialize sound manager when component mounts
+    onMount(async () => {
+        if (!soundInitialized) {
+            await soundManager.initialize();
+            soundInitialized = true;
+            musicEnabled = soundManager.isMusicOn();
+            soundEffectsEnabled = soundManager.isSoundEffectsOn();
+        }
+    });
+
+    // Add reactive statement to start music only when game enters setup phase
+    $: {
+        if (soundInitialized && gameState?.status === 'setup') {
+            soundManager.startBackgroundMusic();
+        }
+    }
+
+    // Toggle sound functions
+    function toggleMusic() {
+        musicEnabled = soundManager.toggleMusic();
+    }
+    
+    function toggleSoundEffects() {
+        soundEffectsEnabled = soundManager.toggleSoundEffects();
+    }
+
     onDestroy(() => {
         stopPolling();
         clearBonusShotTimer();
@@ -552,47 +626,91 @@
             clearTimeout(gameModalTimeout);
             gameModalTimeout = null;
         }
+        
+        // Stop background music when component is destroyed
+        if (soundInitialized) {
+            soundManager.stopBackgroundMusic();
+        }
     });
 </script>
 
 {#if !isLoadingTexts}
 <div class="battleship-game">
 
+    <div class="game-wrapper">
 
-    
-    <div class="game-boards {boardOrder}">
-        {#if gameId && gameState}
-            <div class="board-container player-board">
-                <GameBoard
-                    bind:this={playerBoardComponent}
-                    {username}
-                    {gameState}
-                    isReady={playerReady}
-                    on:ready={handlePlayerReady}
-                    on:retreat={handleRetreat}
-                    showTurnOverlay={boardOrder !== 'player-first'}
-                    timeRemaining={gameState.currentTurn !== username ? timeRemaining : 0}
-                    gameMessage={playerMessage}
-                />
-            </div>
-        
-            <div class="board-container opponent-board">
-                {#if gameState.players && gameState.players.length > 1}
-                    {@const opponent = gameState.players.find(player => player !== username) || ''}
-                    <GameBoard
-                        username={opponent}
-                        {gameState}
-                        isOpponent={true}
-                        isReady={opponentReady}
-                        showBoard={playerReady && opponentReady}
-                        on:fire={handleFireShot}
-                        showTurnOverlay={boardOrder !== 'opponent-first'}
-                        timeRemaining={gameState.currentTurn !== opponent ? timeRemaining : 0}
-                        gameMessage={opponentMessage}
-                    />
+        <div class="game-header">
+
+            <div class="game-info">
+
+                {#if gameState?.winStreaks?.[username] && gameState?.winStreaks?.[username] > 0}
+                    <span class="game-win-streak">
+                        {getLocalizedText(pageTexts, "win_streak")}: {gameState?.winStreaks?.[username]}
+                    </span>
+                {/if}                
+
+                <span class="game-mode">
+                {#if gameState?.mode === 'multiplayer'}
+                    {getLocalizedText(pageTexts, "multiplayer")}
+                {:else}
+                    {#if gameState?.config?.cpuDifficulty === 'easy'}
+                        {getLocalizedText(pageTexts, "cpu_opponent")}    
+                    {:else if gameState?.config?.cpuDifficulty === 'hard'}
+                        {getLocalizedText(pageTexts, "advanced_ai_bot")}
+                    {/if}
                 {/if}
+                </span>
+            </div>            
+        
+            <div class="sound-controls">
+                <button class="sound-button" on:click={toggleSoundEffects} title={getLocalizedText(pageTexts, "toggle_sound_effects") || "Toggle Sound Effects"}>
+                    {soundEffectsEnabled ? '🔊' : '🔇'}
+                </button>
+                <button class="sound-button" on:click={toggleMusic} title={getLocalizedText(pageTexts, "toggle_music") || "Toggle Music"}>
+                    {musicEnabled ? '🎵' : '🎵🚫'}
+                </button>
             </div>
-        {/if}
+        </div>
+
+        
+        <div class="game-boards {boardOrder}">
+            {#if gameId && gameState}
+
+                
+                <div class="board-container player-board">
+                    <GameBoard
+                        bind:this={playerBoardComponent}
+                        {username}
+                        {gameState}
+                        isReady={playerReady}
+                        on:ready={handlePlayerReady}
+                        on:retreat={handleRetreat}
+                        showTurnOverlay={boardOrder !== 'player-first'}
+                        timeRemaining={gameState.currentTurn !== username ? timeRemaining : 0}
+                        gameMessage={playerMessage}
+                    />
+                </div>
+            
+                {#if gameState.players && gameState.players.length > 1 && opponentReady}
+                <div class="board-container opponent-board">
+                    {#if gameState.players && gameState.players.length > 1}
+                        {@const opponent = gameState.players.find(player => player !== username) || ''}
+                        <GameBoard
+                            username={opponent}
+                            {gameState}
+                            isOpponent={true}
+                            isReady={opponentReady}
+                            showBoard={playerReady && opponentReady}
+                            on:fire={handleFireShot}
+                            showTurnOverlay={boardOrder !== 'opponent-first'}
+                            timeRemaining={gameState.currentTurn !== opponent ? timeRemaining : 0}
+                            gameMessage={opponentMessage}
+                        />
+                    {/if}
+                </div>
+                {/if}
+            {/if}
+        </div>
     </div>
     
     {#if gameModalActive && gameState}
@@ -697,8 +815,11 @@
     .game-boards {
         display: flex;
         flex-direction: column;
-        gap: 3rem;
         align-items: center;
+    }
+
+    .game-boards:has(> .board-container:nth-child(2)) {
+        gap: 3rem;
     }
     
     .waiting-modal, .game-terminated-modal {
@@ -879,18 +1000,14 @@
             flex-direction: row;
             justify-content: center;
             align-items: flex-start;
-            gap: 2rem;
         }
-        .game-status-wide {
-            /* When in desktop view and game is active (two boards visible) */
-            max-width: 840px; /* 420px * 2 + gap between boards */
+
+        .game-boards:has(> .board-container:nth-child(2)) {
+            gap: 2rem;
         }
     }
 
     @media (max-width: 1200px) {
-        .game-status-wide {
-            max-width: 420px; /* 420px * 2 + gap between boards */
-        }
         .game-boards.player-first .player-board {
             order: 1;
         }
@@ -910,8 +1027,12 @@
             flex-direction: row;
             justify-content: center;
             align-items: flex-start;
+        }
+
+        .game-boards:has(> .board-container:nth-child(2)) {
             gap: 2rem;
         }
+                
         /* Reset order for desktop */
         .game-boards .player-board,
         .game-boards .opponent-board {
@@ -1013,5 +1134,60 @@
         .turn-indicator {
             font-size: 2rem;
         }
+    }
+    
+    .game-wrapper {
+        margin: 0 auto;
+    }
+
+
+    .game-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        min-height: 40px;
+        align-items: center;
+    }
+
+    .game-header .game-mode {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: bold;
+        text-align: left;
+    }
+
+    .game-header .game-win-streak {
+        display: block;
+        font-size: 1rem;
+        font-weight: bold;
+        text-align: left;
+    }
+
+    .sound-controls {
+        display: flex;
+        justify-content: right;
+        gap: 10px;
+    }
+    
+    .sound-button {
+        background-color: #1b263b;
+        color:#e13e59;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .sound-button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
 </style> 

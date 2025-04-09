@@ -52,7 +52,6 @@
     let previewCells: {x: number, y: number}[] = [];
     let previewState: string | null = null;
     let lastPreviewPosition = { x: -1, y: -1 }; // Track last preview position
-    let winStreak = 0;
     
     // Add new variables for rotation preview
     let showRotationPreview = false;
@@ -115,8 +114,6 @@
             inPlayMode = gameState.status === 'active';
             // Reset shot in progress when game state updates
             shotInProgress = false;
-
-            winStreak = gameState.winStreaks?.[username] || 0;
 
             if (gameState.status === 'setup') {
                 allShipsPlaced = false;
@@ -748,7 +745,7 @@
     </div>
 
 
-    <div class="board-container">
+    <div class="the-board-container">
         <div class="board" bind:this={boardElement}>
             {#if showTurnOverlay && inPlayMode }
                 <div class="turn-overlay"></div>
@@ -895,12 +892,6 @@
                 {/if}
             {/each}
         </div>
-
-        {#if (winStreak > 0) }
-            <div class="winning-streak">
-                {getLocalizedText(pageTexts, "win_streak")}: {winStreak}
-            </div>
-        {/if}        
 
         {#if !isOpponent}
         <div class="retreat-button">
@@ -1059,7 +1050,7 @@
         width: 100%;
     }
 
-    .board-container {
+    .the-board-container {
         display: flex;
         justify-content: center;
         position: relative;

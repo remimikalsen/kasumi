@@ -1,9 +1,10 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
     import VirtualKeyboard from '$lib/components/common/VirtualKeyboard.svelte';
     import { battleshipApi, type BattleshipConfig } from '$lib/services/battleshipServices';
     import { battleshipConfig, type GameIdLetter } from '$lib/config/battleshipConfig';
     import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
+    import { soundManager } from '$lib/services/soundManager';
 
     const pageTexts = 'battleship';
     let isLoadingTexts = true;
@@ -33,6 +34,7 @@
     let emojiSequence: string[] = [];
     let joiningGame = false;
     let selectedEmojis: string[] = [];
+    let soundInitialized = false;
     
     const emojisArray = Object.values(battleshipConfig.gameIdEmojis);
 
@@ -180,6 +182,15 @@
             errorMessage = getLocalizedText(pageTexts, "failed_start_game");
         }
     }
+
+    onMount(async () => {
+        // Initialize the sound manager without starting music
+        if (!soundInitialized) {
+            await soundManager.initialize();
+            soundInitialized = true;
+            // Don't start music here - will start in game phase
+        }
+    });
 
 </script>
 
