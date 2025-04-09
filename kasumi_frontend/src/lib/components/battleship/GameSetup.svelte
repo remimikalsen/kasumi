@@ -40,7 +40,7 @@
 
     function handleUsernameChange(initials: string) {
         username = initials.toUpperCase();
-        isUsernameValid = username.length === 3;
+        isUsernameValid = username.length > 1 && username.length < 4;
         initialsSubmitted = true;
     }
 

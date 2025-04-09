@@ -95,8 +95,8 @@ router.post('/battleship/create_game', async (req, res) => {
   const { initials, mode, config } = req.body;
   
   // Validate player initials
-  if (!initials || typeof initials !== 'string' || initials.length !== 3 || !/^[A-Za-z]{3}$/.test(initials)) {
-    return res.status(400).json({ status: 'error', message: 'Player initials must be exactly 3 letters' });
+  if (!initials || typeof initials !== 'string' || initials.length < 2 || initials.length > 3 || !/^[A-Za-z]{2,3}$/.test(initials)) {
+    return res.status(400).json({ status: 'error', message: 'Player initials must be 2-3 letters' });
   }
 
   // Validate game mode

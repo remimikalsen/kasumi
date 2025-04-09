@@ -31,7 +31,7 @@
       <button class="letter" on:click={() => addLetter(letter)}>{letter}</button>
     {/each}
     <button class="remove" on:click={removeLetter}>⌫</button>
-    <button class="submit" on:click={submit} disabled={initials.length !== 3}>{submit_label}</button>
+    <button class="submit" on:click={submit} disabled={initials.length < 2}>{submit_label}</button>
   </div>  
   
   <style>
@@ -50,6 +50,8 @@
       font-size: 1.2rem;
       text-transform: uppercase;
     }
+
+
   
     p {
       display: block;
@@ -103,6 +105,12 @@
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
       background-color: #f0b300;
     }
+
+    button:disabled {
+      background-color: #ccc;
+      color: #666;
+    }
+        
     @media (max-width: 800px) {
       .keyboard {
         width: 90%;
