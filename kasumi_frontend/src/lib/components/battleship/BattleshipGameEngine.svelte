@@ -101,20 +101,37 @@
     // Add game over delay timer and victory message
     let gameOverDelayTimer: number | null = null;
     let victoryMessage: string | null = null;
-    
-    // Add board order tracking - with delay logic
-    $: {
-        if (gameState?.currentTurn && !boardSwitchDelayActive) {
-            lastTurn = gameState.currentTurn;
-        }
-    }
+   
+
+
     $: boardOrder = boardSwitchDelayActive && lastTurn !== gameState?.currentTurn 
         ? (lastTurn === username ? 'opponent-first' : 'player-first')
         : (gameState?.currentTurn === username ? 'opponent-first' : 'player-first');
     
     // Component references
     let playerBoardComponent: GameBoard;
+    let gameContainer: HTMLDivElement;
 
+    // Add scroll to top function
+    function scrollToTop() {
+        // Add a small delay to ensure DOM is ready
+        setTimeout(() => {
+            if (gameContainer) {
+                const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+                // Only scroll if user is near the top (within 100px)
+                if (currentScroll < 100) {
+                    const rect = gameContainer.getBoundingClientRect();
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    const elementTop = rect.top + scrollTop;
+                    
+                    window.scrollTo({
+                        top: Math.max(0, elementTop),
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        }, 100);
+    }
     
     // Helper function to get ship name from prefix
     function getShipNameFromPrefix(prefix: string): string {
@@ -252,6 +269,7 @@
                 if (soundInitialized) {
                     soundManager.startBackgroundMusic();
                 }
+
                 break;
             case 'active':
                 opponentReady = true;
@@ -333,6 +351,8 @@
                 
                 // If turn changed and we're in active game, activate board switch delay
                 if (turnChanged && gameActive && !newState.bonusShotActive) {
+                    // Scroll to top when turn changes
+                    scrollToTop();
 
                     // Check if this is the first turn (no moves made yet)
                     const isFirstTurn = !newState.moves || newState.moves.length === 0;
@@ -623,6 +643,9 @@
             musicEnabled = soundManager.isMusicOn();
             soundEffectsEnabled = soundManager.isSoundEffectsOn();
         }
+
+        scrollToTop();
+
     });
 
     // Add reactive statement to start music only when game enters setup phase
@@ -631,6 +654,7 @@
             soundManager.startBackgroundMusic();
         }
     }
+ 
 
     // Toggle sound functions
     function toggleMusic() {
@@ -666,7 +690,7 @@
 </script>
 
 {#if !isLoadingTexts}
-<div class="battleship-game">
+<div class="battleship-game" bind:this={gameContainer}>
 
     <div class="game-wrapper">
 
