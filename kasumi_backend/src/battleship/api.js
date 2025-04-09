@@ -846,7 +846,7 @@ router.post('/battleship/timeout_bonus_shot', async (req, res) => {
     
     // If new turn is CPU, make CPU move
     if (gameState.mode === 'cpu' && opponent === gameState.config.cpuName) {
-      setTimeout(() => makeCpuMove(gameState), 1000);
+      setTimeout(() => makeCpuMove(gameState), 4000);
     }
 
     // Save updated game state
@@ -1207,7 +1207,7 @@ async function makeCpuMove(gameState) {
       gameState.lastMoveTime = Date.now();
       
       // Make another move after delay
-      setTimeout(() => makeCpuMove(gameState), 1500);
+      setTimeout(() => makeCpuMove(gameState), 3000);
     }
   }
 
