@@ -196,7 +196,10 @@
 
 {#if !isLoadingTexts}
 <div class="game-setup">
-    <h2>{getLocalizedText(pageTexts, "setup_title")}</h2>
+    <div class="logo-title-container">
+        <img src="/images/battleship/battleship-logo-medium.png" alt="Battleship Logo" width="128" height="128">
+        <h2>{getLocalizedText(pageTexts, "setup_title")}</h2>
+    </div>
     
     {#if !initialsSubmitted}
         <VirtualKeyboard onSubmit={handleUsernameChange} initials_label={getLocalizedText(pageTexts, "initials_label")} submit_label={getLocalizedText(pageTexts, "submit_label")} />
@@ -333,6 +336,13 @@
         padding: 0 1rem;
         box-sizing: border-box;
     }
+
+
+    .logo-title-container {
+        display: flex;
+        align-items: center;
+    }
+    
 
     h2 {
         color: #3498db;

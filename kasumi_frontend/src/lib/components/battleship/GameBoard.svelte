@@ -1034,7 +1034,7 @@
         justify-content: center;
         border-radius: 8px;
         padding: 1rem;
-        background-color: #ecf0f1;
+        background-color: #1b263b;
         box-sizing: border-box;
         margin-bottom: 1rem;
         max-width: 420px;
@@ -1048,7 +1048,7 @@
     }
 
     .fleet-deployed {
-        color: #0d1b2a;
+        color: #ecf0f1;
         font-weight: bold;
         font-size: 1.1rem;
         margin: 0;
@@ -1120,7 +1120,6 @@
         text-overflow: ellipsis;
         font-size: clamp(0.7rem, 2vw, 0.9rem);
         position: relative;
-        box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.5);
         background-color: transparent;
     }
 
