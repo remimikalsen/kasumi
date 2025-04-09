@@ -250,6 +250,11 @@
         // Track if turn changed
         const turnChanged = gameState?.currentTurn !== newState.currentTurn;
         
+        // Store the last turn before updating game state
+        if (turnChanged && gameState?.currentTurn) {
+            lastTurn = gameState.currentTurn;
+        }
+        
         // Update game state
         gameState = newState;
         
@@ -763,7 +768,7 @@
                         isReady={playerReady}
                         on:ready={handlePlayerReady}
                         on:retreat={handleRetreat}
-                        showTurnOverlay={boardOrder !== 'player-first'}
+                        showTurnOverlay={boardOrder !== 'player-first' && gameModalActive}
                         timeRemaining={gameState.currentTurn !== username ? timeRemaining : 0}
                         gameMessage={playerMessage}
                     />
@@ -780,7 +785,7 @@
                             isReady={opponentReady}
                             showBoard={playerReady && opponentReady}
                             on:fire={handleFireShot}
-                            showTurnOverlay={boardOrder !== 'opponent-first'}
+                            showTurnOverlay={boardOrder !== 'opponent-first' && gameModalActive}
                             timeRemaining={gameState.currentTurn !== opponent ? timeRemaining : 0}
                             gameMessage={opponentMessage}
                         />
