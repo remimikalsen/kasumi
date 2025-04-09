@@ -541,7 +541,7 @@ router.post('/battleship/place_fleet', async (req, res) => {
   // Only return success status, no game state
   res.json({
     status: 'success',
-    message: allReady ? 'Game is starting' : 'Waiting for other players'
+    message: allReady ? 'true' : 'false'
   });
 });
 

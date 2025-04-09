@@ -73,5 +73,8 @@
     "clear": "Tøm",
     "backspace": "Slett",
     "invalid_emoji_sequence": "Ugyldig emoji-sekvens",
-    "failed_join_game": "Kunne ikke bli med i spillet"
+    "failed_join_game": "Kunne ikke bli med i spillet",
+
+    "toggle_sound_effects": "Slå av/på lydeffekter",
+    "toggle_music": "Slå av/på bakgrunnsmusikk"
 } 

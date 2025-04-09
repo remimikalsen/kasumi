@@ -73,5 +73,8 @@
     "clear": "Limpar",
     "backspace": "Apagar",
     "invalid_emoji_sequence": "Sequência de emojis inválida",
-    "failed_join_game": "Não foi possível entrar no jogo"
+    "failed_join_game": "Não foi possível entrar no jogo",
+
+    "toggle_sound_effects": "Ativar/desativar efeitos sonoros",
+    "toggle_music": "Ativar/desativar música de fundo"
 } 

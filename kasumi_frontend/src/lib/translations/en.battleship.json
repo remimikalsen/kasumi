@@ -73,5 +73,8 @@
     "clear": "Clear",
     "backspace": "Backspace",
     "invalid_emoji_sequence": "Invalid emoji sequence",
-    "failed_join_game": "Failed to join game"
+    "failed_join_game": "Failed to join game",
+
+    "toggle_sound_effects": "Toggle sound effects",
+    "toggle_music": "Toggle background music"    
 }

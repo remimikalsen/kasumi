@@ -469,7 +469,11 @@
             
             if (response.status === 'success') {
                 playerReady = true;
-                playerMessage = response.message;
+                if (response.message === 'true') {
+                    playerMessage = getLocalizedText(pageTexts, "both_ready");
+                } else {
+                    playerMessage = getLocalizedText(pageTexts, "waiting_opponent_ships");
+                }
                 opponentMessage = "";
                 // Start polling only after fleet is placed
                 startPolling();
@@ -663,11 +667,34 @@
             </div>            
         
             <div class="sound-controls">
-                <button class="sound-button" on:click={toggleSoundEffects} title={getLocalizedText(pageTexts, "toggle_sound_effects") || "Toggle Sound Effects"}>
-                    {soundEffectsEnabled ? '🔊' : '🔇'}
+                <button class="sound-button" on:click={toggleSoundEffects} title={getLocalizedText(pageTexts, "toggle_sound_effects")}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        {#if soundEffectsEnabled}
+                            <!-- 7-point asymmetric cartoon "Capow!" explosion -->
+                            <polygon points="12 2, 13.5 6.5, 19 5, 16 10, 21 12, 16 14.5, 18 20, 12 17.5, 6 20, 8 14, 3 12, 8 10, 5 5.5, 10.5 6.5"></polygon>
+                        {:else}
+                            <!-- 7-point asymmetric cartoon "Capow!" explosion with slash -->
+                            <polygon points="12 2, 13.5 6.5, 19 5, 16 10, 21 12, 16 14.5, 18 20, 12 17.5, 6 20, 8 14, 3 12, 8 10, 5 5.5, 10.5 6.5"></polygon>
+                            <line x1="2" y1="2" x2="22" y2="22"></line>
+                        {/if}
+                    </svg>
+                    
                 </button>
-                <button class="sound-button" on:click={toggleMusic} title={getLocalizedText(pageTexts, "toggle_music") || "Toggle Music"}>
-                    {musicEnabled ? '🎵' : '🎵🚫'}
+                <button class="sound-button" on:click={toggleMusic} title={getLocalizedText(pageTexts, "toggle_music")}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        {#if musicEnabled}
+                            <!-- Music note -->
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        {:else}
+                            <!-- Music note with slash -->
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                            <line x1="2" y1="2" x2="22" y2="22"></line>
+                        {/if}
+                    </svg>
                 </button>
             </div>
         </div>
@@ -1146,8 +1173,9 @@
         justify-content: space-between;
         align-items: center;
         padding: 1rem;
-        min-height: 40px;
+        min-height: 30px;
         align-items: center;
+        margin-bottom: 0.5rem;
     }
 
     .game-header .game-mode {
@@ -1172,11 +1200,11 @@
     
     .sound-button {
         background-color: #1b263b;
-        color:#e13e59;
-        border: none;
+        color:#e0e1dd;
+        border: 2px solid #e0e1dd;;
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        width: 30px;
+        height: 30px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -1188,6 +1216,13 @@
     
     .sound-button:hover {
         transform: scale(1.1);
+        background-color: #263b53;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .sound-button svg {
+        color: currentColor;
+        width: 22px;
+        height: 22px;
     }
 </style> 
