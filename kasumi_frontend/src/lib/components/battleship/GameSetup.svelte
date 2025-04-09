@@ -341,6 +341,12 @@
         text-align: center;
     }
 
+    .game-setup h2 {
+        margin-bottom: 0;
+        font-size: 2rem;
+        text-align: center;
+    }
+
     h3 {
         color: #3498db;
         margin: 0 0 0.75rem 0;

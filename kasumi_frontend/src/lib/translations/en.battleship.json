@@ -3,7 +3,7 @@
     "headerSubTitle": "Sink your enemy's fleet!",
     "debuggingOpponentBoard": "Debugging opponent's board",
     
-    "setup_title": "Getting ready to play",
+    "setup_title": "Enlist for battle!",
     "admiral": "Admiral",
     "play_against_cpu": "Play against CPU",
     "difficulty_easy": "Easy",
@@ -53,7 +53,7 @@
     "done_battling": "Are you done battling this opponent?",
     "rematch": "Re-match",
     "im_done": "I'm done",
-    "initials_label": "Admiral's initials",
+    "initials_label": "Your initials",
     "submit_label": "Submit",
 
     "high_score": "Top admirals",

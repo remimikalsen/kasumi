@@ -3,7 +3,7 @@
     "headerSubTitle": "Afunda a frota do inimigo!",
     "debuggingOpponentBoard": "A ver o tabuleiro do adversário",
     
-    "setup_title": "A preparar o jogo",
+    "setup_title": "Alista-te!",
     "admiral": "Almirante",
     "play_against_cpu": "Jogar contra o computador",
     "difficulty_easy": "Fácil",
@@ -53,7 +53,7 @@
     "done_battling": "Já acabaste de jogar contra este adversário?",
     "rematch": "Revanche",
     "im_done": "Já está",
-    "initials_label": "Iniciais do Almirante",
+    "initials_label": "As tuas iniciais",
     "submit_label": "Enviar",
 
     "high_score": "Almirantes top",

@@ -3,7 +3,7 @@
     "headerSubTitle": "Senk fiendens flåte!",
     "debuggingOpponentBoard": "Feilsøker motstanderens brett",
     
-    "setup_title": "Gjør deg klar til å spille",
+    "setup_title": "Meld deg til kamp!",
     "admiral": "Admiral",
     "play_against_cpu": "Spill mot datamaskin",
     "difficulty_easy": "Lett",
@@ -53,7 +53,7 @@
     "done_battling": "Er du ferdig med å kjempe mot denne motstanderen?",
     "rematch": "Omkamp",
     "im_done": "Jeg er ferdig",
-    "initials_label": "Admiralens initialer",
+    "initials_label": "Dine initialer",
     "submit_label": "Send",
 
     "high_score": "Toppadmiraler",

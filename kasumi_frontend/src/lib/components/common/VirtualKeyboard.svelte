@@ -107,8 +107,37 @@
       .keyboard {
         width: 90%;
       }
-
     }
-    
+
+    @media (max-width: 400px) {
+      .keyboard {
+        width: 100%;
+      }
+
+      button {
+        margin: 3px;
+        padding: 6px;
+        font-size: 1rem;
+      }
+
+      button.letter {
+        width: 35px;
+      }
+
+      button.remove {
+        width: 80px;
+      }
+
+      button.submit {
+        width: 120px;
+        padding: 8px 16px;
+        font-size: 1rem;
+      }
+
+      p {
+        font-size: 1.2rem;
+        margin-left: 10px;
+      }
+    }
   </style>
   
