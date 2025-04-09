@@ -460,7 +460,7 @@
             }
             
             // Add all cells that are within the board
-            if (posX >= 0 && posX < 10 && posY >= 0 && posY < 10) {
+            if (posX >= 0 && posX < gameState.config.boardSize && posY >= 0 && posY < gameState.config.boardSize) {
                 previewCells.push({ x: posX, y: posY });
                 hasVisibleCells = true;
                 
@@ -748,7 +748,13 @@
     <div class="the-board-container">
         <div class="board" bind:this={boardElement}>
             {#if showTurnOverlay && inPlayMode }
-                <div class="turn-overlay"></div>
+                <div 
+                    class="turn-overlay"
+                    on:mousedown|stopPropagation
+                    on:touchstart|stopPropagation
+                    on:click|stopPropagation
+                    on:contextmenu|preventDefault
+                ></div>
             {/if}
             
             <!-- Ship images layer - placed above the cells but below markers -->
@@ -1060,7 +1066,7 @@
     .board {
         display: grid;
         grid-template-rows: repeat(var(--board-size, 10), 1fr);
-        gap: 2px;
+        gap: 1px;
         background-color: var(--board-color);
         padding: 2px;
         border-radius: 5px;
@@ -1072,6 +1078,7 @@
         width: 100%;
         max-width: 420px;
         aspect-ratio: 1;
+        background-color: #3376a4;
         --cursor-offset: 20;
     }
 
@@ -1178,14 +1185,15 @@
         bottom: 0;
         background-color: rgba(0, 0, 0, 0.6);
         z-index: 100;
-        pointer-events: none;
+        pointer-events: auto;
         border-radius: 5px;
+        touch-action: none;
     }
 
     .row {
         display: grid;
         grid-template-columns: repeat(var(--board-size, 10), 1fr);
-        gap: 2px;
+        gap: 1px;
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
@@ -1493,6 +1501,7 @@
         justify-content: center;
         align-items: center;
         z-index: 1000;
+        pointer-events: auto;
     }
 
     .dialog-content {

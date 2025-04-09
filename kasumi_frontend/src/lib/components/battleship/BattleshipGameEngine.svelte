@@ -60,6 +60,11 @@
             waitingForOpponent = true;
         } else {
             waitingForOpponent = false;
+            if (gameState?.status === 'setup' && !opponentReady && playerReady) {
+                playerMessage = getLocalizedText(pageTexts, "waiting_opponent_ships");
+            } else if (gameState?.status === 'setup' && !playerReady) {
+                playerMessage = getLocalizedText(pageTexts, "start_game_message");
+            }
         }
     }
 
@@ -115,7 +120,9 @@
     function getShipNameFromPrefix(prefix: string): string {
         for (const [type, details] of Object.entries(battleshipConfig.shipTypes)) {
             if (details.prefix === prefix) {
-                return type.charAt(0).toUpperCase() + type.slice(1);
+                const shipTypeTranslations = battleshipConfig.shipTypeTranslations[type as keyof typeof battleshipConfig.shipTypeTranslations];
+                const activeLanguage = $activeLanguage;
+                return shipTypeTranslations[activeLanguage as keyof typeof shipTypeTranslations] || shipTypeTranslations.en;
             }
         }
         return "Ship";
@@ -311,7 +318,17 @@
                             opponentMessage = oMessage;
                         }       
                     }                    
-                } 
+                } else {                    
+                    playerMessage = "";
+                    opponentMessage = "";
+                    const opponent = gameState.players.find(player => player !== username) || '';
+                    if (gameState.currentTurn === username) {
+                        opponentMessage = getLocalizedText(pageTexts, "your_turn");
+                        playerMessage = "";
+                    } else {
+                        playerMessage = getLocalizedText(pageTexts, "opponent_turn").replace("{0}", opponent);
+                    }
+                }
                 gameActive = true;
                 
                 // If turn changed and we're in active game, activate board switch delay
@@ -341,20 +358,23 @@
                 if (gameOverDelayTimer) {
                     clearTimeout(gameOverDelayTimer);
                 }
+
+                soundManager.playSound('sinking');
                 
                 // Set 1-second delay before showing game over screen
                 gameOverDelayTimer = window.setTimeout(() => {
                     gameOver = true;
                     gameOverDelayTimer = null;
-                }, 1000);
-                
+
+                    // Stop background music when game is over
+                    if (soundInitialized) {
+                        soundManager.stopBackgroundMusic();
+                    }                    
+
+                }, 2000);                
+
                 stopPolling();
                 clearBoardSwitchDelay();
-                
-                // Stop background music when game is over
-                if (soundInitialized) {
-                    soundManager.stopBackgroundMusic();
-                }
                 
                 break;
             case 'opponent_won':
@@ -469,12 +489,19 @@
             
             if (response.status === 'success') {
                 playerReady = true;
+                opponentMessage = "";
+                playerMessage = "";
                 if (response.message === 'true') {
-                    playerMessage = getLocalizedText(pageTexts, "both_ready");
+                    if (gameState.currentTurn === username) {
+                        opponentMessage = getLocalizedText(pageTexts, "your_turn");
+                    } else {
+                        const opponent = gameState.players.find(player => player !== username) || '';
+                        playerMessage = getLocalizedText(pageTexts, "opponent_turn").replace("{0}", opponent);
+                    }
                 } else {
                     playerMessage = getLocalizedText(pageTexts, "waiting_opponent_ships");
                 }
-                opponentMessage = "";
+                
                 // Start polling only after fleet is placed
                 startPolling();
             }
@@ -744,7 +771,11 @@
         {@const opponent = gameState.players.find(player => player !== username) || ''}
         {@const isPlayerTurn = gameState.currentTurn === username}
         {@const playerColor = isPlayerTurn ? '#3498db' : '#e94560'}
-        <div class="game-modal-overlay">
+        <div class="game-modal-overlay"
+                    on:mousedown|stopPropagation
+                    on:touchstart|stopPropagation
+                    on:click|stopPropagation
+                    on:contextmenu|preventDefault>
             <div class="game-modal">
                 {#if gameModalType === 'turn'}
                     <div class="turn-indicator" style="color: {playerColor}">
@@ -758,7 +789,7 @@
                     </div>
                 {:else if gameModalType === 'start'}
                     <div class="modal-message" style="color: {playerColor}">
-                        {getLocalizedText(pageTexts, "game_starting")} 
+                        {getLocalizedText(pageTexts, "game_starting")} <br />
                         {gameState.currentTurn === username ? getLocalizedText(pageTexts, "your_turn") : getLocalizedText(pageTexts, "opponent_turn").replace("{0}", opponent)}
                     </div>
                 {/if}
@@ -767,7 +798,11 @@
     {/if}
     
     {#if waitingForOpponent && emojiSequence.length > 0}
-        <div class="waiting-modal">
+        <div class="waiting-modal"
+                    on:mousedown|stopPropagation
+                    on:touchstart|stopPropagation
+                    on:click|stopPropagation
+                    on:contextmenu|preventDefault>
             <div class="modal-content">
                 <h2>{getLocalizedText(pageTexts, "waiting_opponent_join_message")}</h2>
                 <p>{getLocalizedText(pageTexts, "share_emoji_sequence")}</p>
@@ -786,7 +821,11 @@
     {/if}
     
     {#if gameWentAway}
-        <div class="game-terminated-modal">
+        <div class="game-terminated-modal"
+                    on:mousedown|stopPropagation
+                    on:touchstart|stopPropagation
+                    on:click|stopPropagation
+                    on:contextmenu|preventDefault>
             <div class="modal-content">
                 <h2>{getLocalizedText(pageTexts, "game_terminated") || "Game Terminated"}</h2>
                 <p>{getLocalizedText(pageTexts, "game_terminated_message") || "The connection to the game has been lost."}</p>
@@ -860,6 +899,11 @@
         align-items: center;
         background-color: rgba(0, 0, 0, 0.8);
         z-index: 1000;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        pointer-events: auto;
     }
 
     .game-terminated-modal .modal-content {
@@ -952,6 +996,11 @@
         gap: 2rem;
         background-color: rgba(0, 0, 0, 0.8);
         z-index: 1000;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        pointer-events: auto;
     }
 
     .dialog-content {
@@ -1100,6 +1149,11 @@
         z-index: 1500;
         animation: fadeIn 0.3s ease-out;
         animation-delay: 0.3s;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        pointer-events: auto;
     }
 
     .game-modal {
@@ -1165,8 +1219,15 @@
     
     .game-wrapper {
         margin: 0 auto;
+        pointer-events: auto;
     }
 
+    .game-wrapper:has(> .game-modal-overlay),
+    .game-wrapper:has(> .waiting-modal),
+    .game-wrapper:has(> .game-terminated-modal),
+    .game-wrapper:has(> .game-over-actions) {
+        pointer-events: none;
+    }
 
     .game-header {
         display: flex;
