@@ -59,7 +59,7 @@ class SoundManager {
   }
   
   private initializeBackgroundMusic(): void {
-    this.backgroundMusic = new Audio('/sound/battleship/soundtrack-3.mp3');
+    this.backgroundMusic = new Audio('/sound/battleship/soundtrack-6.mp3');
     this.backgroundMusic.loop = true;
     this.backgroundMusic.volume = 0;  // Start at 0 volume for fade in
     

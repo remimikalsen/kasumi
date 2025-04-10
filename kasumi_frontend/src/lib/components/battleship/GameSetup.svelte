@@ -218,13 +218,19 @@
                         class="mode-button {cpuDifficulty === 'easy' ? 'selected' : ''}"
                         on:click={() => handleCpuDifficultySelect('easy')}
                     >
-                        <span class="emoji">🌱</span> {getLocalizedText(pageTexts, "difficulty_easy")} {cpuDifficulty === 'easy' ? '✓' : ''}
+                        <span class="emoji">🌱</span> {getLocalizedText(pageTexts, "difficulty_easy")}
+                        {#if cpuDifficulty === 'easy'}
+                            <span class="checkmark">✓</span>
+                        {/if}
                     </button>
                     <button 
                         class="mode-button {cpuDifficulty === 'hard' ? 'selected' : ''}"
                         on:click={() => handleCpuDifficultySelect('hard')}
                     >
-                        <span class="emoji">🔥</span> {getLocalizedText(pageTexts, "difficulty_hard")} {cpuDifficulty === 'hard' ? '✓' : ''}
+                        <span class="emoji">🔥</span> {getLocalizedText(pageTexts, "difficulty_hard")}
+                        {#if cpuDifficulty === 'hard'}
+                            <span class="checkmark">✓</span>
+                        {/if}
                     </button>
                 </div>
                 <button class="start-button" on:click={handleStartCpuGame}>
@@ -445,15 +451,19 @@
         justify-content: center;
         gap: 0.5rem;
     }
+    
+    .multiplayer-options .mode-button:not(.disabled) {
+        background-color: #314875;
+        color: white;
+    }
 
     .mode-button:hover:not(.disabled):not(.selected) {
-        background-color: #7da7fc;
+        filter: brightness(80%);
         transform: translateY(-2px);
     }
 
     .mode-button.selected {
-        background-color: #314875;
-        color: white;
+        
     }
 
     .mode-button.disabled {
@@ -619,11 +629,6 @@
         min-width: 100px;
     }
     
-    .back-button {
-        background-color: #7f8c8d;
-        color: white;
-        margin-top: 1rem;
-    }
     
     .join-button {
         background-color: #27ae60;
@@ -731,5 +736,11 @@
             gap: 0.5rem;
             padding: 0.5rem;
         }
+    }
+
+    .checkmark {
+        font-size: 1rem;
+        color: green;
+        font-weight: bold;
     }
 </style> 

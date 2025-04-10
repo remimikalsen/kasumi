@@ -18,7 +18,7 @@
     "spaceAdventureImgAltText": "Screenshot of Space Adventure",
     "spaceAdventureTopScore": "<INITIALS> - <POINTS> <POINTS_TEXT>",
     "points": "points",
-    "battleshipTopScoreIntro": "Top Battleship Player",
+    "battleshipTopScoreIntro": "Top Battleship player",
     "battleshipImgAltText": "Screenshot of Battleship",
     "battleshipTopScore": "<INITIALS> - <STREAK> <STREAK_TEXT>",
     "streak_singular": "win in a row",
