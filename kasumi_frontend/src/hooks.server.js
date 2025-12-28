@@ -36,13 +36,12 @@ export const handle = async ({ event, resolve }) => {
       // ws://your-websocket-server.com wss://your-websocket-server.com
       'Content-Security-Policy': [
         "default-src 'self'",
-        "script-src 'self' https://plausible.io",
+        "script-src 'self' 'unsafe-inline' https://plausible.io", // unsafe-inline needed for SvelteKit hydration scripts
         "style-src 'self' 'unsafe-inline'", // unsafe-inline needed for inline styles in app.html
         "img-src 'self' data:",
         "font-src 'self' data:",
         "connect-src 'self'", // For API calls and fetch requests (HTTP polling used by battleship game)
-        "media-src 'self' blob:", // For audio files and blob URLs (Web Audio API may use blobs)
-        "audio-src 'self' blob:", // For Web Audio API and blob URLs
+        "media-src 'self' blob:", // For audio files and blob URLs (Web Audio API uses this, not audio-src)
         "worker-src 'self' blob:", // For service workers if used
         "frame-ancestors 'none'", // Prevent embedding
         "base-uri 'self'",
