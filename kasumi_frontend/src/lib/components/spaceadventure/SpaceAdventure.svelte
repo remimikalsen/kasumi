@@ -5,10 +5,15 @@
   import { Bullet } from './bullet.js';
   import { BonusPack, BonusType } from './bonus.js';
   import Icon from '@iconify/svelte';
-  import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
-  import VirtualKeyboard from '$lib/components/common/VirtualKeyboard.svelte';
-  import VirtualJoystick from '$lib/components/common/VirtualJoystickFourWay2.svelte';
-  import { env } from '$env/dynamic/public';  
+  // Bundled icon data so no requests go to the iconify API (blocked by our CSP)
+  import musicIcon from '@iconify-icons/mdi/music';
+  import musicOffIcon from '@iconify-icons/mdi/music-off';
+  import flashIcon from '@iconify-icons/mdi/flash';
+  import flashOffIcon from '@iconify-icons/mdi/flash-off';
+  import { getLocalizedText, loadTexts, activeLanguage } from '#lib/stores/translatedTexts.js';
+  import VirtualKeyboard from '#lib/components/common/VirtualKeyboard.svelte';
+  import VirtualJoystick from '#lib/components/common/VirtualJoystickFourWay2.svelte';
+  import { PUBLIC_API_KEY } from '$app/env/public';
 
   const pageTexts = 'spaceadventure';
   let isLoadingTexts = true;
@@ -151,14 +156,11 @@
       isLoadingTexts = false;
   }
 
-  $: $activeLanguage, fetchTexts();
+  $: ($activeLanguage, fetchTexts());
 
   async function fetchLeaderboard() {
-    const response = await fetch('/api/space-adventure/get_leaderboard', {
-        headers: {
-            'Authorization': `Bearer ${env.PUBLIC_API_KEY}`
-        }
-    });
+    const response = await fetch('/api/space-adventure/get_leaderboard', { headers: { 'Authorization': `Bearer ${PUBLIC_API_KEY}` } });
+
     return await response.json();
   }
 
@@ -265,37 +267,37 @@
   function fireBullets() {
       const now = Date.now();
 
-      // Limit firing rate per time window 
-      if (now - lastFireTime < (1000/shotsPerSecond)) {
-          return;
-      } 
+    // Limit firing rate per time window 
+    if (now - lastFireTime < 1000 / shotsPerSecond) {
+      return;
+    }
 
-      // Limit firing rate per time window
-      if (now - lastFireTime >= (1000/shotsPerSecond) && shotTimestamps.length >= shotsPerTimeWindow) {
-          lastFireTime = now;
-          playSound('overheat');
-          return;
-      } 
-
-      shotTimestamps.push(now);
+    // Limit firing rate per time window
+    if (now - lastFireTime >= 1000 / shotsPerSecond && shotTimestamps.length >= shotsPerTimeWindow) {
       lastFireTime = now;
+      playSound('overheat');
+      return;
+    }
 
-      if (activeBonus === BonusType.Trident) {
-          bullets.push(new Bullet(ship.x + ship.width / 2 - 2.5, ship.y));
-          playSound('laser');
-          bullets.push(new Bullet(ship.x + ship.width / 2 - 2.5, ship.y, -15));
-          playSound('laser');
-          bullets.push(new Bullet(ship.x + ship.width / 2 - 2.5, ship.y, 15));
-          playSound('laser');
-      } else if (activeBonus === BonusType.DoubleTrouble) {
-          bullets.push(new Bullet(ship.x + ship.width / 2 - 10, ship.y));
-          playSound('laser');
-          bullets.push(new Bullet(ship.x + ship.width / 2 + 5, ship.y));
-          playSound('laser');
-      } else {
-          bullets.push(new Bullet(ship.x + ship.width / 2 - 2.5, ship.y));
-          playSound('laser');
-      }
+    shotTimestamps.push(now);
+    lastFireTime = now;
+
+    if (activeBonus === BonusType.Trident) {
+      bullets.push(new Bullet(ship.x + ship.width / 2 - 2.5, ship.y));
+      playSound('laser');
+      bullets.push(new Bullet(ship.x + ship.width / 2 - 2.5, ship.y, -15));
+      playSound('laser');
+      bullets.push(new Bullet(ship.x + ship.width / 2 - 2.5, ship.y, 15));
+      playSound('laser');
+    } else if (activeBonus === BonusType.DoubleTrouble) {
+      bullets.push(new Bullet(ship.x + ship.width / 2 - 10, ship.y));
+      playSound('laser');
+      bullets.push(new Bullet(ship.x + ship.width / 2 + 5, ship.y));
+      playSound('laser');
+    } else {
+      bullets.push(new Bullet(ship.x + ship.width / 2 - 2.5, ship.y));
+      playSound('laser');
+    }
   }
 
   function updateOverlayPositions() {
@@ -303,31 +305,31 @@
 
           let addedBorders = 0;
 
-          if (gameWrapper && pausedOverlay) {
-              const rect = gameWrapper.getBoundingClientRect();
-              pausedOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
-              pausedOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
+    if (gameWrapper && pausedOverlay) {
+      const rect = gameWrapper.getBoundingClientRect();
+      pausedOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
+      pausedOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
               pausedOverlay.style.width = `${rect.width + addedBorders*2}px`;
               pausedOverlay.style.height = `${rect.height + addedBorders*2}px`;
-          }
+    }
 
-          if (gameWrapper && gameOverOverlay) {
-              const rect = gameWrapper.getBoundingClientRect();
-              gameOverOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
-              gameOverOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
+    if (gameWrapper && gameOverOverlay) {
+      const rect = gameWrapper.getBoundingClientRect();
+      gameOverOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
+      gameOverOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
               gameOverOverlay.style.width = `${rect.width + addedBorders*2}px`;
               gameOverOverlay.style.height = `${rect.height + addedBorders*2}px`;
-          }
+    }
 
-          if (gameWrapper && startOverlay) {
-              const rect = gameWrapper.getBoundingClientRect();
-              startOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
-              startOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
+    if (gameWrapper && startOverlay) {
+      const rect = gameWrapper.getBoundingClientRect();
+      startOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
+      startOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
               startOverlay.style.width = `${rect.width + addedBorders*2}px`;
               startOverlay.style.height = `${rect.height + addedBorders*2}px`;
-          }
+    }
 
-  }  
+  }
 
   function gameLoop() {
     if (!ctx || !ship || isPaused) return; // Ensure ctx and ship are defined and game is not paused
@@ -361,13 +363,13 @@
     asteroidSpawnInterval = Math.max(initialAsteroidSpawnInterval*1000 - elapsedSeconds * 40, 500);
     const speedFactor = 1 + Math.floor(elapsedSeconds / 5) * 0.2;
 
-      if (lastPauseTime > 0) {
-          shotTimestamps = shotTimestamps.map(timestamp => timestamp + lastPauseTime);
-      }
-      shotTimestamps = shotTimestamps.filter(timestamp => now - timestamp <= 1000*shotsTimeWindow ); // remove timestamps older than shotsTimeWindow seconds
-      ammoPercentage = (shotsPerTimeWindow - shotTimestamps.length) / 10 * 100;
+    if (lastPauseTime > 0) {
+      shotTimestamps = shotTimestamps.map((timestamp) => timestamp + lastPauseTime);
+    }
+    shotTimestamps = shotTimestamps.filter((timestamp) => now - timestamp <= 1000 * shotsTimeWindow); // remove timestamps older than shotsTimeWindow seconds
+    ammoPercentage = (shotsPerTimeWindow - shotTimestamps.length) / 10 * 100;
 
-   // Render wave effect if active
+    // Render wave effect if active
     if (lastPauseTime > 0) {
       waveStartTime += lastPauseTime;
     }
@@ -376,7 +378,7 @@
       const waveDuration = 800; 
       const waveElapsed = now - waveStartTime;
       const maxRadius = Math.sqrt(width * width + height * height) / 2;
-      const waveRadius = (waveElapsed / waveDuration) * maxRadius;
+      const waveRadius = waveElapsed / waveDuration * maxRadius;
 
       ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
       ctx.beginPath();
@@ -593,44 +595,44 @@
 
 
   function toggleMusicMute() {
-      isMusicMuted = !isMusicMuted;
-      if (isMusicMuted) {
-        pauseBackgroundAudio();
-      } else {
-        playBackgroundAudio();
-      }
+    isMusicMuted = !isMusicMuted;
+    if (isMusicMuted) {
+      pauseBackgroundAudio();
+    } else {
+      playBackgroundAudio();
     }
+  }
 
-    function toggleSoundEffectsMute() {
-      areSoundEffectsMuted = !areSoundEffectsMuted;
-    }
+  function toggleSoundEffectsMute() {
+    areSoundEffectsMuted = !areSoundEffectsMuted;
+  }
 
   async function runFirstTime() {
 
-      if (!hasStarted) {
-          hasStarted = true;
-      }
+    if (!hasStarted) {
+      hasStarted = true;
+    }
 
-      if (!backgroundAudio) {
-        createBackgroundAudio();
-      }
+    if (!backgroundAudio) {
+      createBackgroundAudio();
+    }
 
-      if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        await loadSounds([
-          { name: 'laser', url: '/spaceadventure/sounds/laser.mp3' },
-          { name: 'pause', url: '/spaceadventure/sounds/pause.mp3' },
-          { name: 'start', url: '/spaceadventure/sounds/start.mp3' },
-          { name: 'hit', url: '/spaceadventure/sounds/hit.mp3' },
-          { name: 'explode', url: '/spaceadventure/sounds/explode.mp3' },
-          { name: 'overheat', url: '/spaceadventure/sounds/overheat.mp3' },
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      await loadSounds([
+        { name: 'laser', url: '/spaceadventure/sounds/laser.mp3' },
+        { name: 'pause', url: '/spaceadventure/sounds/pause.mp3' },
+        { name: 'start', url: '/spaceadventure/sounds/start.mp3' },
+        { name: 'hit', url: '/spaceadventure/sounds/hit.mp3' },
+        { name: 'explode', url: '/spaceadventure/sounds/explode.mp3' },
+        { name: 'overheat', url: '/spaceadventure/sounds/overheat.mp3' },
           { name: 'rock-explode', url: '/spaceadventure/sounds/rock-explode.mp3' },
-          { name: 'bonus', url: '/spaceadventure/sounds/bonus.mp3' },
-          { name: 'bonus-end', url: '/spaceadventure/sounds/bonus.mp3' },
+        { name: 'bonus', url: '/spaceadventure/sounds/bonus.mp3' },
+        { name: 'bonus-end', url: '/spaceadventure/sounds/bonus.mp3' },
           { name: 'monster-wave', url: '/spaceadventure/sounds/monster-wave.mp3' },
-        ]); 
-        playSound('start');       
-      }
+      ]);
+      playSound('start');
+    }
   }
 
   function toggleInstructions() {
@@ -649,8 +651,8 @@
       await fetch('/api/space-adventure/submit_score', {
       method: 'POST',
       headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${env.PUBLIC_API_KEY}`
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${PUBLIC_API_KEY}`
       },
       body: JSON.stringify({ initials, points })
       });
@@ -685,9 +687,9 @@
     }
     gameLoop();
 
-    scrollAndFreeze();  
+    scrollAndFreeze();
 
-}
+  }
 
   async function scrollAndFreeze() {
     if (window.innerWidth <= 800) { // Adjust the width threshold as needed
@@ -700,11 +702,11 @@
   }
 
   function handleVisibilityChange() {
-      if (document.hidden) {
-          if (!isPaused) {
-          togglePause();
-          }
+    if (document.hidden) {
+      if (!isPaused) {
+        togglePause();
       }
+    }
   }
 
   function handleDoubleTap(event) {
@@ -741,17 +743,265 @@
       onScroll();
     });
   }
-
-
 </script>
 
-<style>
+{#if !isLoadingTexts}
+  <div class="page-wrapper">
+    <div class="left-column">
+      <div bind:this={gameWrapper} class="game-wrapper">
+        <div bind:this={statusDiv} class="status">
+          <div class="status-left">
+            <div class="weaponry">
+              <div class="weaponry-type">
+                <span class="weapon-name">{getLocalizedText(pageTexts, "weapon")}:</span>
 
-   .fixed-game-wrapper {
-      position: sticky;
-      top: 0;
+                <img
+                  class="weapon-icon"
+                  src={activeBonus === BonusType.Trident
+                    ? '/spaceadventure/trident.png'
+                    : activeBonus === BonusType.DoubleTrouble
+                      ? '/spaceadventure/double-trouble.png'
+                      : '/spaceadventure/single.png'}
+                  alt={activeBonus === BonusType.Trident
+                    ? getLocalizedText(pageTexts, "trident")
+                    : activeBonus === BonusType.DoubleTrouble
+                      ? getLocalizedText(pageTexts, "double-trouble")
+                      : getLocalizedText(pageTexts, "standard")}
+                  width="50"
+                  height="50"
+                />
+              </div>
+
+              <div class="weaponry-status">
+                <span class="weapon-status">{getLocalizedText(pageTexts, "readiness")}:</span>
+                <div class={ammoPercentage === 0 ? 'hide' : 'ammo-bar'}><div class="ammo-fill" style="width: {ammoPercentage}%"></div></div>
+
+                <div
+                  class={ammoPercentage === 0 ? 'overheating' : 'hide'}
+                ><div class="ammo-fill" style="width: 100%"></div></div>
+              </div>
+            </div>
+
+            <div class="score">
+              <span class="points">{String(score).padStart(5, '0')}</span>
+              <span class="title">{getLocalizedText(pageTexts, "points")}</span>
+            </div>
+          </div>
+
+          <div class="status-right">
+            <div class="sound">
+              <div class="music">
+                <button class="mute" on:click={toggleMusicMute}>
+                  <div class="icon-circle">
+                    <Icon
+                      icon={isMusicMuted ? musicOffIcon : musicIcon}
+                    />
+                  </div>
+                </button>
+
+                <span class="title">
+                  {getLocalizedText(pageTexts, "music")} {isMusicMuted
+                    ? getLocalizedText(pageTexts, "off")
+                    : getLocalizedText(pageTexts, "on")}
+                </span>
+              </div>
+
+              <div class="sfx">
+                <button class="mute" on:click={toggleSoundEffectsMute}>
+                  <div class="icon-circle">
+                    <Icon
+                      icon={areSoundEffectsMuted ? flashOffIcon : flashIcon}
+                    />
+                  </div>
+                </button>
+
+                <span class="title">
+                  {getLocalizedText(pageTexts, "sfx")} {areSoundEffectsMuted
+                    ? getLocalizedText(pageTexts, "off")
+                    : getLocalizedText(pageTexts, "on")}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <canvas bind:this={canvas} width={width} height={height}></canvas>
+
+        <div
+          class="keyboard-holder"
+          bind:this={virtualJoystickDiv}
+        >
+          <VirtualJoystick
+            on:keydown={handleVirtualKeyDown}
+            on:keyup={handleVirtualKeyUp}
+            spaceKey={getLocalizedText(pageTexts, "fire")}
+          />
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button
+          class="pause"
+          on:click={togglePause}
+          disabled={gameOver || !hasStarted}
+        >
+          {isPaused
+            ? getLocalizedText(pageTexts, "resume")
+            : getLocalizedText(pageTexts, "pause")}
+        </button>
+
+        {#if !hasStarted}
+          <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start-game")}</button>
+        {:else}
+          <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "restart-game")}</button>
+        {/if}
+      </div>
+    </div>
+
+    <div class="right-column" tabindex="-1">
+      {#if leaderboard && leaderboard.length > 0}
+        <div class="leaderboard" tabindex="-1">
+          <h2>{getLocalizedText(pageTexts, "high_score")}</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th class="rank">{getLocalizedText(pageTexts, "rank")}</th>
+                <th class="initials">{getLocalizedText(pageTexts, "initials")}</th>
+                <th class="points">{getLocalizedText(pageTexts, "leaderboard_score")}</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {#each leaderboard as { initials, points }, i}
+                <tr>
+                  <td class="rank">{i + 1}.</td>
+                  <td class="initials">{initials}</td>
+                  <td class="points">{String(points).padStart(5, '0')}</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
+
+      <div class="instructions">
+        <h2
+          title={getLocalizedText(pageTexts, "instructions_show")}
+          on:click={toggleInstructions}
+          aria-expanded={instructionsVisible}
+          aria-controls="instructions-content"
+        >
+          {getLocalizedText(pageTexts, "instructions_title")} 
+          <span class="chevron">{instructionsVisible ? '▼' : '▲'}</span>
+        </h2>
+
+        {#if instructionsVisible}
+          <div id="instructions-content">
+            {@html getLocalizedText(pageTexts, "instructions")}
+
+            <p class="keyboard-shortcuts">
+              <span>{@html getLocalizedText(pageTexts, "instructions_steer")}</span>
+              <span>{@html getLocalizedText(pageTexts, "instructions_shoot")}</span>
+              <span>{@html getLocalizedText(pageTexts, "instructions_pause")}</span>
+              <span>{@html getLocalizedText(pageTexts, "instructions_start_over")}</span>
+              <span>{@html getLocalizedText(pageTexts, "instructions_music")}</span>
+              <span>{@html getLocalizedText(pageTexts, "instructions_sfx")}</span>
+            </p>
+          </div>
+        {/if}
+      </div>
+    </div>
+  </div>
+
+  <div
+    bind:this={pausedOverlay}
+    class="pause-overlay {!isPaused ? 'hide' : ''}"
+  >
+    <p class="pause_title">{@html getLocalizedText(pageTexts, "p_to_resume")}</p>
+
+    <button
+      class="pause"
+      on:click={togglePause}
+      disabled={gameOver || !hasStarted}
+    >
+      {isPaused
+        ? getLocalizedText(pageTexts, "resume")
+        : getLocalizedText(pageTexts, "pause")}
+    </button>
+  </div>
+
+  <div
+    bind:this={gameOverOverlay}
+    class="game-over-overlay {!gameOver ? 'hide' : ''}"
+  >
+    <p class="game_over_title">{getLocalizedText(pageTexts, "game_over")}</p>
+
+    {#if showVirtualKeyboard}
+      <p class="game_over_score">
+        {getLocalizedText(pageTexts, "your_score")}: 
+        <span>{String(score).padStart(5, '0')}</span>
+      </p>
+
+      <p class="game_over_high_score_pretext">{getLocalizedText(pageTexts, "pretext_submit_highscore")}</p>
+      <VirtualKeyboard onSubmit={handleSubmitInitials} />
+    {:else}
+      <p class="start_over">{getLocalizedText(pageTexts, "game_over_start_over")}</p>
+
+      {#if !hasStarted}
+        <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start-game")}</button>
+      {:else}
+        <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "restart-game")}</button>
+      {/if}
+
+      {#if leaderboard && leaderboard.length > 0}
+        <div class="leaderboard" tabindex="-1">
+          <h2>{getLocalizedText(pageTexts, "high_score")}</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th class="rank">{getLocalizedText(pageTexts, "rank")}</th>
+                <th class="initials">{getLocalizedText(pageTexts, "initials")}</th>
+                <th class="points">{getLocalizedText(pageTexts, "leaderboard_score")}</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {#each leaderboard as { initials, points }, i}
+                <tr>
+                  <td class="rank">{i + 1}.</td>
+                  <td class="initials">{initials}</td>
+                  <td class="points">{String(points).padStart(5, '0')}</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
+    {/if}
+  </div>
+
+  <div
+    bind:this={startOverlay}
+    class="start-game-overlay {hasStarted ? 'hide' : ''}"
+  >
+    <p>{getLocalizedText(pageTexts, "first_start_game")}</p>
+
+    {#if !hasStarted}
+      <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start-game")}</button>
+    {:else}
+      <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "restart-game")}</button>
+    {/if}
+  </div>
+{/if}
+
+<style>
+  .fixed-game-wrapper {
+    position: sticky;
+    top: 0;
       z-index: 1000; /* Ensure it stays on top */
-    }
+  }
 
   .left-column,
   .right-column {
@@ -1047,42 +1297,42 @@
 
 
 
-        .leaderboard {
-        padding: 10px;
-        background-color: #1b263b;
-        color: #e0e1dd;
-        border-radius: 5px;
-        border-style: solid;
-        border-color: #f05972;
-        border-width: 2px;
-        box-shadow: 0 0px 12px rgba(237, 74, 213, 0.6);
-        min-width: 290px;
-        max-width: 340px;
-        margin: 20px auto;
-        font-size: 1.3rem;
-        }
+  .leaderboard {
+    padding: 10px;
+    background-color: #1b263b;
+    color: #e0e1dd;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: #f05972;
+    border-width: 2px;
+    box-shadow: 0 0px 12px rgba(237, 74, 213, 0.6);
+    min-width: 290px;
+    max-width: 340px;
+    margin: 20px auto;
+    font-size: 1.3rem;
+  }
 
-        .leaderboard h2 {
-            color: #f05972;
-            margin: 10px auto;
-            max-width: 290px;
-        }
+  .leaderboard h2 {
+    color: #f05972;
+    margin: 10px auto;
+    max-width: 290px;
+  }
 
-        .leaderboard table {
-        width: 100%;
-        border-collapse: collapse;  
-        }
+  .leaderboard table {
+    width: 100%;
+    border-collapse: collapse;
+  }
 
         .leaderboard th, .leaderboard td {
-        padding: 5px;
-        text-align: left;
-        }
+    padding: 5px;
+    text-align: left;
+  }
 
-        .leaderboard th {
-        border-bottom: 2px solid #e0e1dd;
-        }
+  .leaderboard th {
+    border-bottom: 2px solid #e0e1dd;
+  }
 
-        .leaderboard tr:first-child td {
+  .leaderboard tr:first-child td {
         color: #ffd700; /* Golden color */
         text-shadow: 
             0 0 10px #ffd700, /* Slightly outer glow */
@@ -1108,65 +1358,65 @@
         font-weight: bold;
         }
 
-        .leaderboard .rank {
-        width: 25%;
-        text-align: center;
-        }
-        .leaderboard .initials {
-        width: 40%;
-        text-align: center;
-        }
+  .leaderboard .rank {
+    width: 25%;
+    text-align: center;
+  }
+  .leaderboard .initials {
+    width: 40%;
+    text-align: center;
+  }
 
-        .leaderboard td.initials {
-        text-transform: uppercase;
-        }
+  .leaderboard td.initials {
+    text-transform: uppercase;
+  }
 
-        .leaderboard .points {
-        width: 35%;
-        text-align: center;
-        font-family: monospace;
-        }
+  .leaderboard .points {
+    width: 35%;
+    text-align: center;
+    font-family: monospace;
+  }
 
-    p.pause_title {
-      margin-bottom: 40px;
+  p.pause_title {
+    margin-bottom: 40px;
+  }
+
+  p.game_over_title {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 0;
+  }
+
+  p.game_over_score {
+    margin-top: 0;
+    font-size: 2rem;
+  }
+
+  p.game_over_score span {
+    font-weight: bold;
+    color: gold;
+    font-family: monospace;
+  }
+
+  p.game_over_high_score_pretext {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
+
+  .game-over-overlay .leaderboard {
+    margin-top: 50px;
+  }
+
+  @media (max-width: 1300px) {
+    .page-wrapper {
+      flex-direction: column;
+      margin-top: 20px;
+      margin-bottom: 20px;
     }
 
-    p.game_over_title {
-      font-size: 3rem;
-      font-weight: bold;
-      margin-bottom: 0;
-    }
-
-    p.game_over_score {
-     margin-top: 0;
-     font-size: 2rem;
-    }
-
-    p.game_over_score span {
-      font-weight: bold;
-      color: gold;
-      font-family: monospace; 
-    }
-
-    p.game_over_high_score_pretext {
-      margin-top: 30px;
-      margin-bottom: 30px;
-      font-size: 1.8rem;
-      font-weight: bold;
-    }
-
-    .game-over-overlay .leaderboard {
-      margin-top: 50px;
-    }
-
-    @media (max-width: 1300px) {
-        .page-wrapper {
-            flex-direction: column;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-
-    } 
+  }
 
     @media (max-width: 700px) {
  
@@ -1223,190 +1473,18 @@
     }
 
         
-        div.buttons {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          margin-top: 50px;
-        }
-
-        div.buttons button.pause,
-        div.buttons button.reset{
-          width: 250px;
-          margin: 10px;
-        }
-
+    div.buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 50px;
     }
+
+    div.buttons button.pause,
+        div.buttons button.reset{
+      width: 250px;
+      margin: 10px;
+    }
+
+  }
 </style>
-
-{#if !isLoadingTexts}
-<div class="page-wrapper">
-
-<div class="left-column">
-  <div bind:this={gameWrapper} class="game-wrapper">
-  <div bind:this={statusDiv} class="status">
-    <div class="status-left">
-
-        <div class="weaponry">
-          <div class="weaponry-type">
-            <span class="weapon-name">{getLocalizedText(pageTexts, "weapon")}:</span>
-            <img class="weapon-icon"
-              src={activeBonus === BonusType.Trident ? '/spaceadventure/trident.png' : activeBonus === BonusType.DoubleTrouble ? '/spaceadventure/double-trouble.png' : '/spaceadventure/single.png'} 
-              alt={activeBonus === BonusType.Trident ? getLocalizedText(pageTexts, "trident") : activeBonus === BonusType.DoubleTrouble ? getLocalizedText(pageTexts, "double-trouble") : getLocalizedText(pageTexts, "standard")} 
-              width="50" 
-              height="50" 
-              /> 
-          </div>
-          <div class="weaponry-status">
-            <span class="weapon-status">{getLocalizedText(pageTexts, "readiness")}:</span>
-            <div class="{ammoPercentage === 0 ? 'hide' : 'ammo-bar'}">
-              <div class="ammo-fill" style="width: {ammoPercentage}%"></div>
-            </div>
-            <div class="{ammoPercentage === 0 ? 'overheating' : 'hide'}">
-              <div class="ammo-fill" style="width: 100%"></div>
-            </div>        
-          </div>   
-        </div>
-
-        <div class="score">
-          <span class="points">{String(score).padStart(5, '0')}</span>
-          <span class="title">{getLocalizedText(pageTexts, "points")}</span>
-        </div>
-
-    </div>
-    <div class="status-right">
-      <div class="sound">
-        <div class="music">
-          <button class="mute" on:click={toggleMusicMute}>
-            <div class="icon-circle">
-            <Icon icon={isMusicMuted ? 'mdi:music-off' : 'mdi:music'} />
-            </div>
-          </button>
-          <span class="title">{getLocalizedText(pageTexts, "music")} {isMusicMuted ? getLocalizedText(pageTexts, "off") : getLocalizedText(pageTexts, "on")}</span>
-        </div>
-        <div class="sfx">
-          <button class="mute" on:click={toggleSoundEffectsMute}>
-            <div class="icon-circle">
-              <Icon icon={areSoundEffectsMuted ? 'mdi:flash-off' : 'mdi:flash'} />
-            </div>
-          </button>
-          <span class="title">{getLocalizedText(pageTexts, "sfx")} {areSoundEffectsMuted ? getLocalizedText(pageTexts, "off") : getLocalizedText(pageTexts, "on")}</span>
-        </div>
-      </div>
-  </div>
-  </div>
-  <canvas bind:this={canvas} width={width} height={height}></canvas>
-  <div class="keyboard-holder" bind:this={virtualJoystickDiv}>
-    <VirtualJoystick on:keydown={handleVirtualKeyDown} on:keyup={handleVirtualKeyUp} spaceKey="{getLocalizedText(pageTexts, "fire")}" />
-  </div>
-  </div>
-  <div class="buttons">
-    <button class="pause" on:click={togglePause} disabled={gameOver || !hasStarted}>{isPaused ? getLocalizedText(pageTexts, "resume") : getLocalizedText(pageTexts, "pause")}</button>
-    {#if !hasStarted}
-      <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start-game")}</button>
-    {:else}
-      <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "restart-game")}</button>
-    {/if}
-  </div>  
-</div>
-<div class="right-column" tabindex="-1">
-  {#if leaderboard && leaderboard.length > 0}
-  <div class="leaderboard" tabindex="-1">
-      <h2>{getLocalizedText(pageTexts, "high_score")}</h2>
-      <table>
-        <thead>
-          <tr>
-            <th class="rank">{getLocalizedText(pageTexts, "rank")}</th>
-            <th class="initials">{getLocalizedText(pageTexts, "initials")}</th>
-            <th class="points">{getLocalizedText(pageTexts, "leaderboard_score")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each leaderboard as { initials, points }, i}
-            <tr>
-              <td class="rank">{i + 1}.</td>
-              <td class="initials">{initials}</td>
-              <td class="points">{String(points).padStart(5, '0')}</td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-  </div>
-  {/if}
-  <div class="instructions">
-      <h2 title="{getLocalizedText(pageTexts, "instructions_show")}" on:click={toggleInstructions} aria-expanded={instructionsVisible} aria-controls="instructions-content">
-          {getLocalizedText(pageTexts, "instructions_title")}
-          <span class="chevron">{instructionsVisible ? '▼' : '▲'}</span>
-      </h2>
-      {#if instructionsVisible}
-          <div id="instructions-content">
-              {@html getLocalizedText(pageTexts, "instructions")}
-              <p class="keyboard-shortcuts">
-                  <span>{@html getLocalizedText(pageTexts, "instructions_steer")}</span>
-                  <span>{@html getLocalizedText(pageTexts, "instructions_shoot")}</span>
-                  <span>{@html getLocalizedText(pageTexts, "instructions_pause")}</span>
-                  <span>{@html getLocalizedText(pageTexts, "instructions_start_over")}</span>
-                  <span>{@html getLocalizedText(pageTexts, "instructions_music")}</span>
-                  <span>{@html getLocalizedText(pageTexts, "instructions_sfx")}</span>
-              </p>
-          </div>
-      {/if}
-  </div>
-</div>     
-
-</div>
-
-<div bind:this={pausedOverlay} class="pause-overlay { !isPaused ? 'hide' : ''}">
-  <p class="pause_title">{@html getLocalizedText(pageTexts, "p_to_resume")}</p>
-  <button class="pause" on:click={togglePause} disabled={gameOver || !hasStarted}>{isPaused ? getLocalizedText(pageTexts, "resume") : getLocalizedText(pageTexts, "pause")}</button>
-</div>
-
-<div bind:this={gameOverOverlay} class="game-over-overlay { !gameOver ? 'hide' : ''}">
-  <p class="game_over_title">{getLocalizedText(pageTexts, "game_over")}</p>
-  {#if showVirtualKeyboard}
-  <p class="game_over_score">{getLocalizedText(pageTexts, "your_score")}: <span>{String(score).padStart(5, '0')}</span></p>
-  <p class="game_over_high_score_pretext">{getLocalizedText(pageTexts, "pretext_submit_highscore")}</p>
-  <VirtualKeyboard onSubmit={handleSubmitInitials} />
-  {:else}
-  <p class="start_over">{getLocalizedText(pageTexts, "game_over_start_over")}</p>
-  {#if !hasStarted}
-  <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start-game")}</button>
-  {:else}
-  <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "restart-game")}</button>
-  {/if}
-  {#if leaderboard && leaderboard.length > 0}
-  <div class="leaderboard" tabindex="-1">
-      <h2>{getLocalizedText(pageTexts, "high_score")}</h2>
-      <table>
-        <thead>
-          <tr>
-            <th class="rank">{getLocalizedText(pageTexts, "rank")}</th>
-            <th class="initials">{getLocalizedText(pageTexts, "initials")}</th>
-            <th class="points">{getLocalizedText(pageTexts, "leaderboard_score")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each leaderboard as { initials, points }, i}
-            <tr>
-              <td class="rank">{i + 1}.</td>
-              <td class="initials">{initials}</td>
-              <td class="points">{String(points).padStart(5, '0')}</td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-  </div>
-  {/if}
-
-  {/if}
-</div>
-
-<div bind:this={startOverlay} class="start-game-overlay { hasStarted ? 'hide' : ''}">
-<p>{getLocalizedText(pageTexts, "first_start_game")}</p>
-{#if !hasStarted}
-<button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start-game")}</button>
-{:else}
-<button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "restart-game")}</button>
-{/if}
-</div>
-{/if}

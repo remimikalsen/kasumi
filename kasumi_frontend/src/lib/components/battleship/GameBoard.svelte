@@ -1,10 +1,10 @@
 <!-- GameBoard.svelte -->
 <script lang="ts">
     import { createEventDispatcher, onDestroy } from 'svelte';
-    import type { Ship } from '@lib/services/battleshipServices';
-    import type { GameState } from '@lib/services/battleshipServices';
-    import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
-    import { battleshipConfig } from '@lib/config/battleshipConfig';
+    import type { Ship } from '#lib/services/battleshipServices.js';
+    import type { GameState } from '#lib/services/battleshipServices.js';
+    import { getLocalizedText, loadTexts, activeLanguage } from '#lib/stores/translatedTexts.js';
+    import { battleshipConfig } from '#lib/config/battleshipConfig.js';
 
     const pageTexts = 'battleship';
     const boardSize = battleshipConfig.boardSize; // Get board size from config
@@ -989,7 +989,6 @@
         position: relative;
         padding: 0.5rem;
         box-sizing: border-box;
-        --board-size: {boardSize};
     }
 
     h2 {

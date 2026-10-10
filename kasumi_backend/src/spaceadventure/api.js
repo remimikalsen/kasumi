@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../common/db');
+const { parseInitials, parseInteger } = require('../common/validate');
 
 const router = express.Router();
 
@@ -10,7 +11,13 @@ db.serialize(() => {
 
 // Endpoint to submit a score
 router.post('/spaceadventure/submit_score', (req, res) => {
-  const { initials, points } = req.body;
+  const initials = parseInitials(req.body?.initials);
+  const points = parseInteger(req.body?.points);
+
+  if (!initials || points === null) {
+    return res.status(400).send('Invalid initials or points value');
+  }
+
   const stmt = db.prepare('INSERT INTO spaceadventure_leaderboard (initials, points) VALUES (?, ?)');
   stmt.run(initials, points, function(err) {
     if (err) {
@@ -40,7 +47,12 @@ router.get('/spaceadventure/get_leaderboard', (req, res) => {
 
 // Endpoint to clear initials with certain scores from leaderboard
 router.post('/spaceadventure/delete_score', (req, res) => {
-  const { initials, points } = req.body;
+  const initials = parseInitials(req.body?.initials);
+  const points = parseInteger(req.body?.points);
+
+  if (!initials || points === null) {
+    return res.status(400).send('Invalid initials or points value');
+  }
 
   // Corrected SQL syntax for DELETE query
   const stmt = db.prepare('DELETE FROM spaceadventure_leaderboard WHERE initials = ? AND points = ?');

@@ -5,6 +5,9 @@
     export let initials_label = 'Your initials';
     export let submit_label = 'Submit';
   
+    // Computed in a reactive statement so the display updates when initials change
+    $: slots = [0, 1, 2].map((i) => initials[i] || ' _ ');
+
     function addLetter(letter) {
       if (initials.length < 3) {
         initials += letter;
@@ -22,7 +25,7 @@
   
 
   <p>{initials_label}:<br /> <span>
-    {#each Array.from({ length: 3 }, (_, i) => initials[i] || ' _ ') as letter}
+    {#each slots as letter}
       {letter}
     {/each}
   </span></p>

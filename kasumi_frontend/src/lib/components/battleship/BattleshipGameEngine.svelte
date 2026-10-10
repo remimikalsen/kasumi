@@ -1,11 +1,12 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
+    import { get } from 'svelte/store';
     import GameBoard from './GameBoard.svelte';
-    import { battleshipConfig, type GameIdLetter } from '$lib/config/battleshipConfig';
-    import { battleshipApi, type GameState, type Ship } from '$lib/services/battleshipServices';
+    import { battleshipConfig, type GameIdLetter } from '#lib/config/battleshipConfig.js';
+    import { battleshipApi, type GameState, type Ship } from '#lib/services/battleshipServices.js';
     import { createEventDispatcher } from 'svelte';
-    import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
-    import { soundManager } from '$lib/services/soundManager';
+    import { getLocalizedText, loadTexts, activeLanguage } from '#lib/stores/translatedTexts.js';
+    import { soundManager } from '#lib/services/soundManager.js';
 
     const pageTexts = 'battleship';
     let isLoadingTexts = true;
@@ -135,8 +136,8 @@
         for (const [type, details] of Object.entries(battleshipConfig.shipTypes)) {
             if (details.prefix === prefix) {
                 const shipTypeTranslations = battleshipConfig.shipTypeTranslations[type as keyof typeof battleshipConfig.shipTypeTranslations];
-                const activeLanguage = $activeLanguage;
-                return shipTypeTranslations[activeLanguage as keyof typeof shipTypeTranslations] || shipTypeTranslations.en;
+                const currentLanguage = get(activeLanguage);
+                return shipTypeTranslations[currentLanguage as keyof typeof shipTypeTranslations] || shipTypeTranslations.en;
             }
         }
         return "Ship";

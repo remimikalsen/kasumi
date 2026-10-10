@@ -1,27 +1,32 @@
-# Use the official Node.js 20 image as a base
-FROM node:20
+# ---- Build stage -----------------------------------------------------------
+FROM node:22-trixie-slim AS build
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the package.json and package-lock.json (if you have one)
+# Install all dependencies (dev dependencies are needed to build)
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of your application code
+# Copy the rest of the application code and build the SvelteKit app
 COPY . .
-
-# Build the SvelteKit app
 RUN npm run build
+
+# ---- Runtime stage ---------------------------------------------------------
+FROM node:22-trixie-slim
+
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Only the built server and production dependencies end up in the final image
+COPY --from=build /app/package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+COPY --from=build /app/build ./build
+
+# Run as the unprivileged node user
+USER node
 
 # Expose the port the app will run on
 EXPOSE 3000
 
-# Set environment variables if necessary
-ENV NODE_ENV=production
-
 # Command to start the Node.js server
 CMD ["node", "build"]
-

@@ -1,24 +1,26 @@
-# Use the official Node.js 20 image as the base image
-FROM node:20
+# Node 22 LTS, slim image for a smaller attack surface
+FROM node:22-trixie-slim
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available)
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install production dependencies only, from the lockfile
+RUN npm ci --omit=dev
 
 # Create the data directory
 RUN mkdir -p /app/data
 
-# Copy the rest of your application code to the container
+# Copy the application code to the container
 COPY ./src .
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chown -R node:node /app && chmod +x /app/entrypoint.sh
 
 # Expose the port your app runs on
 EXPOSE 3000
 
-# Define the command to run your app
+# The entrypoint fixes ownership of the data volume, then runs the server as the node user
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["node", "server.js"]
-

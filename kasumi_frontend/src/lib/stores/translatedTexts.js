@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { config } from '@lib/config.js';
+import { config } from '#lib/config.js';
 
 export const activeLanguage = writable(config.defaultLang);
 export const pageHeader = writable('');
@@ -33,7 +33,7 @@ export async function loadTexts(file) {
     }
 
     try {
-        const localeModule = await import(`@lib/translations/${lang}.${file}.json`);
+        const localeModule = await import(`../translations/${lang}.${file}.json`);
         loadedTexts.update(currentTexts => {
             if (!currentTexts[lang]) {
                 currentTexts[lang] = {};

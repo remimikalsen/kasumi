@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   kasumi_frontend:
@@ -11,6 +10,10 @@ services:
       - PUBLIC_VARIANT=original
       - PUBLIC_DEFAULT_LANG=no
       - PUBLIC_AVAILABLE_LANGS=["no", "en", "pt"]
+      # Shared secret between the browser and the SvelteKit API routes (leaderboards).
+      # Change these before deploying.
+      - PUBLIC_API_KEY=change-me-public
+      - PRIVATE_API_KEY=change-me-private
       - ANALYTICS_SCRIPT=
       - NODE_ENV=production
     ports:

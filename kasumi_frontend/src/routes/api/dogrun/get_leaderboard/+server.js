@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
-import { env as public_env } from '$env/dynamic/public';
+import { INTERNAL_API_URL } from '$app/env/private';
+import { PUBLIC_API_KEY } from '$app/env/public';
 
 export const GET = async ({ request }) => {
     // Validate the Authorization header
@@ -10,14 +10,14 @@ export const GET = async ({ request }) => {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const token = authHeader.substring('Bearer '.length).trim();
+    const token = authHeader.substring(('Bearer ').length).trim();
 
-    if (token !== public_env.PUBLIC_API_KEY) {
+    if (token !== PUBLIC_API_KEY) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Proceed with fetching the leaderboard
-    const url = `${env.INTERNAL_API_URL}/dogrun/get_leaderboard`;
+    const url = `${INTERNAL_API_URL}/dogrun/get_leaderboard`;
 
     try {
         const response = await fetch(url);

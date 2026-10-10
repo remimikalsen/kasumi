@@ -2,13 +2,13 @@
   import { onMount, onDestroy } from 'svelte';
   import Icon from '@iconify/svelte';
   import houseWithGarden from '@iconify-icons/twemoji/house-with-garden';
-  import Player from '$lib/components/pacmaze/Player.svelte';
-  import Ghost from '$lib/components/pacmaze/Ghost.svelte';
-  import VirtualKeyboard from '$lib/components/common/VirtualKeyboard.svelte';
-  import VirtualJoystick from '$lib/components/common/VirtualJoystickFourWay.svelte';
-  import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';  
-  import { env } from '$env/dynamic/public';
-    import { page } from '$app/stores';
+  import Player from '#lib/components/pacmaze/Player.svelte';
+  import Ghost from '#lib/components/pacmaze/Ghost.svelte';
+  import VirtualKeyboard from '#lib/components/common/VirtualKeyboard.svelte';
+  import VirtualJoystick from '#lib/components/common/VirtualJoystickFourWay.svelte';
+  import { getLocalizedText, loadTexts, activeLanguage } from '#lib/stores/translatedTexts.js';
+  import { PUBLIC_API_KEY } from '$app/env/public';
+  import { page } from '$app/state';
 
   let width;
   let height;
@@ -123,12 +123,12 @@
   ];
 
   async function fetchTexts() {
-            isLoadingTexts = true;
-            await loadTexts(pageTexts);
-            //await loadTexts(commonTexts);
-            isLoadingTexts = false;
-        }
-  $: $activeLanguage, fetchTexts();
+    isLoadingTexts = true;
+    await loadTexts(pageTexts);
+    //await loadTexts(commonTexts);
+    isLoadingTexts = false;
+  }
+  $: ($activeLanguage, fetchTexts());
 
   function resetGame() {
     totalTime = 0;
@@ -237,26 +237,26 @@
         const { key } = event.detail;
         const direction = { x: 0, y: 0 };
 
-        switch (key) {
-            case 'ArrowUp':
-                direction.y = -1;
-                break;
-            case 'ArrowDown':
-                direction.y = 1;
-                break;
-            case 'ArrowLeft':
-                direction.x = -1;
-                break;
-            case 'ArrowRight':
-                direction.x = 1;
-                break;
-        }
-
-        if (direction.x !== 0 || direction.y !== 0) {
-            handleMove({ detail: direction });
-        }
+    switch (key) {
+      case 'ArrowUp':
+        direction.y = -1;
+        break;
+      case 'ArrowDown':
+        direction.y = 1;
+        break;
+      case 'ArrowLeft':
+        direction.x = -1;
+        break;
+      case 'ArrowRight':
+        direction.x = 1;
+        break;
     }
-  
+
+    if (direction.x !== 0 || direction.y !== 0) {
+      handleMove({ detail: direction });
+    }
+  }
+
   function moveGhosts() {
     
     if (paused || !hasStarted) return;
@@ -274,8 +274,8 @@
       return maze[newY] && maze[newY][newX] === 0;
     }
 
-    ghosts.forEach(ghost => {
-      const validMoves = directions.filter(dir => isValidMove(ghost.position, dir));
+    ghosts.forEach((ghost) => {
+      const validMoves = directions.filter((dir) => isValidMove(ghost.position, dir));
       let changeDirection = false;
 
       if (validMoves.length > 0) {
@@ -286,9 +286,7 @@
           ? { x: -ghost.currentDirection.x, y: -ghost.currentDirection.y }
           : null;
 
-        const isReturning = ghost.previousPosition &&
-          validMoves.some(dir => dir.x === previousDirection.x && dir.y === previousDirection.y);
-
+        const isReturning = ghost.previousPosition && validMoves.some((dir) => dir.x === previousDirection.x && dir.y === previousDirection.y);
         const adjustedProbability = isReturning ? totalProbability / 2 : totalProbability;
 
         if (!ghost.currentDirection || !isValidMove(ghost.position, ghost.currentDirection) || Math.random() < adjustedProbability) {
@@ -297,7 +295,7 @@
 
         if (changeDirection) {
           const newValidMoves = isReturning
-            ? validMoves.filter(dir => dir.x !== previousDirection.x || dir.y !== previousDirection.y)
+            ? validMoves.filter((dir) => dir.x !== previousDirection.x || dir.y !== previousDirection.y)
             : validMoves;
 
           if (newValidMoves.length > 0) {
@@ -353,7 +351,7 @@
   }
 
   function checkCollision() {
-    ghosts.forEach(ghost => {
+    ghosts.forEach((ghost) => {
       if (playerPosition.x === ghost.position.x && playerPosition.y === ghost.position.y) {
         showGameOverMessage = true;
         currentMessage = getLocalizedText(pageTexts, "game_over");
@@ -373,18 +371,15 @@
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${env.PUBLIC_API_KEY}`
+        'Authorization': `Bearer ${PUBLIC_API_KEY}`
       },
       body: JSON.stringify({ initials, time })
     });
   } 
 
   async function fetchLeaderboard() {
-    const response = await fetch('/api/pacmaze/get_leaderboard', {
-        headers: {
-            'Authorization': `Bearer ${env.PUBLIC_API_KEY}`
-        }
-    });
+    const response = await fetch('/api/pacmaze/get_leaderboard', { headers: { 'Authorization': `Bearer ${PUBLIC_API_KEY}` } });
+
     return await response.json();
   }
 
@@ -456,12 +451,12 @@
       gameWrapper.width = width;
 
       gameWrapper.height = Array.from(gameWrapper.children).reduce((totalHeight, child) => {
-        const style = window.getComputedStyle(child);
-        const marginTop = parseFloat(style.marginTop);
-        const marginBottom = parseFloat(style.marginBottom);
-        return totalHeight + child.offsetHeight + marginTop + marginBottom;
+          const style = window.getComputedStyle(child);
+          const marginTop = parseFloat(style.marginTop);
+          const marginBottom = parseFloat(style.marginBottom);
+          return totalHeight + child.offsetHeight + marginTop + marginBottom;
       }, 0);
-      
+
       let pad = (window.innerHeight - gameWrapper.height)/2;
 
       if (width < 800) {
@@ -475,7 +470,7 @@
     }
 
    
-  }  
+  }
 
   function updateOverlayPositions() {
           //updateDimensions();
@@ -485,42 +480,42 @@
             gameWrapper.height = "unset";
           }
 
-          let addedBorders = 10;
-          
-          if (gameWrapper && pausedOverlay) {
+    let addedBorders = 10;
+
+    if (gameWrapper && pausedOverlay) {
               
-              const rect = gameWrapper.getBoundingClientRect();
-              pausedOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
-              pausedOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
+      const rect = gameWrapper.getBoundingClientRect();
+      pausedOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
+      pausedOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
               pausedOverlay.style.width = `${rect.width + addedBorders*2}px`;
               pausedOverlay.style.height = `${rect.height + addedBorders*2}px`;
-          }
+    }
 
-          if (gameWrapper && gameOverOverlay) {
-              const rect = gameWrapper.getBoundingClientRect();
-              gameOverOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
-              gameOverOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
+    if (gameWrapper && gameOverOverlay) {
+      const rect = gameWrapper.getBoundingClientRect();
+      gameOverOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
+      gameOverOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
               gameOverOverlay.style.width = `${rect.width + addedBorders*2}px`;
               gameOverOverlay.style.height = `${rect.height + addedBorders*2}px`;
-          }
+    }
 
-          if (gameWrapper && startOverlay) {
-              const rect = gameWrapper.getBoundingClientRect();
-              startOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
-              startOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
+    if (gameWrapper && startOverlay) {
+      const rect = gameWrapper.getBoundingClientRect();
+      startOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
+      startOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
               startOverlay.style.width = `${rect.width + addedBorders*2}px`;
               startOverlay.style.height = `${rect.height + addedBorders*2}px`;
-          }
+    }
 
-          if (gameWrapper && nextLevelOverlay) {
-              const rect = gameWrapper.getBoundingClientRect();
-              nextLevelOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
-              nextLevelOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
+    if (gameWrapper && nextLevelOverlay) {
+      const rect = gameWrapper.getBoundingClientRect();
+      nextLevelOverlay.style.top = `${rect.top + window.scrollY - addedBorders}px`;
+      nextLevelOverlay.style.left = `${rect.left + window.scrollX - addedBorders}px`;
               nextLevelOverlay.style.width = `${rect.width + addedBorders*2}px`;
               nextLevelOverlay.style.height = `${rect.height + addedBorders*2}px`;
-          }          
+    }
 
-  }  
+  }
 
 
   async function scrollAndFreeze() {
@@ -533,15 +528,18 @@
           const marginTop = parseFloat(style.marginTop);
           const marginBottom = parseFloat(style.marginBottom);
           return totalHeight + child.offsetHeight + marginTop + marginBottom;
-        }, 0);
-        let pad = (window.innerHeight - gameWrapper.height)/2;
-        gameWrapper.style.paddingTop = pad+'px';
-        gameWrapper.style.paddingBottom = pad+'px';
+        },
+        0
+      );
 
-        gameWrapper.scrollIntoView({ behavior: 'smooth' });
-        await waitForScrollToEnd();
-        document.body.classList.add('no-scroll');
-        window.addEventListener('touchmove', preventScroll, { passive: false });
+      let pad = (window.innerHeight - gameWrapper.height) / 2;
+
+      gameWrapper.style.paddingTop = pad + 'px';
+      gameWrapper.style.paddingBottom = pad + 'px';
+      gameWrapper.scrollIntoView({ behavior: 'smooth' });
+      await waitForScrollToEnd();
+      document.body.classList.add('no-scroll');
+      window.addEventListener('touchmove', preventScroll, { passive: false });
     } else {
       gameWrapper.style.paddingTop = "unset";
       gameWrapper.style.paddingBottom = "unset";
@@ -595,12 +593,12 @@
 
 
   function handleVisibilityChange() {
-      if (document.hidden) {
-          if (!paused) {
-          togglePause();
-          }
+    if (document.hidden) {
+      if (!paused) {
+        togglePause();
       }
-  }  
+    }
+  }
 
 
   function handleKeyDown(e) {
@@ -625,139 +623,154 @@
   }
 
 </script>
+
+
 {#if !isLoadingTexts}
-<div class="container">
-<div class="left-column">
-  <div class="game-wrapper" bind:this={gameWrapper}>
+  <div class="container">
+    <div class="left-column">
+      <div class="game-wrapper" bind:this={gameWrapper}>
   {#if maze }
-    <h2 class="level-denomination">{getLocalizedText(pageTexts, "level_title").replace('<LEVEL>', currentLevel).replace('<LEVELS>', mazes.length)}</h2>
-    <p class="total-time">{getLocalizedText(pageTexts, 'total_time')}: {(totalTime + levelTime).toFixed(2)} s</p>
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div bind:this={gameContainer} class="level" role="grid" tabindex="0" aria-label="{getLocalizedText(pageTexts, "aria_maze_title")}">
-      {#each maze as row, y}
-        {#each row as cell, x}
+          <h2 class="level-denomination">{getLocalizedText(pageTexts, "level_title").replace('<LEVEL>', currentLevel).replace('<LEVELS>', mazes.length)}</h2>
+          <p class="total-time">{getLocalizedText(pageTexts, 'total_time')}: {(totalTime + levelTime).toFixed(2)} s</p>
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+
+          <div
+            bind:this={gameContainer}
+            class="level"
+            role="grid"
+            tabindex="0"
+            aria-label={getLocalizedText(pageTexts, "aria_maze_title")}
+          >
+            {#each maze as row, y}
+              {#each row as cell, x}
           <div class="cell {cell === 1 ? 'wall' : ''}" style="grid-row: {y + 1}; grid-column: {x + 1};" role="gridcell" aria-label={cell === 1 ? getLocalizedText(pageTexts, "aria_wall") : getLocalizedText(pageTexts, "aria_corridor")}></div>
-        {/each}
-      {/each}
-      <Player {playerPosition} on:move={handleMove} />
-      {#each ghosts as ghost}
-        <Ghost position={ghost.position} />
-      {/each}
-      <div class="target" style="grid-row: {targetPosition.y + 1}; grid-column: {targetPosition.x + 1};">
-        <Icon icon={houseWithGarden} width="90%" height="90%" />
-      </div>
-    </div>
-  {/if}
+              {/each}
+            {/each}
 
-  <VirtualJoystick on:key={handleVirtualKey} />
+            <Player
+              playerPosition={playerPosition}
+              on:move={handleMove}
+            />
+
+            {#each ghosts as ghost}
+              <Ghost position={ghost.position} />
+            {/each}
+
+            <div
+              class="target"
+              style="grid-row: {targetPosition.y + 1}; grid-column: {targetPosition.x + 1};"
+            ><Icon icon={houseWithGarden} width="90%" height="90%" /></div>
+          </div>
+        {/if}
+
+        <VirtualJoystick on:key={handleVirtualKey} />
   
-  </div>
+      </div>
 
-  {#if hasStarted && !showGameOverMessage && !showCongratulations}
-  <button class="reset-button" on:click={resetGame}>{getLocalizedText(pageTexts, "start_over")}</button>
-  {/if}
+      {#if hasStarted && !showGameOverMessage && !showCongratulations}
+        <button class="reset-button" on:click={resetGame}>{getLocalizedText(pageTexts, "start_over")}</button>
+      {/if}
 
-</div>
-<div class="right-column">
-  {#if leaderboard && leaderboard.length > 0}
-  <div class="leaderboard">
-    <h2>{getLocalizedText(pageTexts, "high_score")}</h2>
-    <table>
-      <thead>
-        <tr>
-          <th class="rank">{getLocalizedText(pageTexts, "rank")}</th>
-          <th class="initials">{getLocalizedText(pageTexts, "initials")}</th>
-          <th class="time">{getLocalizedText(pageTexts, "leaderboard_score")}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each leaderboard as { initials, time }, i}
-          <tr>
-            <td class="rank">{i + 1}.</td>
-            <td class="initials">{initials}</td>
+    </div>
+    <div class="right-column">
+      {#if leaderboard && leaderboard.length > 0}
+        <div class="leaderboard">
+          <h2>{getLocalizedText(pageTexts, "high_score")}</h2>
+          <table>
+            <thead>
+              <tr>
+                <th class="rank">{getLocalizedText(pageTexts, "rank")}</th>
+                <th class="initials">{getLocalizedText(pageTexts, "initials")}</th>
+                <th class="time">{getLocalizedText(pageTexts, "leaderboard_score")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each leaderboard as { initials, time }, i}
+                <tr>
+                  <td class="rank">{i + 1}.</td>
+                  <td class="initials">{initials}</td>
             <td class="time">{time ? time.toFixed(2).replace('.', getLocalizedText(pageTexts, 'decimal_separator')) : ''} s</td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-  </div>
-  {/if}
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
 
-</div>
-</div>
+    </div>
+  </div>
 
 
 
 
 <div bind:this={gameOverOverlay} class="game-over-overlay { !showGameOverMessage && !showCongratulations ? 'hide' : ''}">
-  {#if showGameOverMessage}
-  <p class="game_over_message">{getLocalizedText(pageTexts, "game_over")}</p>
-  <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start_over")}</button>
-  {:else if showCongratulations && showKeyboard}
-  <p class="game_over_score">{currentMessage}</p>
-  <VirtualKeyboard onSubmit={handleSubmitInitials} />
-  {:else}
-  <p class="start_over">{getLocalizedText(pageTexts, "start_game")}</p>
-  <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start_over")}</button>
-  {#if leaderboard && leaderboard.length > 0}
-  <div class="leaderboard">
-    <h2>{getLocalizedText(pageTexts, "high_score")}</h2>
-    <table>
-      <thead>
-        <tr>
-          <th class="rank">{getLocalizedText(pageTexts, "rank")}</th>
-          <th class="initials">{getLocalizedText(pageTexts, "initials")}</th>
-          <th class="time">{getLocalizedText(pageTexts, "leaderboard_score")}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each leaderboard as { initials, time }, i}
-          <tr>
-            <td class="rank">{i + 1}.</td>
-            <td class="initials">{initials}</td>
+    {#if showGameOverMessage}
+      <p class="game_over_message">{getLocalizedText(pageTexts, "game_over")}</p>
+      <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start_over")}</button>
+    {:else if showCongratulations && showKeyboard}
+      <p class="game_over_score">{currentMessage}</p>
+      <VirtualKeyboard onSubmit={handleSubmitInitials} />
+    {:else}
+      <p class="start_over">{getLocalizedText(pageTexts, "start_game")}</p>
+      <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start_over")}</button>
+      {#if leaderboard && leaderboard.length > 0}
+        <div class="leaderboard">
+          <h2>{getLocalizedText(pageTexts, "high_score")}</h2>
+          <table>
+            <thead>
+              <tr>
+                <th class="rank">{getLocalizedText(pageTexts, "rank")}</th>
+                <th class="initials">{getLocalizedText(pageTexts, "initials")}</th>
+                <th class="time">{getLocalizedText(pageTexts, "leaderboard_score")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each leaderboard as { initials, time }, i}
+                <tr>
+                  <td class="rank">{i + 1}.</td>
+                  <td class="initials">{initials}</td>
             <td class="time">{time ? time.toFixed(2).replace('.', getLocalizedText(pageTexts, 'decimal_separator')) : ''} s</td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-  </div>
-  {/if}
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
 
-  {/if}
-</div>
+    {/if}
+  </div>
 
 <div bind:this={nextLevelOverlay} class="pause-overlay { !showNextLevelMessage ? 'hide' : ''}">
-  <p class="pause_title">{getLocalizedText(pageTexts, "level_complete_title")}</p>
+    <p class="pause_title">{getLocalizedText(pageTexts, "level_complete_title")}</p>
   <button class="next-level-button" on:click={startNextLevel} bind:this={nextLevelButton}>{getLocalizedText(pageTexts, "next_level")}</button>
-</div>
+  </div>
 
 <div bind:this={pausedOverlay} class="pause-overlay { !paused || !hasStarted ? 'hide' : ''}">
-  <p class="pause_title">{@html getLocalizedText(pageTexts, "p_to_resume")}</p>
+    <p class="pause_title">{@html getLocalizedText(pageTexts, "p_to_resume")}</p>
   <button class="pause" on:click={togglePause} disabled={showGameOverMessage || !hasStarted}>{paused ? getLocalizedText(pageTexts, "resume") : getLocalizedText(pageTexts, "pause")}</button>
-</div>
+  </div>
 
 <div bind:this={startOverlay} class="start-game-overlay { hasStarted ? 'hide' : ''}">
-  <p>{getLocalizedText(pageTexts, "start_game")}</p>
-  {#if !hasStarted}
-  <button class="reset" on:click={startGame}>{getLocalizedText(pageTexts, "start")}</button>
-  {:else}
-  <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start_over")}</button>
-  {/if}
+    <p>{getLocalizedText(pageTexts, "start_game")}</p>
+    {#if !hasStarted}
+      <button class="reset" on:click={startGame}>{getLocalizedText(pageTexts, "start")}</button>
+    {:else}
+      <button class="reset" on:click={resetGame}>{getLocalizedText(pageTexts, "start_over")}</button>
+    {/if}
   </div>
 
 {/if}
+
 <style>
+  h2.level-denomination {
+    color: #f05972;
+    font-family: 'Courier New', Courier, monospace;
+    margin-bottom: 0px;
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
 
-
-h2.level-denomination {
-  color: #f05972;
-  font-family: 'Courier New', Courier, monospace;
-  margin-bottom: 0px;
-  font-size: 1.8rem;
-  font-weight: bold;
-}
-
-.container {
+  .container {
     display: flex;
     justify-content: center;
     align-items: stretch;
@@ -767,132 +780,132 @@ h2.level-denomination {
 }
 
 
-.left-column,
-.right-column {
-  flex: 0 1 auto; 
-      display: flex;
+  .left-column,
+  .right-column {
+    flex: 0 1 auto;
+    display: flex;
       flex-direction: column; /* Stack content vertically */
       /*justify-content: center;*/ /* Center content vertically */
       align-items: center; /* Center content horizontally */
-      padding: 20px;
-      min-width: 320px;
-}
+    padding: 20px;
+    min-width: 320px;
+  }
 
-.game-wrapper {
-      display: flex;
-      flex-direction: column;
-      padding-left: 0;
-      align-items: center;
-      justify-content: center;
-}
+  .game-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding-left: 0;
+    align-items: center;
+    justify-content: center;
+  }
 
-.game-wrapper p.total-time {
-  margin-top: 0px;
-  margin-bottom: 20px;
-}
+  .game-wrapper p.total-time {
+    margin-top: 0px;
+    margin-bottom: 20px;
+  }
 
-.level {
-  display: grid;
-  grid-template-columns: repeat(20, 1fr);
-  grid-template-rows: repeat(20, 1fr);
-  min-width: 350px;
-  max-width: 700px;
-  min-height: 350px;
-  max-height: 700px;
-  aspect-ratio: 1 / 1;
-  /*border: 2px solid black;*/
-  position: relative;
-}
+  .level {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(20, 1fr);
+    min-width: 350px;
+    max-width: 700px;
+    min-height: 350px;
+    max-height: 700px;
+    aspect-ratio: 1 / 1;
+    /*border: 2px solid black;*/
+    position: relative;
+  }
 
-.cell {
-  width: 80%;
-  height: 80%;
+  .cell {
+    width: 80%;
+    height: 80%;
   box-sizing: border-box; /* Ensures padding and borders don't affect size */
-}
+  }
 
-.wall {
-  background-color: #3b263b;
+  .wall {
+    background-color: #3b263b;
 
-}
+  }
 
-.target {
-  width: 100%;
-  height: 100%;
-}
+  .target {
+    width: 100%;
+    height: 100%;
+  }
 
-.next-level-button,
-.reset-button {
-  margin-top: 50px;
-  margin-bottom: 0px;
-  background-color: #ca3049;
-  color: #e0e1dd;
-  padding: 12px 24px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  .next-level-button,
+  .reset-button {
+    margin-top: 50px;
+    margin-bottom: 0px;
+    background-color: #ca3049;
+    color: #e0e1dd;
+    padding: 12px 24px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
         user-select: none;  /* Prevent text selection */
-        -webkit-user-select: none;
-        -ms-user-select: none;
-        -moz-user-select: none;
-}
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+  }
 
-.next-level-button {
-  background-color: #1e4f1e; 
-  margin-top: 30px;
-  margin-bottom: 0px;
-}
+  .next-level-button {
+    background-color: #1e4f1e;
+    margin-top: 30px;
+    margin-bottom: 0px;
+  }
 
-.next-level-button:hover,
-.reset-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
-}
+  .next-level-button:hover,
+  .reset-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+  }
 
-.next-level-button:active,
-.reset-button:active {
-  transform: translateY(2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  background-color: #f0b300;
-}
+  .next-level-button:active,
+  .reset-button:active {
+    transform: translateY(2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    background-color: #f0b300;
+  }
 
-.leaderboard {
-  padding: 10px;
-  background-color: #1b263b;
-  color: #e0e1dd;
-  border-radius: 5px;
-  border-style: solid;
-  border-color: #f05972;
-  border-width: 2px;
-  box-shadow: 0 0px 12px rgba(237, 74, 213, 0.6);
-  width: 300px;
-  margin: 20px auto;
-}
+  .leaderboard {
+    padding: 10px;
+    background-color: #1b263b;
+    color: #e0e1dd;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: #f05972;
+    border-width: 2px;
+    box-shadow: 0 0px 12px rgba(237, 74, 213, 0.6);
+    width: 300px;
+    margin: 20px auto;
+  }
 
-.leaderboard h2 {
-  color: #f05972;
-  font-family: 'Courier New', Courier, monospace;
-  margin: 10px auto;
-  max-width: 290px;
-}
+  .leaderboard h2 {
+    color: #f05972;
+    font-family: 'Courier New', Courier, monospace;
+    margin: 10px auto;
+    max-width: 290px;
+  }
 
-.leaderboard table {
-  width: 100%;
-  border-collapse: collapse;  
-}
+  .leaderboard table {
+    width: 100%;
+    border-collapse: collapse;
+  }
 
 .leaderboard th, .leaderboard td {
-  padding: 5px;
-  text-align: left;
-}
+    padding: 5px;
+    text-align: left;
+  }
 
-.leaderboard th {
-  border-bottom: 2px solid #e0e1dd;
+  .leaderboard th {
+    border-bottom: 2px solid #e0e1dd;
   }
 
 .leaderboard tr:first-child td {
@@ -921,25 +934,25 @@ h2.level-denomination {
   font-weight: bold;
 }
 
-.leaderboard .rank {
-  width: 30%;
-  text-align: center;
-}
-.leaderboard .initials {
-  width: 35%;
-  text-align: center;
-}
+  .leaderboard .rank {
+    width: 30%;
+    text-align: center;
+  }
+  .leaderboard .initials {
+    width: 35%;
+    text-align: center;
+  }
 
-.leaderboard td.initials {
-  text-transform: uppercase;
-}
+  .leaderboard td.initials {
+    text-transform: uppercase;
+  }
 
-.leaderboard .time {
-  width: 35%;
-  text-align: center;
-}
+  .leaderboard .time {
+    width: 35%;
+    text-align: center;
+  }
 
-.pause-overlay,
+  .pause-overlay,
   .game-over-overlay,
   .start-game-overlay {
       position: absolute;
@@ -1006,34 +1019,34 @@ h2.level-denomination {
 
 
   @media (max-width: 800px) {
-  .container {
-    width: 100%;
+    .container {
+      width: 100%;
     flex-direction: column; /* Stack the columns on smaller screens */
-    padding: 0;
-    margin: 0;
-  }
+      padding: 0;
+      margin: 0;
+    }
 
-  .left-column,
-  .right-column {
-    flex: 0 1 auto; 
-    display: flex;
+    .left-column,
+    .right-column {
+      flex: 0 1 auto;
+      display: flex;
     flex-direction: column; /* Stack content vertically */
     /*justify-content: center;*/ /* Center content vertically */
     align-items: center; /* Center content horizontally */
-    padding: 0;
+      padding: 0;
+    }
+
+    .level {
+      margin: 0;
+      margin-left: 3px;
+    }
+
+    .game-wrapper {
+      width: 100%;
+    }
+
+
   }
-
-  .level {
-    margin: 0;
-    margin-left: 3px;
-  }
-
-  .game-wrapper {
-    width: 100%;
-  }
-
-
-}
 
 
 </style>

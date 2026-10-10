@@ -3,13 +3,14 @@ import { json } from '@sveltejs/kit';
 // Load env variables safely
 export const getEnv = async () => {
     try {
-        const { env } = await import('$env/dynamic/private');
-        const { env: publicEnv } = await import('$env/dynamic/public');
-        return { 
-            privateEnv: env, 
-            publicEnv 
+        const privateEnv = await import('$app/env/private');
+        const publicEnv = await import('$app/env/public');
+
+        return {
+            privateEnv: { INTERNAL_API_URL: privateEnv.INTERNAL_API_URL, PRIVATE_API_KEY: privateEnv.PRIVATE_API_KEY },
+            publicEnv: { PUBLIC_API_KEY: publicEnv.PUBLIC_API_KEY }
         };
-    } catch (error) {
+    } catch(error) {
         console.warn('Failed to load environment variables:', error instanceof Error ? error.message : String(error));
         return { 
             privateEnv: {}, 
@@ -27,9 +28,9 @@ export const validateApiRequest = async (request) => {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return { valid: false, error: 'Unauthorized', status: 401 };
     }
-    
-    const token = authHeader.substring('Bearer '.length).trim();
-    
+
+    const token = authHeader.substring(('Bearer ').length).trim();
+
     if (token !== publicEnv.PUBLIC_API_KEY) {
         return { valid: false, error: 'Unauthorized', status: 401 };
     }

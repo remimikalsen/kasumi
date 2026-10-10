@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../common/db');
+const { parseInitials, parseInteger } = require('../common/validate');
 
 const router = express.Router();
 
@@ -10,7 +11,13 @@ db.serialize(() => {
 
 // Endpoint to submit a score
 router.post('/dogrun/submit_score', (req, res) => {
-  const { initials, bones } = req.body;
+  const initials = parseInitials(req.body?.initials);
+  const bones = parseInteger(req.body?.bones);
+
+  if (!initials || bones === null) {
+    return res.status(400).send('Invalid initials or bones value');
+  }
+
   const stmt = db.prepare('INSERT INTO dogrun_leaderboard (initials, bones) VALUES (?, ?)');
   stmt.run(initials, bones, function(err) {
     if (err) {
@@ -41,7 +48,12 @@ router.get('/dogrun/get_leaderboard', (req, res) => {
 
 // Endpoint to clear initials with certain scores from leaderboard
 router.post('/dogrun/delete_score', (req, res) => {
-  const { initials, bones } = req.body;
+  const initials = parseInitials(req.body?.initials);
+  const bones = parseInteger(req.body?.bones);
+
+  if (!initials || bones === null) {
+    return res.status(400).send('Invalid initials or bones value');
+  }
 
   // Corrected SQL syntax for DELETE query
   const stmt = db.prepare('DELETE FROM dogrun_leaderboard WHERE initials = ? AND bones = ?');

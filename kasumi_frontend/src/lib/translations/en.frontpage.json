@@ -1,5 +1,10 @@
 {
     "contentIngress": "We made some games with dad. Can you beat the records?",
+    "puddelTopScoreIntro": "Fastest catch of Nelly",
+    "puddelImgAltText": "Screenshot of Catch Nelly",
+    "puddelTopScore": "<INITIALS> - <TIME> <TIME_TEXT>",
+    "puddel_time_singular": "second",
+    "puddel_time_plural": "seconds",
     "dogRunTopScoreIntro": "Most bones in DogRun",
     "dogRunImgAltText": "Screenshot of DogRun",
     "dogRunTopScore": "<INITIALS> - <SCORE> <BONE_TEXT>",
@@ -22,5 +27,6 @@
     "battleshipImgAltText": "Screenshot of Battleship",
     "battleshipTopScore": "<INITIALS> - <STREAK> <STREAK_TEXT>",
     "streak_singular": "win in a row",
-    "streak_plural": "wins in a row"
+    "streak_plural": "wins in a row",
+    "noScores": "No registered players yet"
 }

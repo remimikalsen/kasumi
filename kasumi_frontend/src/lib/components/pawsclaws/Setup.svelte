@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Dropdown from '@lib/components/common/Dropdown.svelte';
+  import Dropdown from '#lib/components/common/Dropdown.svelte';
   import SelectPlayerIcons from './SelectPlayerIcons.svelte';
   import { createEventDispatcher } from 'svelte';
   import { Fa } from 'svelte-fa';
   import { faPlayCircle } from '@fortawesome/free-solid-svg-icons';    
 
-  import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
+  import { getLocalizedText, loadTexts, activeLanguage } from '#lib/stores/translatedTexts.js';
 
   const pageTexts = 'pawsclaws';
   let isLoading = true;

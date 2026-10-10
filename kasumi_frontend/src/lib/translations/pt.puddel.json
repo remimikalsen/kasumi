@@ -1,0 +1,904 @@
+{
+    "headerTitle": "Apanha a Nelly",
+    "headerSubTitle": "Responde bem e apanha a caniche!",
+    "intro": "A carraça persegue a Nelly, a caniche cor de alperce. Responde certo às perguntas para correr mais depressa e salta por cima dos obstáculos.",
+    "speed": "Velocidade",
+    "nelly_speed": "A Nelly corre a 30 km/h",
+    "kmh": "km/h",
+    "distance": "Distância até à Nelly",
+    "meters": "m",
+    "correct_answers": "Respostas certas",
+    "time": "Tempo",
+    "canvas_label": "Tabuleiro: a carraça corre atrás da Nelly",
+    "question": "Pergunta",
+    "question_hint": "5 segundos · resposta certa dá mais velocidade",
+    "help_jump": "Saltar: espaço, seta para cima ou toca na imagem",
+    "help_answer": "Responder: teclas 1, 2, 3 ou clica",
+    "sound_on": "Som: ligado",
+    "sound_off": "Som: desligado",
+    "start_title": "Apanha a Nelly!",
+    "start_text": "A Nelly é uma caniche cor de alperce que foge de ti. Tu és uma pequena carraça que quer sentar-se nela.",
+    "start_rule_1": "Responde certo às perguntas e corres mais depressa do que a Nelly.",
+    "start_rule_2": "Salta por cima de pedras, troncos e ouriços. Se bateres em alguma coisa, ficas mais lento.",
+    "start_rule_3": "Se a Nelly ficar a 150 metros de distância, ela foge.",
+    "start_button": "Começar a caça",
+    "win_title": "Apanhaste a Nelly!",
+    "win_text": "A carraça está bem instalada no pelo cor de alperce. A Nelly não está tão contente.",
+    "lose_title": "A Nelly fugiu!",
+    "lose_text": "Ela ficou demasiado longe. Responde certo a mais perguntas para manter a velocidade.",
+    "play_again": "Jogar outra vez",
+    "try_again": "Tentar outra vez",
+    "stat_time": "tempo",
+    "stat_correct": "respostas certas",
+    "stat_hits": "obstáculos atingidos",
+    "toast_correct": "Certo! A carraça corre mais depressa!",
+    "toast_wrong": "Errado. Resposta certa: <ANSWER>",
+    "toast_hit": "Ai! Bateste em <OBSTACLE>.",
+    "nelly_away": "Nelly  →  <METERS> m",
+    "obstacle_rock": "uma pedra",
+    "obstacle_log": "um tronco",
+    "obstacle_puddle": "uma poça",
+    "obstacle_cone": "uma pinha",
+    "obstacle_hedgehog": "um ouriço",
+    "high_score": "Caçadores mais rápidos",
+    "rank": "Posição",
+    "initials": "Jogador",
+    "leaderboard_time": "Tempo",
+    "decimal_separator": ",",
+    "your_time": "O teu tempo",
+    "pretext_submit_highscore": "Entraste na lista dos melhores?",
+    "initials_label": "As tuas iniciais",
+    "submit_label": "Guardar",
+    "time_left": "Tempo restante",
+    "toast_timeout": "Acabou o tempo! Resposta certa: <ANSWER>",
+    "questions": [
+        [
+            "Quanto é 7 + 8?",
+            [
+                "15",
+                "14",
+                "16"
+            ]
+        ],
+        [
+            "Quantas patas tem uma carraça?",
+            [
+                "8",
+                "6",
+                "4"
+            ]
+        ],
+        [
+            "Que cor obténs ao misturar amarelo e azul?",
+            [
+                "Verde",
+                "Roxo",
+                "Laranja"
+            ]
+        ],
+        [
+            "Qual é a capital da Noruega?",
+            [
+                "Oslo",
+                "Bergen",
+                "Trondheim"
+            ]
+        ],
+        [
+            "Quantos dias tem uma semana?",
+            [
+                "7",
+                "5",
+                "10"
+            ]
+        ],
+        [
+            "Quanto é 9 × 6?",
+            [
+                "54",
+                "56",
+                "45"
+            ]
+        ],
+        [
+            "Que animal faz «muu»?",
+            [
+                "Vaca",
+                "Ovelha",
+                "Porco"
+            ]
+        ],
+        [
+            "Quantos meses tem um ano?",
+            [
+                "12",
+                "10",
+                "24"
+            ]
+        ],
+        [
+            "Qual é o maior animal do mar?",
+            [
+                "Baleia-azul",
+                "Tubarão",
+                "Golfinho"
+            ]
+        ],
+        [
+            "Quanto é 100 − 37?",
+            [
+                "63",
+                "73",
+                "67"
+            ]
+        ],
+        [
+            "Qual é o planeta mais próximo do sol?",
+            [
+                "Mercúrio",
+                "Vénus",
+                "Marte"
+            ]
+        ],
+        [
+            "Qual é o rio mais comprido da Noruega?",
+            [
+                "Glomma",
+                "Tana",
+                "Otra"
+            ]
+        ],
+        [
+            "Quantos cantos tem um triângulo?",
+            [
+                "3",
+                "4",
+                "5"
+            ]
+        ],
+        [
+            "Qual destas palavras é um verbo?",
+            [
+                "Correr",
+                "Cão",
+                "Vermelho"
+            ]
+        ],
+        [
+            "Qual é a metade de 48?",
+            [
+                "24",
+                "28",
+                "22"
+            ]
+        ],
+        [
+            "Qual é a montanha mais alta da Noruega?",
+            [
+                "Galdhøpiggen",
+                "Snøhetta",
+                "Glittertind"
+            ]
+        ],
+        [
+            "Quantos minutos tem uma hora?",
+            [
+                "60",
+                "100",
+                "30"
+            ]
+        ],
+        [
+            "Que tipo de animal é um caniche?",
+            [
+                "Cão",
+                "Gato",
+                "Coelho"
+            ]
+        ],
+        [
+            "Quanto é 12 × 12?",
+            [
+                "144",
+                "124",
+                "132"
+            ]
+        ],
+        [
+            "Que dia vem depois de terça-feira?",
+            [
+                "Quarta-feira",
+                "Segunda-feira",
+                "Quinta-feira"
+            ]
+        ],
+        [
+            "Que estação vem depois do outono?",
+            [
+                "Inverno",
+                "Primavera",
+                "Verão"
+            ]
+        ],
+        [
+            "Quanto é 15 + 27?",
+            [
+                "42",
+                "41",
+                "43"
+            ]
+        ],
+        [
+            "Quantos zeros tem o número mil?",
+            [
+                "3",
+                "2",
+                "4"
+            ]
+        ],
+        [
+            "Que país tem Copenhaga como capital?",
+            [
+                "Dinamarca",
+                "Suécia",
+                "Finlândia"
+            ]
+        ],
+        [
+            "Qual destes números é par?",
+            [
+                "8",
+                "7",
+                "9"
+            ]
+        ],
+        [
+            "Quanto é 81 ÷ 9?",
+            [
+                "9",
+                "8",
+                "7"
+            ]
+        ],
+        [
+            "O que come uma carraça?",
+            [
+                "Sangue",
+                "Erva",
+                "Bagas"
+            ]
+        ],
+        [
+            "Qual é o contrário de «frio»?",
+            [
+                "Quente",
+                "Molhado",
+                "Escuro"
+            ]
+        ],
+        [
+            "De que cor é um alperce?",
+            [
+                "Laranja",
+                "Azul",
+                "Verde"
+            ]
+        ],
+        [
+            "Quantas faces tem um dado?",
+            [
+                "6",
+                "4",
+                "8"
+            ]
+        ],
+        [
+            "Quanto é 3 × 7 + 4?",
+            [
+                "25",
+                "21",
+                "28"
+            ]
+        ],
+        [
+            "Que animal tem o pescoço mais comprido?",
+            [
+                "Girafa",
+                "Elefante",
+                "Cavalo"
+            ]
+        ],
+        [
+            "Que número vem a seguir a 2, 4, 8, 16?",
+            [
+                "32",
+                "24",
+                "20"
+            ]
+        ],
+        [
+            "Qual é a última letra do alfabeto?",
+            [
+                "Z",
+                "Y",
+                "W"
+            ]
+        ],
+        [
+            "Quanto é 1000 − 1?",
+            [
+                "999",
+                "990",
+                "99"
+            ]
+        ],
+        [
+            "Que instrumento tem 88 teclas?",
+            [
+                "Piano",
+                "Guitarra",
+                "Violino"
+            ]
+        ],
+        [
+            "Que animal põe ovos?",
+            [
+                "Galinha",
+                "Vaca",
+                "Gato"
+            ]
+        ],
+        [
+            "Quantas horas tem um dia?",
+            [
+                "24",
+                "12",
+                "48"
+            ]
+        ],
+        [
+            "Quanto é 6 × 7?",
+            [
+                "42",
+                "48",
+                "36"
+            ]
+        ],
+        [
+            "Que oceano fica a oeste da Noruega?",
+            [
+                "O Atlântico",
+                "O Pacífico",
+                "O Índico"
+            ]
+        ],
+        [
+            "Como se chama o petisco que um caniche recebe quando se porta bem?",
+            [
+                "Guloseima",
+                "Papa",
+                "Erva"
+            ]
+        ],
+        [
+            "Quanto é 250 + 250?",
+            [
+                "500",
+                "450",
+                "550"
+            ]
+        ],
+        [
+            "Qual destes animais é o maior?",
+            [
+                "Elefante",
+                "Cavalo",
+                "Lobo"
+            ]
+        ],
+        [
+            "Quantas letras tem a palavra «Nelly»?",
+            [
+                "5",
+                "4",
+                "6"
+            ]
+        ],
+        [
+            "Quanto é um quarto de 100?",
+            [
+                "25",
+                "20",
+                "50"
+            ]
+        ],
+        [
+            "Quanto é 8 × 7?",
+            [
+                "56",
+                "54",
+                "64"
+            ]
+        ],
+        [
+            "Quanto é 45 + 38?",
+            [
+                "83",
+                "73",
+                "85"
+            ]
+        ],
+        [
+            "Quanto é 72 − 29?",
+            [
+                "43",
+                "47",
+                "53"
+            ]
+        ],
+        [
+            "Quanto é 64 ÷ 8?",
+            [
+                "8",
+                "6",
+                "9"
+            ]
+        ],
+        [
+            "Quanto é 11 × 11?",
+            [
+                "121",
+                "111",
+                "131"
+            ]
+        ],
+        [
+            "Qual é o dobro de 35?",
+            [
+                "70",
+                "60",
+                "75"
+            ]
+        ],
+        [
+            "Quanto é 5 × 5 × 2?",
+            [
+                "50",
+                "25",
+                "40"
+            ]
+        ],
+        [
+            "Quantos segundos tem dois minutos?",
+            [
+                "120",
+                "60",
+                "200"
+            ]
+        ],
+        [
+            "Quanto é 9 + 9 + 9?",
+            [
+                "27",
+                "18",
+                "29"
+            ]
+        ],
+        [
+            "Que número vem a seguir a 5, 10, 15, 20?",
+            [
+                "25",
+                "30",
+                "22"
+            ]
+        ],
+        [
+            "Qual é a terça parte de 90?",
+            [
+                "30",
+                "45",
+                "20"
+            ]
+        ],
+        [
+            "Quantos centímetros tem um metro?",
+            [
+                "100",
+                "10",
+                "1000"
+            ]
+        ],
+        [
+            "Quantos gramas tem um quilo?",
+            [
+                "1000",
+                "100",
+                "500"
+            ]
+        ],
+        [
+            "Quanto é 7 × 9?",
+            [
+                "63",
+                "56",
+                "72"
+            ]
+        ],
+        [
+            "Quanto é 1000 ÷ 10?",
+            [
+                "100",
+                "10",
+                "1000"
+            ]
+        ],
+        [
+            "Quantos cantos tem um quadrado?",
+            [
+                "4",
+                "3",
+                "6"
+            ]
+        ],
+        [
+            "Quanto é 15 × 2 + 5?",
+            [
+                "35",
+                "30",
+                "40"
+            ]
+        ],
+        [
+            "Qual destes números é ímpar?",
+            [
+                "13",
+                "10",
+                "16"
+            ]
+        ],
+        [
+            "Quantas semanas tem um ano?",
+            [
+                "52",
+                "48",
+                "60"
+            ]
+        ],
+        [
+            "Quantos dias tem fevereiro num ano bissexto?",
+            [
+                "29",
+                "28",
+                "30"
+            ]
+        ],
+        [
+            "Qual é o maior planeta do sistema solar?",
+            [
+                "Júpiter",
+                "Saturno",
+                "Terra"
+            ]
+        ],
+        [
+            "Que planeta é chamado o planeta vermelho?",
+            [
+                "Marte",
+                "Vénus",
+                "Júpiter"
+            ]
+        ],
+        [
+            "O que gira à volta da Terra?",
+            [
+                "A Lua",
+                "O Sol",
+                "Marte"
+            ]
+        ],
+        [
+            "De que gás precisamos para respirar?",
+            [
+                "Oxigénio",
+                "Hélio",
+                "Hidrogénio"
+            ]
+        ],
+        [
+            "Em que se transforma a água quando congela?",
+            [
+                "Gelo",
+                "Vapor",
+                "Neve"
+            ]
+        ],
+        [
+            "A quantos graus ferve a água?",
+            [
+                "100",
+                "50",
+                "200"
+            ]
+        ],
+        [
+            "Quantas cores tem o arco-íris?",
+            [
+                "7",
+                "5",
+                "9"
+            ]
+        ],
+        [
+            "Que cor obténs ao misturar vermelho e branco?",
+            [
+                "Cor-de-rosa",
+                "Roxo",
+                "Castanho"
+            ]
+        ],
+        [
+            "Que cor obténs ao misturar vermelho e azul?",
+            [
+                "Roxo",
+                "Verde",
+                "Laranja"
+            ]
+        ],
+        [
+            "Quantas patas tem uma aranha?",
+            [
+                "8",
+                "6",
+                "10"
+            ]
+        ],
+        [
+            "Quantas patas tem um inseto?",
+            [
+                "6",
+                "8",
+                "4"
+            ]
+        ],
+        [
+            "Qual é o animal mais rápido em terra?",
+            [
+                "Chita",
+                "Leão",
+                "Cavalo"
+            ]
+        ],
+        [
+            "Que animal faz mel?",
+            [
+                "Abelha",
+                "Formiga",
+                "Vespa"
+            ]
+        ],
+        [
+            "Que animal tem uma bolsa para as crias?",
+            [
+                "Canguru",
+                "Elefante",
+                "Urso"
+            ]
+        ],
+        [
+            "Em que se transforma uma lagarta?",
+            [
+                "Borboleta",
+                "Abelha",
+                "Mosca"
+            ]
+        ],
+        [
+            "Em que se transforma um girino?",
+            [
+                "Rã",
+                "Peixe",
+                "Lagarto"
+            ]
+        ],
+        [
+            "Que animal tem riscas pretas e brancas?",
+            [
+                "Zebra",
+                "Girafa",
+                "Leopardo"
+            ]
+        ],
+        [
+            "Que ave não consegue voar?",
+            [
+                "Pinguim",
+                "Águia",
+                "Gaivota"
+            ]
+        ],
+        [
+            "Quantas asas tem uma ave?",
+            [
+                "2",
+                "4",
+                "6"
+            ]
+        ],
+        [
+            "Que tipo de animal é um golfinho?",
+            [
+                "Mamífero",
+                "Peixe",
+                "Ave"
+            ]
+        ],
+        [
+            "Que animal faz «au au»?",
+            [
+                "Cão",
+                "Gato",
+                "Cavalo"
+            ]
+        ],
+        [
+            "Como se chama a cria do cão?",
+            [
+                "Cachorro",
+                "Vitelo",
+                "Potro"
+            ]
+        ],
+        [
+            "O que faz um cão com a cauda quando está contente?",
+            [
+                "Abana",
+                "Cava",
+                "Dorme"
+            ]
+        ],
+        [
+            "Com o que cheira um cão?",
+            [
+                "Focinho",
+                "Bico",
+                "Chifres"
+            ]
+        ],
+        [
+            "Quantas patas tem um caniche?",
+            [
+                "4",
+                "2",
+                "6"
+            ]
+        ],
+        [
+            "Com que animal é a carraça aparentada?",
+            [
+                "Aranha",
+                "Escaravelho",
+                "Formiga"
+            ]
+        ],
+        [
+            "Qual é a capital da Suécia?",
+            [
+                "Estocolmo",
+                "Gotemburgo",
+                "Malmö"
+            ]
+        ],
+        [
+            "Qual é a capital de Portugal?",
+            [
+                "Lisboa",
+                "Porto",
+                "Madrid"
+            ]
+        ],
+        [
+            "Qual é a capital de Inglaterra?",
+            [
+                "Londres",
+                "Paris",
+                "Dublin"
+            ]
+        ],
+        [
+            "Que país fica a leste da Noruega?",
+            [
+                "Suécia",
+                "Dinamarca",
+                "Islândia"
+            ]
+        ],
+        [
+            "Que país é conhecido pela Torre Eiffel?",
+            [
+                "França",
+                "Itália",
+                "Espanha"
+            ]
+        ],
+        [
+            "Qual é a segunda maior cidade da Noruega?",
+            [
+                "Bergen",
+                "Trondheim",
+                "Stavanger"
+            ]
+        ],
+        [
+            "Quantos continentes existem?",
+            [
+                "7",
+                "5",
+                "9"
+            ]
+        ],
+        [
+            "Qual é o maior oceano?",
+            [
+                "O Pacífico",
+                "O Atlântico",
+                "O Mar do Norte"
+            ]
+        ],
+        [
+            "Em que direção se põe o sol?",
+            [
+                "Oeste",
+                "Este",
+                "Norte"
+            ]
+        ],
+        [
+            "Quantas vogais tem a palavra «caniche»?",
+            [
+                "3",
+                "2",
+                "4"
+            ]
+        ],
+        [
+            "Qual destas palavras é um substantivo?",
+            [
+                "Bola",
+                "Saltar",
+                "Rápido"
+            ]
+        ],
+        [
+            "Qual é o plural de «cão»?",
+            [
+                "Cães",
+                "Cãos",
+                "Cãozinho"
+            ]
+        ],
+        [
+            "Qual é o contrário de «grande»?",
+            [
+                "Pequeno",
+                "Comprido",
+                "Pesado"
+            ]
+        ],
+        [
+            "Que mês vem depois de março?",
+            [
+                "Abril",
+                "Maio",
+                "Fevereiro"
+            ]
+        ],
+        [
+            "Quantas horas há das 9 às 14?",
+            [
+                "5",
+                "4",
+                "6"
+            ]
+        ]
+    ]
+}

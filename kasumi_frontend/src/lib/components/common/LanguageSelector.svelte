@@ -1,8 +1,8 @@
 <script>
     import { onMount } from 'svelte';
-    import { activeLanguage, getLocalizedText, loadTexts } from '$lib/stores/translatedTexts.js';
-    import { config } from '@lib/config.js';
-    import Dropdown from '$lib/components/common/Dropdown.svelte';
+    import { activeLanguage, getLocalizedText, loadTexts } from '#lib/stores/translatedTexts.js';
+    import { config } from '#lib/config.js';
+    import Dropdown from '#lib/components/common/Dropdown.svelte';
 
     const componentFile = 'languageselector';
     const languages = config.availableLangs;

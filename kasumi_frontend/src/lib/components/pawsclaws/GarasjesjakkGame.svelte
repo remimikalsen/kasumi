@@ -19,9 +19,9 @@
       faUndo,
       faRedo,
     } from '@fortawesome/free-solid-svg-icons';
-    import Dropdown from '@lib/components/common/Dropdown.svelte';
+    import Dropdown from '#lib/components/common/Dropdown.svelte';
 
-    import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
+    import { getLocalizedText, loadTexts, activeLanguage } from '#lib/stores/translatedTexts.js';
 
     const pageTexts = 'pawsclaws';
     let isLoading = true;    
@@ -294,7 +294,15 @@
       showTrophy = !!winner;
     }
 
-  </script>
+  
+    // Labels for the rules summary. Kept as reactive statements so they update when the setup changes.
+    const findLabel = (options: any[], value: any) => options.find((option) => option.value === value)?.label ?? '';
+    $: boardWidthLabel = findLabel(boardWidthOptions, boardWidth);
+    $: boardHeightLabel = findLabel(boardHeightOptions, boardHeight);
+    $: numPlayersLabel = findLabel(numPlayersOptions, numPlayers);
+    $: winConditionLabel = findLabel(winConditionOptions, winCondition);
+    $: groundRuleLabel = findLabel(groundRuleOptions, groundRule);
+</script>
   
   {#if !isLoading}
 
@@ -414,11 +422,11 @@
         <p>{getLocalizedText(pageTexts, "rules")}</p>
         <ul>
           <li>
-            {boardWidthOptions.find(option => option.value === boardWidth).label} x {boardHeightOptions.find(option => option.value === boardHeight).label}
+            {boardWidthLabel} x {boardHeightLabel}
           </li>
-          <li>{numPlayersOptions.find(option => option.value === numPlayers).label}</li>
-          <li>{winConditionOptions.find(option => option.value === winCondition).label} {getLocalizedText(pageTexts, "to_win")}</li>
-          <li>{groundRuleOptions.find(option => option.value === groundRule).label}</li>
+          <li>{numPlayersLabel}</li>
+          <li>{winConditionLabel} {getLocalizedText(pageTexts, "to_win")}</li>
+          <li>{groundRuleLabel}</li>
         </ul>
         <button on:click={newSetup}>
           {getLocalizedText(pageTexts, "choose_rules")} <Fa icon={faCog} />

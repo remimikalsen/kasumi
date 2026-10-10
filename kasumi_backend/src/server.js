@@ -1,12 +1,15 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const dogrun = require('./dogrun/api');
 const pacmaze = require('./pacmaze/api');
 const spaceadventure = require('./spaceadventure/api');
 const battleship = require('./battleship/api');
+const puddel = require('./puddel/api');
 
 const app = express();
+
+// Do not advertise the framework
+app.disable('x-powered-by');
 
 // Security headers middleware
 app.use((req, res, next) => {
@@ -68,13 +71,26 @@ app.use(cors({
   maxAge: 86400 // 24 hours
 }));
 
-app.use(bodyParser.json());
+// Parse JSON bodies with a small size limit; the API only receives tiny payloads
+app.use(express.json({ limit: '16kb' }));
+
+// Return a clean 400 on malformed JSON instead of a stack trace
+app.use((err, req, res, next) => {
+  if (err && err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Invalid JSON' });
+  }
+  if (err && err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'Payload too large' });
+  }
+  next(err);
+});
 
 // Use sub-project routes
 app.use('/api', dogrun);
 app.use('/api', pacmaze);
 app.use('/api', spaceadventure);
 app.use('/api', battleship);
+app.use('/api', puddel);
 
 app.listen(3000, () => {
   console.log('Backend server running on port 3000');

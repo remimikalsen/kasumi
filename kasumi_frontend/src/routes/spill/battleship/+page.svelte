@@ -1,15 +1,23 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { env } from '$env/dynamic/public';
-    import { getLocalizedText, loadTexts, pageHeader, pageSubHeader, documentTitle } from '$lib/stores/translatedTexts.js';
-    import BattleshipGame from '$lib/components/battleship/BattleshipGame.svelte';
+    import { PUBLIC_VARIANT } from '$app/env/public';
+
+    import {
+        getLocalizedText,
+        loadTexts,
+        pageHeader,
+        pageSubHeader,
+        documentTitle
+    } from '#lib/stores/translatedTexts.js';
+
+    import BattleshipGame from '#lib/components/battleship/BattleshipGame.svelte';
     
     // Load language texts
     let pageTexts = 'battleship';
     let commonTexts = 'common';
     let isLoading = true;
 
-    let alt = env.PUBLIC_VARIANT === 'alt' ? 'Alt' : '';
+    let alt = PUBLIC_VARIANT === 'alt' ? 'Alt' : '';
 
     async function fetchTexts() {
         isLoading = true;

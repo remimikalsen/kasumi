@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
+import { PRIVATE_API_KEY, INTERNAL_API_URL } from '$app/env/private';
 
 export const POST = async ({ request }) => {
     // Validate the Authorization header
@@ -9,14 +9,14 @@ export const POST = async ({ request }) => {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const token = authHeader.substring('Bearer '.length).trim();
+    const token = authHeader.substring(('Bearer ').length).trim();
 
-    if (token !== env.PRIVATE_API_KEY) {
+    if (token !== PRIVATE_API_KEY) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Proceed with relaying the score to the internal server
-    const url = `${env.INTERNAL_API_URL}/pacmaze/delete_score`;
+    const url = `${INTERNAL_API_URL}/pacmaze/delete_score`;
 
     try {
         const { initials, time } = await request.json();

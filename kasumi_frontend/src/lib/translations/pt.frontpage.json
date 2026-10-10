@@ -1,5 +1,10 @@
 {
     "contentIngress": "Fizemos alguns jogos com o pai. Consegues bater os recordes?",
+    "puddelTopScoreIntro": "Captura mais rápida da Nelly",
+    "puddelImgAltText": "Captura de ecrã de Apanha a Nelly",
+    "puddelTopScore": "<INITIALS> - <TIME> <TIME_TEXT>",
+    "puddel_time_singular": "segundo",
+    "puddel_time_plural": "segundos",
     "dogRunTopScoreIntro": "Mais ossos no DogRun",
     "dogRunImgAltText": "Captura de ecrã do DogRun",
     "dogRunTopScore": "<INITIALS> - <SCORE> <BONE_TEXT>",
@@ -22,5 +27,6 @@
     "battleshipImgAltText": "Captura de ecrã de Battleship",
     "battleshipTopScore": "<INITIALS> - <STREAK> <STREAK_TEXT>",
     "streak_singular": "vitoria seguida",
-    "streak_plural": "vitórias seguidas"
+    "streak_plural": "vitórias seguidas",
+    "noScores": "Ainda não há jogadores registados"
 }

@@ -11,11 +11,12 @@ Welcome to the Kasumi Project! This README will guide you through the setup and 
 - [License](#license)
 
 ## Introduction
-Kasumi is a project designed to introduce my kids to programming - and show them how a computer game can be made. Currently, Kasumi iw a simple, multi-lingual web page, that consists of a front page and a few games, Space Adventure, DogRun, PacMaze and Paws vs Claws. Each game has their own high score system.
+Kasumi is a project designed to introduce my kids to programming - and show them how a computer game can be made. Currently, Kasumi is a simple, multi-lingual web page, that consists of a front page and a few games: Catch Nelly, Space Adventure, DogRun, PacMaze, Paws vs Claws and Battleship. Most games have their own high score system.
 
 All games are featured on the front page, with the currently highest score also featured along with a screenshot of each game.
 
 ## Featuring games
+- Catch Nelly (Fang Nelly): A quiz runner. You are a tick chasing Nelly the apricot poodle; answer questions to run faster, jump the obstacles and catch her as fast as you can!
 - Space Adventure: Blast the asteroids and see how long you last!
 - DogRun: Save the dog from the dog catchers, avoid holes and collect bones on the way to its home.
 - PacMaze: Guide the scared kid through the maze, away from the ghosts and safely to its home.
@@ -50,8 +51,18 @@ You may also change the ports you expose; if for example your port 8080 is taken
 
 
 ## Translations
-The project features three languages; Norwegian, English and Portuguese. Translations are located under /src/lib/translations. Adding another language is a matter of copying language files form an existing language and adding the language to the list of available languages in docker-compose.
+The project features three languages; Norwegian, English and Portuguese. Translations are located under kasumi_frontend/src/lib/translations. Adding another language is a matter of copying language files form an existing language and adding the language to the list of available languages in docker-compose.
 
+
+## Development
+The front-end is a SvelteKit 3 / Svelte 5 app and the back-end is a small Express API with SQLite (leaderboards) and Redis (Battleship games). Both require Node.js 22 or newer.
+
+```bash
+cd kasumi_backend && npm install && npm start
+cd kasumi_frontend && npm install && npm run dev
+```
+
+Run `npm audit` in both folders now and then to keep the dependencies free of known vulnerabilities.
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.

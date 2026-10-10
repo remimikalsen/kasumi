@@ -1,10 +1,10 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
-    import VirtualKeyboard from '$lib/components/common/VirtualKeyboard.svelte';
-    import { battleshipApi, type BattleshipConfig } from '$lib/services/battleshipServices';
-    import { battleshipConfig, type GameIdLetter } from '$lib/config/battleshipConfig';
-    import { getLocalizedText, loadTexts, activeLanguage } from '$lib/stores/translatedTexts.js';
-    import { soundManager } from '$lib/services/soundManager';
+    import VirtualKeyboard from '#lib/components/common/VirtualKeyboard.svelte';
+    import { battleshipApi, type BattleshipConfig } from '#lib/services/battleshipServices.js';
+    import { battleshipConfig, type GameIdLetter } from '#lib/config/battleshipConfig.js';
+    import { getLocalizedText, loadTexts, activeLanguage } from '#lib/stores/translatedTexts.js';
+    import { soundManager } from '#lib/services/soundManager.js';
 
     const pageTexts = 'battleship';
     let isLoadingTexts = true;

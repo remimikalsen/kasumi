@@ -1,14 +1,14 @@
 <script>
-    import PacMazeGame from '$lib/components/pacmaze/PacMazeGame.svelte';
-    import { getLocalizedText, loadTexts, pageHeader, pageSubHeader, documentTitle } from '$lib/stores/translatedTexts.js';
+    import PacMazeGame from '#lib/components/pacmaze/PacMazeGame.svelte';
+    import { getLocalizedText, loadTexts, pageHeader, pageSubHeader, documentTitle } from '#lib/stores/translatedTexts.js';
     import { onMount } from 'svelte';
-    import { env } from '$env/dynamic/public';
+    import { PUBLIC_VARIANT } from '$app/env/public';
 
     let pageTexts = 'pacmaze';
     let commonTexts = 'common';
     let isLoading = true;
 
-    let alt = env.PUBLIC_VARIANT === 'alt' ? 'Alt' : '';
+    let alt = PUBLIC_VARIANT === 'alt' ? 'Alt' : '';
 
     async function fetchTexts() {
         isLoading = true;

@@ -1,5 +1,10 @@
 {
     "contentIngress": "Vi har laget spill med pappa. Klarer du å slå rekordene?",
+    "puddelTopScoreIntro": "Raskeste fangst av Nelly",
+    "puddelImgAltText": "Skjermbilde av Fang Nelly",
+    "puddelTopScore": "<INITIALS> - <TIME> <TIME_TEXT>",
+    "puddel_time_singular": "sekund",
+    "puddel_time_plural": "sekunder",
     "dogRunTopScoreIntro": "Flest bein i DogRun",
     "dogRunImgAltText": "Bilde av DogRun",
     "dogRunTopScore": "<INITIALS> - <SCORE> <BONE_TEXT>",
@@ -22,5 +27,6 @@
     "battleshipImgAltText": "Skjermbilde av Battleship",
     "battleshipTopScore": "<INITIALS> - <STREAK> <STREAK_TEXT>",
     "streak_singular": "seier på rad",
-    "streak_plural": "seiere på rad"
+    "streak_plural": "seiere på rad",
+    "noScores": "Ingen registrerte spillere ennå"
 }
