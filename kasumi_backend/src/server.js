@@ -41,9 +41,9 @@ app.use((req, res, next) => {
     "form-action 'none'"
   ].join('; '));
   
-  // Strict Transport Security (only if using HTTPS)
-  // Uncomment and adjust max-age if deploying with HTTPS
-  // res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  // Strict Transport Security. The API is only reached internally over http in Docker, where browsers
+  // ignore the header, but it is set so the service is safe if it is ever exposed over HTTPS.
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   
   next();
 });

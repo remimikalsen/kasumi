@@ -1,4 +1,5 @@
 import { ANALYTICS_SCRIPT } from '$app/env/private';
+import { PUBLIC_URL } from '$app/env/public';
 
 export const handle = async ({ event, resolve }) => {
   const plausibleScript = ANALYTICS_SCRIPT || '';
@@ -61,9 +62,11 @@ export const handle = async ({ event, resolve }) => {
       "upgrade-insecure-requests" // Upgrade HTTP to HTTPS
       ].join('; '),
 
-    // Strict Transport Security (only if using HTTPS)
-    // Uncomment and adjust max-age if deploying with HTTPS
-    // 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload'
+    // Strict Transport Security: only when the site is served over HTTPS (PUBLIC_URL starts with https://),
+    // so local http runs are not affected. Browsers ignore the header over plain http anyway.
+    ...(PUBLIC_URL?.startsWith('https://')
+      ? { 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload' }
+      : {})
   };
 
   // Apply security headers to the response
