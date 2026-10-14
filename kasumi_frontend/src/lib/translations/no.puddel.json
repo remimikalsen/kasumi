@@ -11,7 +11,7 @@
     "time": "Tid",
     "canvas_label": "Spillbrett: flåtten løper etter Nelly",
     "question": "Spørsmål",
-    "question_hint": "5 sekunder · riktig svar gir mer fart",
+    "question_hint": "5 sekunder · klokka går · riktig svar gir mer fart",
     "help_jump": "Hopp: mellomrom, pil opp eller trykk på bildet",
     "help_answer": "Svar: tastene 1, 2, 3 eller klikk",
     "sound_on": "Lyd: på",
@@ -898,6 +898,806 @@
                 "5",
                 "4",
                 "6"
+            ]
+        ],
+        [
+            "Hva er 13 + 19?",
+            [
+                "32",
+                "31",
+                "33"
+            ]
+        ],
+        [
+            "Hva er 56 − 18?",
+            [
+                "38",
+                "42",
+                "36"
+            ]
+        ],
+        [
+            "Hva er 4 × 9?",
+            [
+                "36",
+                "32",
+                "40"
+            ]
+        ],
+        [
+            "Hva er 7 × 7?",
+            [
+                "49",
+                "42",
+                "56"
+            ]
+        ],
+        [
+            "Hva er 100 ÷ 4?",
+            [
+                "25",
+                "20",
+                "30"
+            ]
+        ],
+        [
+            "Hva er 500 − 125?",
+            [
+                "375",
+                "385",
+                "365"
+            ]
+        ],
+        [
+            "Hva er halvparten av 90?",
+            [
+                "45",
+                "40",
+                "50"
+            ]
+        ],
+        [
+            "Hva er dobbelt så mye som 125?",
+            [
+                "250",
+                "225",
+                "200"
+            ]
+        ],
+        [
+            "Hvilket tall kommer etter 3, 6, 9, 12?",
+            [
+                "15",
+                "14",
+                "18"
+            ]
+        ],
+        [
+            "Hvilket tall kommer etter 100, 90, 80, 70?",
+            [
+                "60",
+                "50",
+                "65"
+            ]
+        ],
+        [
+            "Hva er 3 × 3 × 3?",
+            [
+                "27",
+                "9",
+                "18"
+            ]
+        ],
+        [
+            "Hvor mange er et dusin?",
+            [
+                "12",
+                "10",
+                "20"
+            ]
+        ],
+        [
+            "Hva er 2 + 2 × 3?",
+            [
+                "8",
+                "12",
+                "10"
+            ]
+        ],
+        [
+            "Hvor mange sider har en sekskant?",
+            [
+                "6",
+                "5",
+                "8"
+            ]
+        ],
+        [
+            "Hvor mange sider har en femkant?",
+            [
+                "5",
+                "6",
+                "4"
+            ]
+        ],
+        [
+            "Hva er 144 ÷ 12?",
+            [
+                "12",
+                "11",
+                "14"
+            ]
+        ],
+        [
+            "Hvor mange millimeter er det i en centimeter?",
+            [
+                "10",
+                "100",
+                "1000"
+            ]
+        ],
+        [
+            "Hvor mange meter er det i en kilometer?",
+            [
+                "1000",
+                "100",
+                "10000"
+            ]
+        ],
+        [
+            "Hvilket tall er størst?",
+            [
+                "1001",
+                "999",
+                "1000"
+            ]
+        ],
+        [
+            "Hvilket tall er minst?",
+            [
+                "12",
+                "21",
+                "102"
+            ]
+        ],
+        [
+            "Hvor mange bein har tre hunder til sammen?",
+            [
+                "12",
+                "9",
+                "8"
+            ]
+        ],
+        [
+            "Hvor mange fingre har du på to hender?",
+            [
+                "10",
+                "8",
+                "12"
+            ]
+        ],
+        [
+            "Hvor mange dager er det i et år som ikke er skuddår?",
+            [
+                "365",
+                "360",
+                "366"
+            ]
+        ],
+        [
+            "Hvilken måned kommer før desember?",
+            [
+                "November",
+                "Oktober",
+                "Januar"
+            ]
+        ],
+        [
+            "Hvilken måned er den første i året?",
+            [
+                "Januar",
+                "Februar",
+                "Desember"
+            ]
+        ],
+        [
+            "Hvilken dag kommer før lørdag?",
+            [
+                "Fredag",
+                "Søndag",
+                "Torsdag"
+            ]
+        ],
+        [
+            "Hvor mange timer er det fra klokka 8 til klokka 12?",
+            [
+                "4",
+                "3",
+                "5"
+            ]
+        ],
+        [
+            "Hvilken årstid er varmest?",
+            [
+                "Sommer",
+                "Vinter",
+                "Høst"
+            ]
+        ],
+        [
+            "I hvilken måned er julaften?",
+            [
+                "Desember",
+                "November",
+                "Januar"
+            ]
+        ],
+        [
+            "Hvor mange dager er det i en helg?",
+            [
+                "2",
+                "1",
+                "3"
+            ]
+        ],
+        [
+            "Hvilken stjerne er nærmest jorda?",
+            [
+                "Sola",
+                "Månen",
+                "Nordstjernen"
+            ]
+        ],
+        [
+            "Hvor mange planeter er det i solsystemet?",
+            [
+                "8",
+                "9",
+                "7"
+            ]
+        ],
+        [
+            "Hvilken planet bor vi på?",
+            [
+                "Jorda",
+                "Mars",
+                "Venus"
+            ]
+        ],
+        [
+            "Ved hvor mange grader fryser vann?",
+            [
+                "0",
+                "10",
+                "−10"
+            ]
+        ],
+        [
+            "Hva er det hardeste naturlige materialet?",
+            [
+                "Diamant",
+                "Gull",
+                "Jern"
+            ]
+        ],
+        [
+            "Hva samler bier fra blomstene?",
+            [
+                "Nektar",
+                "Vann",
+                "Frø"
+            ]
+        ],
+        [
+            "Hvilken del av kroppen pumper blod?",
+            [
+                "Hjertet",
+                "Lungene",
+                "Hjernen"
+            ]
+        ],
+        [
+            "Hva puster vi med?",
+            [
+                "Lungene",
+                "Hjertet",
+                "Magen"
+            ]
+        ],
+        [
+            "Hvor mange tenner har en voksen vanligvis?",
+            [
+                "32",
+                "20",
+                "28"
+            ]
+        ],
+        [
+            "Hva er kroppens største organ?",
+            [
+                "Huden",
+                "Leveren",
+                "Hjertet"
+            ]
+        ],
+        [
+            "Hvilket materiale fester en magnet seg til?",
+            [
+                "Jern",
+                "Tre",
+                "Plast"
+            ]
+        ],
+        [
+            "Hva består skyer av?",
+            [
+                "Vanndråper",
+                "Bomull",
+                "Røyk"
+            ]
+        ],
+        [
+            "Hva kan du se på himmelen når sola skinner rett etter regn?",
+            [
+                "Regnbue",
+                "Komet",
+                "Lyn"
+            ]
+        ],
+        [
+            "Hvilket dyr har snabel?",
+            [
+                "Elefant",
+                "Neshorn",
+                "Flodhest"
+            ]
+        ],
+        [
+            "Hvilket dyr har pukler på ryggen?",
+            [
+                "Kamel",
+                "Hest",
+                "Esel"
+            ]
+        ],
+        [
+            "Hva heter kattens unge?",
+            [
+                "Kattunge",
+                "Valp",
+                "Lam"
+            ]
+        ],
+        [
+            "Hva heter sauens unge?",
+            [
+                "Lam",
+                "Killing",
+                "Kalv"
+            ]
+        ],
+        [
+            "Hvilken fugl sier «kvakk»?",
+            [
+                "And",
+                "Høne",
+                "Ugle"
+            ]
+        ],
+        [
+            "Hvilket dyr bor i en bikube?",
+            [
+                "Bie",
+                "Maur",
+                "Edderkopp"
+            ]
+        ],
+        [
+            "Hvilket dyr kalles jungelens konge?",
+            [
+                "Løve",
+                "Tiger",
+                "Bjørn"
+            ]
+        ],
+        [
+            "Hvilket dyr kan skifte farge?",
+            [
+                "Kameleon",
+                "Skilpadde",
+                "Frosk"
+            ]
+        ],
+        [
+            "Hvilket dyr sover hele vinteren?",
+            [
+                "Bjørn",
+                "Reinsdyr",
+                "Elg"
+            ]
+        ],
+        [
+            "Hvilken fugl jakter om natten?",
+            [
+                "Ugle",
+                "Spurv",
+                "Svane"
+            ]
+        ],
+        [
+            "Hvilket dyr bærer huset sitt på ryggen?",
+            [
+                "Snegl",
+                "Mus",
+                "Frosk"
+            ]
+        ],
+        [
+            "Hvilket dyr bygger demninger i elver?",
+            [
+                "Bever",
+                "Oter",
+                "Rev"
+            ]
+        ],
+        [
+            "Hvilket dyr gir oss ull?",
+            [
+                "Sau",
+                "Gris",
+                "Ku"
+            ]
+        ],
+        [
+            "Hvilket dyr har åtte armer?",
+            [
+                "Blekksprut",
+                "Manet",
+                "Krabbe"
+            ]
+        ],
+        [
+            "Hvilket av disse dyrene kan fly?",
+            [
+                "Flaggermus",
+                "Mus",
+                "Ekorn"
+            ]
+        ],
+        [
+            "Hva liker en hund å tygge på?",
+            [
+                "Bein",
+                "Stein",
+                "Glass"
+            ]
+        ],
+        [
+            "Hva har en puddel på kroppen?",
+            [
+                "Krøllete pels",
+                "Skjell",
+                "Fjær"
+            ]
+        ],
+        [
+            "Hva tar vi på hunden når vi går tur?",
+            [
+                "Bånd",
+                "Sal",
+                "Hjelm"
+            ]
+        ],
+        [
+            "Hva heter foten til en hund?",
+            [
+                "Pote",
+                "Hov",
+                "Finne"
+            ]
+        ],
+        [
+            "Hvor liker en flått å sitte på en hund?",
+            [
+                "I pelsen",
+                "I vannet",
+                "I lufta"
+            ]
+        ],
+        [
+            "Hva heter hovedstaden i Finland?",
+            [
+                "Helsingfors",
+                "Oslo",
+                "Stockholm"
+            ]
+        ],
+        [
+            "Hva heter hovedstaden i Frankrike?",
+            [
+                "Paris",
+                "Roma",
+                "Berlin"
+            ]
+        ],
+        [
+            "Hva heter hovedstaden i Spania?",
+            [
+                "Madrid",
+                "Barcelona",
+                "Lisboa"
+            ]
+        ],
+        [
+            "Hva heter hovedstaden i Italia?",
+            [
+                "Roma",
+                "Milano",
+                "Venezia"
+            ]
+        ],
+        [
+            "Hvilket land har Reykjavik som hovedstad?",
+            [
+                "Island",
+                "Irland",
+                "Grønland"
+            ]
+        ],
+        [
+            "Hvilken verdensdel ligger Norge i?",
+            [
+                "Europa",
+                "Asia",
+                "Afrika"
+            ]
+        ],
+        [
+            "Hvilken verdensdel ligger Brasil i?",
+            [
+                "Sør-Amerika",
+                "Afrika",
+                "Europa"
+            ]
+        ],
+        [
+            "Hvilken verdensdel kommer kenguruer fra?",
+            [
+                "Australia",
+                "Afrika",
+                "Asia"
+            ]
+        ],
+        [
+            "Hvilken verdensdel er kaldest?",
+            [
+                "Antarktis",
+                "Europa",
+                "Asia"
+            ]
+        ],
+        [
+            "Hvilket land er nabolandet til Portugal?",
+            [
+                "Spania",
+                "Frankrike",
+                "Italia"
+            ]
+        ],
+        [
+            "Hva heter verdens høyeste fjell?",
+            [
+                "Mount Everest",
+                "Galdhøpiggen",
+                "Kilimanjaro"
+            ]
+        ],
+        [
+            "Hvilken er verdens største varme ørken?",
+            [
+                "Sahara",
+                "Gobi",
+                "Atacama"
+            ]
+        ],
+        [
+            "I hvilken retning står sola opp?",
+            [
+                "Øst",
+                "Vest",
+                "Sør"
+            ]
+        ],
+        [
+            "Hva kaller vi en rund modell av jorda?",
+            [
+                "Globus",
+                "Kompass",
+                "Atlas"
+            ]
+        ],
+        [
+            "Hvilket land er formet som en støvel?",
+            [
+                "Italia",
+                "Spania",
+                "Norge"
+            ]
+        ],
+        [
+            "Hva er flertall av «barn»?",
+            [
+                "Barn",
+                "Barner",
+                "Barnet"
+            ]
+        ],
+        [
+            "Hvilket ord er et adjektiv?",
+            [
+                "Glad",
+                "Bord",
+                "Synge"
+            ]
+        ],
+        [
+            "Hvilket ord rimer på «katt»?",
+            [
+                "Hatt",
+                "Hund",
+                "Kopp"
+            ]
+        ],
+        [
+            "Hvilken bokstav er først i alfabetet?",
+            [
+                "A",
+                "B",
+                "Å"
+            ]
+        ],
+        [
+            "Hvor mange bokstaver er det i det norske alfabetet?",
+            [
+                "29",
+                "26",
+                "30"
+            ]
+        ],
+        [
+            "Hva er det motsatte av «rask»?",
+            [
+                "Treg",
+                "Fort",
+                "Høy"
+            ]
+        ],
+        [
+            "Hvilket ord betyr det samme som «glad»?",
+            [
+                "Lykkelig",
+                "Trist",
+                "Sint"
+            ]
+        ],
+        [
+            "Hvor mange spillere har et fotballag på banen?",
+            [
+                "11",
+                "10",
+                "12"
+            ]
+        ],
+        [
+            "Hvor mange strenger har en vanlig gitar?",
+            [
+                "6",
+                "4",
+                "8"
+            ]
+        ],
+        [
+            "Hvilken farge viser trafikklyset når du må stoppe?",
+            [
+                "Rødt",
+                "Grønt",
+                "Gult"
+            ]
+        ],
+        [
+            "Hva bruker du til å klippe papir?",
+            [
+                "Saks",
+                "Skje",
+                "Hammer"
+            ]
+        ],
+        [
+            "Hvem slukker branner?",
+            [
+                "Brannmann",
+                "Baker",
+                "Tannlege"
+            ]
+        ],
+        [
+            "Hvem fikser tennene dine?",
+            [
+                "Tannlege",
+                "Pilot",
+                "Bonde"
+            ]
+        ],
+        [
+            "Hvor kan du låne bøker?",
+            [
+                "Biblioteket",
+                "Apoteket",
+                "Bakeriet"
+            ]
+        ],
+        [
+            "Hvilken farge får du når du blander svart og hvitt?",
+            [
+                "Grå",
+                "Brun",
+                "Rosa"
+            ]
+        ],
+        [
+            "Hvilken farge får du når du blander gult og rødt?",
+            [
+                "Oransje",
+                "Grønn",
+                "Lilla"
+            ]
+        ],
+        [
+            "Hva av dette er en frukt?",
+            [
+                "Eple",
+                "Gulrot",
+                "Potet"
+            ]
+        ],
+        [
+            "Hva av dette er en grønnsak?",
+            [
+                "Gulrot",
+                "Banan",
+                "Jordbær"
+            ]
+        ],
+        [
+            "Hvilket instrument slår du på med stikker?",
+            [
+                "Tromme",
+                "Fløyte",
+                "Piano"
+            ]
+        ],
+        [
+            "Hvilket instrument blåser du i?",
+            [
+                "Trompet",
+                "Tromme",
+                "Gitar"
+            ]
+        ],
+        [
+            "Hvilken form har ingen hjørner?",
+            [
+                "Sirkel",
+                "Firkant",
+                "Trekant"
+            ]
+        ],
+        [
+            "Hvilken form har en terning?",
+            [
+                "Kube",
+                "Kule",
+                "Pyramide"
             ]
         ]
     ]

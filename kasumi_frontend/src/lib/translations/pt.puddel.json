@@ -11,7 +11,7 @@
     "time": "Tempo",
     "canvas_label": "Tabuleiro: a carraça corre atrás da Nelly",
     "question": "Pergunta",
-    "question_hint": "5 segundos · resposta certa dá mais velocidade",
+    "question_hint": "5 segundos · o relógio continua a contar · resposta certa dá mais velocidade",
     "help_jump": "Saltar: espaço, seta para cima ou toca na imagem",
     "help_answer": "Responder: teclas 1, 2, 3 ou clica",
     "sound_on": "Som: ligado",
@@ -898,6 +898,806 @@
                 "5",
                 "4",
                 "6"
+            ]
+        ],
+        [
+            "Quanto é 13 + 19?",
+            [
+                "32",
+                "31",
+                "33"
+            ]
+        ],
+        [
+            "Quanto é 56 − 18?",
+            [
+                "38",
+                "42",
+                "36"
+            ]
+        ],
+        [
+            "Quanto é 4 × 9?",
+            [
+                "36",
+                "32",
+                "40"
+            ]
+        ],
+        [
+            "Quanto é 7 × 7?",
+            [
+                "49",
+                "42",
+                "56"
+            ]
+        ],
+        [
+            "Quanto é 100 ÷ 4?",
+            [
+                "25",
+                "20",
+                "30"
+            ]
+        ],
+        [
+            "Quanto é 500 − 125?",
+            [
+                "375",
+                "385",
+                "365"
+            ]
+        ],
+        [
+            "Qual é a metade de 90?",
+            [
+                "45",
+                "40",
+                "50"
+            ]
+        ],
+        [
+            "Qual é o dobro de 125?",
+            [
+                "250",
+                "225",
+                "200"
+            ]
+        ],
+        [
+            "Que número vem a seguir a 3, 6, 9, 12?",
+            [
+                "15",
+                "14",
+                "18"
+            ]
+        ],
+        [
+            "Que número vem a seguir a 100, 90, 80, 70?",
+            [
+                "60",
+                "50",
+                "65"
+            ]
+        ],
+        [
+            "Quanto é 3 × 3 × 3?",
+            [
+                "27",
+                "9",
+                "18"
+            ]
+        ],
+        [
+            "Quantos são uma dúzia?",
+            [
+                "12",
+                "10",
+                "20"
+            ]
+        ],
+        [
+            "Quanto é 2 + 2 × 3?",
+            [
+                "8",
+                "12",
+                "10"
+            ]
+        ],
+        [
+            "Quantos lados tem um hexágono?",
+            [
+                "6",
+                "5",
+                "8"
+            ]
+        ],
+        [
+            "Quantos lados tem um pentágono?",
+            [
+                "5",
+                "6",
+                "4"
+            ]
+        ],
+        [
+            "Quanto é 144 ÷ 12?",
+            [
+                "12",
+                "11",
+                "14"
+            ]
+        ],
+        [
+            "Quantos milímetros tem um centímetro?",
+            [
+                "10",
+                "100",
+                "1000"
+            ]
+        ],
+        [
+            "Quantos metros tem um quilómetro?",
+            [
+                "1000",
+                "100",
+                "10000"
+            ]
+        ],
+        [
+            "Qual destes números é o maior?",
+            [
+                "1001",
+                "999",
+                "1000"
+            ]
+        ],
+        [
+            "Qual destes números é o menor?",
+            [
+                "12",
+                "21",
+                "102"
+            ]
+        ],
+        [
+            "Quantas patas têm três cães ao todo?",
+            [
+                "12",
+                "9",
+                "8"
+            ]
+        ],
+        [
+            "Quantos dedos tens nas duas mãos?",
+            [
+                "10",
+                "8",
+                "12"
+            ]
+        ],
+        [
+            "Quantos dias tem um ano que não é bissexto?",
+            [
+                "365",
+                "360",
+                "366"
+            ]
+        ],
+        [
+            "Que mês vem antes de dezembro?",
+            [
+                "Novembro",
+                "Outubro",
+                "Janeiro"
+            ]
+        ],
+        [
+            "Qual é o primeiro mês do ano?",
+            [
+                "Janeiro",
+                "Fevereiro",
+                "Dezembro"
+            ]
+        ],
+        [
+            "Que dia vem antes de sábado?",
+            [
+                "Sexta-feira",
+                "Domingo",
+                "Quinta-feira"
+            ]
+        ],
+        [
+            "Quantas horas há das 8 às 12?",
+            [
+                "4",
+                "3",
+                "5"
+            ]
+        ],
+        [
+            "Qual é a estação mais quente?",
+            [
+                "Verão",
+                "Inverno",
+                "Outono"
+            ]
+        ],
+        [
+            "Em que mês é a véspera de Natal?",
+            [
+                "Dezembro",
+                "Novembro",
+                "Janeiro"
+            ]
+        ],
+        [
+            "Quantos dias tem um fim de semana?",
+            [
+                "2",
+                "1",
+                "3"
+            ]
+        ],
+        [
+            "Qual é a estrela mais próxima da Terra?",
+            [
+                "O Sol",
+                "A Lua",
+                "A Estrela Polar"
+            ]
+        ],
+        [
+            "Quantos planetas tem o sistema solar?",
+            [
+                "8",
+                "9",
+                "7"
+            ]
+        ],
+        [
+            "Em que planeta vivemos?",
+            [
+                "Terra",
+                "Marte",
+                "Vénus"
+            ]
+        ],
+        [
+            "A quantos graus congela a água?",
+            [
+                "0",
+                "10",
+                "−10"
+            ]
+        ],
+        [
+            "Qual é o material natural mais duro?",
+            [
+                "Diamante",
+                "Ouro",
+                "Ferro"
+            ]
+        ],
+        [
+            "O que recolhem as abelhas das flores?",
+            [
+                "Néctar",
+                "Água",
+                "Sementes"
+            ]
+        ],
+        [
+            "Que parte do corpo bombeia o sangue?",
+            [
+                "O coração",
+                "Os pulmões",
+                "O cérebro"
+            ]
+        ],
+        [
+            "Com o que respiramos?",
+            [
+                "Os pulmões",
+                "O coração",
+                "O estômago"
+            ]
+        ],
+        [
+            "Quantos dentes tem normalmente um adulto?",
+            [
+                "32",
+                "20",
+                "28"
+            ]
+        ],
+        [
+            "Qual é o maior órgão do corpo?",
+            [
+                "A pele",
+                "O fígado",
+                "O coração"
+            ]
+        ],
+        [
+            "A que material se agarra um íman?",
+            [
+                "Ferro",
+                "Madeira",
+                "Plástico"
+            ]
+        ],
+        [
+            "De que são feitas as nuvens?",
+            [
+                "Gotas de água",
+                "Algodão",
+                "Fumo"
+            ]
+        ],
+        [
+            "O que podes ver no céu quando o sol brilha logo depois da chuva?",
+            [
+                "Arco-íris",
+                "Cometa",
+                "Relâmpago"
+            ]
+        ],
+        [
+            "Que animal tem tromba?",
+            [
+                "Elefante",
+                "Rinoceronte",
+                "Hipopótamo"
+            ]
+        ],
+        [
+            "Que animal tem bossas nas costas?",
+            [
+                "Camelo",
+                "Cavalo",
+                "Burro"
+            ]
+        ],
+        [
+            "Como se chama a cria do gato?",
+            [
+                "Gatinho",
+                "Cachorro",
+                "Cordeiro"
+            ]
+        ],
+        [
+            "Como se chama a cria da ovelha?",
+            [
+                "Cordeiro",
+                "Cabrito",
+                "Vitelo"
+            ]
+        ],
+        [
+            "Que ave faz «quá quá»?",
+            [
+                "Pato",
+                "Galinha",
+                "Coruja"
+            ]
+        ],
+        [
+            "Que animal vive numa colmeia?",
+            [
+                "Abelha",
+                "Formiga",
+                "Aranha"
+            ]
+        ],
+        [
+            "Que animal é chamado o rei da selva?",
+            [
+                "Leão",
+                "Tigre",
+                "Urso"
+            ]
+        ],
+        [
+            "Que animal consegue mudar de cor?",
+            [
+                "Camaleão",
+                "Tartaruga",
+                "Rã"
+            ]
+        ],
+        [
+            "Que animal dorme durante todo o inverno?",
+            [
+                "Urso",
+                "Rena",
+                "Alce"
+            ]
+        ],
+        [
+            "Que ave caça de noite?",
+            [
+                "Coruja",
+                "Pardal",
+                "Cisne"
+            ]
+        ],
+        [
+            "Que animal carrega a casa às costas?",
+            [
+                "Caracol",
+                "Rato",
+                "Rã"
+            ]
+        ],
+        [
+            "Que animal constrói barragens nos rios?",
+            [
+                "Castor",
+                "Lontra",
+                "Raposa"
+            ]
+        ],
+        [
+            "Que animal nos dá lã?",
+            [
+                "Ovelha",
+                "Porco",
+                "Vaca"
+            ]
+        ],
+        [
+            "Que animal tem oito braços?",
+            [
+                "Polvo",
+                "Alforreca",
+                "Caranguejo"
+            ]
+        ],
+        [
+            "Qual destes animais consegue voar?",
+            [
+                "Morcego",
+                "Rato",
+                "Esquilo"
+            ]
+        ],
+        [
+            "O que gosta um cão de roer?",
+            [
+                "Osso",
+                "Pedra",
+                "Vidro"
+            ]
+        ],
+        [
+            "O que tem um caniche no corpo?",
+            [
+                "Pelo encaracolado",
+                "Escamas",
+                "Penas"
+            ]
+        ],
+        [
+            "O que pomos no cão quando vamos passear?",
+            [
+                "Trela",
+                "Sela",
+                "Capacete"
+            ]
+        ],
+        [
+            "Como se chama o pé de um cão?",
+            [
+                "Pata",
+                "Casco",
+                "Barbatana"
+            ]
+        ],
+        [
+            "Onde gosta uma carraça de ficar num cão?",
+            [
+                "No pelo",
+                "Na água",
+                "No ar"
+            ]
+        ],
+        [
+            "Qual é a capital da Finlândia?",
+            [
+                "Helsínquia",
+                "Oslo",
+                "Estocolmo"
+            ]
+        ],
+        [
+            "Qual é a capital da França?",
+            [
+                "Paris",
+                "Roma",
+                "Berlim"
+            ]
+        ],
+        [
+            "Qual é a capital de Espanha?",
+            [
+                "Madrid",
+                "Barcelona",
+                "Lisboa"
+            ]
+        ],
+        [
+            "Qual é a capital da Itália?",
+            [
+                "Roma",
+                "Milão",
+                "Veneza"
+            ]
+        ],
+        [
+            "Que país tem Reiquiavique como capital?",
+            [
+                "Islândia",
+                "Irlanda",
+                "Gronelândia"
+            ]
+        ],
+        [
+            "Em que continente fica a Noruega?",
+            [
+                "Europa",
+                "Ásia",
+                "África"
+            ]
+        ],
+        [
+            "Em que continente fica o Brasil?",
+            [
+                "América do Sul",
+                "África",
+                "Europa"
+            ]
+        ],
+        [
+            "De que continente vêm os cangurus?",
+            [
+                "Austrália",
+                "África",
+                "Ásia"
+            ]
+        ],
+        [
+            "Qual é o continente mais frio?",
+            [
+                "Antártida",
+                "Europa",
+                "Ásia"
+            ]
+        ],
+        [
+            "Que país é vizinho de Portugal?",
+            [
+                "Espanha",
+                "França",
+                "Itália"
+            ]
+        ],
+        [
+            "Qual é a montanha mais alta do mundo?",
+            [
+                "Monte Evereste",
+                "Galdhøpiggen",
+                "Kilimanjaro"
+            ]
+        ],
+        [
+            "Qual é o maior deserto quente do mundo?",
+            [
+                "Saara",
+                "Gobi",
+                "Atacama"
+            ]
+        ],
+        [
+            "Em que direção nasce o sol?",
+            [
+                "Este",
+                "Oeste",
+                "Sul"
+            ]
+        ],
+        [
+            "Como se chama um modelo redondo da Terra?",
+            [
+                "Globo",
+                "Bússola",
+                "Atlas"
+            ]
+        ],
+        [
+            "Que país tem a forma de uma bota?",
+            [
+                "Itália",
+                "Espanha",
+                "Noruega"
+            ]
+        ],
+        [
+            "Qual é o plural de «animal»?",
+            [
+                "Animais",
+                "Animals",
+                "Animales"
+            ]
+        ],
+        [
+            "Qual destas palavras é um adjetivo?",
+            [
+                "Feliz",
+                "Mesa",
+                "Cantar"
+            ]
+        ],
+        [
+            "Que palavra rima com «gato»?",
+            [
+                "Pato",
+                "Cão",
+                "Copo"
+            ]
+        ],
+        [
+            "Qual é a primeira letra do alfabeto?",
+            [
+                "A",
+                "B",
+                "Z"
+            ]
+        ],
+        [
+            "Quantas letras tem o alfabeto português?",
+            [
+                "26",
+                "23",
+                "29"
+            ]
+        ],
+        [
+            "Qual é o contrário de «rápido»?",
+            [
+                "Lento",
+                "Veloz",
+                "Alto"
+            ]
+        ],
+        [
+            "Que palavra significa o mesmo que «feliz»?",
+            [
+                "Contente",
+                "Triste",
+                "Zangado"
+            ]
+        ],
+        [
+            "Quantos jogadores tem uma equipa de futebol em campo?",
+            [
+                "11",
+                "10",
+                "12"
+            ]
+        ],
+        [
+            "Quantas cordas tem uma guitarra normal?",
+            [
+                "6",
+                "4",
+                "8"
+            ]
+        ],
+        [
+            "Que cor mostra o semáforo quando tens de parar?",
+            [
+                "Vermelho",
+                "Verde",
+                "Amarelo"
+            ]
+        ],
+        [
+            "O que usas para cortar papel?",
+            [
+                "Tesoura",
+                "Colher",
+                "Martelo"
+            ]
+        ],
+        [
+            "Quem apaga incêndios?",
+            [
+                "Bombeiro",
+                "Padeiro",
+                "Dentista"
+            ]
+        ],
+        [
+            "Quem trata dos teus dentes?",
+            [
+                "Dentista",
+                "Piloto",
+                "Agricultor"
+            ]
+        ],
+        [
+            "Onde podes pedir livros emprestados?",
+            [
+                "Biblioteca",
+                "Farmácia",
+                "Padaria"
+            ]
+        ],
+        [
+            "Que cor obténs ao misturar preto e branco?",
+            [
+                "Cinzento",
+                "Castanho",
+                "Cor-de-rosa"
+            ]
+        ],
+        [
+            "Que cor obténs ao misturar amarelo e vermelho?",
+            [
+                "Laranja",
+                "Verde",
+                "Roxo"
+            ]
+        ],
+        [
+            "Qual destes é uma fruta?",
+            [
+                "Maçã",
+                "Cenoura",
+                "Batata"
+            ]
+        ],
+        [
+            "Qual destes é um legume?",
+            [
+                "Cenoura",
+                "Banana",
+                "Morango"
+            ]
+        ],
+        [
+            "Em que instrumento bates com baquetas?",
+            [
+                "Tambor",
+                "Flauta",
+                "Piano"
+            ]
+        ],
+        [
+            "Em que instrumento sopras?",
+            [
+                "Trompete",
+                "Tambor",
+                "Guitarra"
+            ]
+        ],
+        [
+            "Que forma não tem cantos?",
+            [
+                "Círculo",
+                "Quadrado",
+                "Triângulo"
+            ]
+        ],
+        [
+            "Que forma tem um dado?",
+            [
+                "Cubo",
+                "Bola",
+                "Pirâmide"
             ]
         ]
     ]

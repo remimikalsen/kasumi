@@ -36,7 +36,7 @@
   let gameState = 'start'; // start | play | question | win | lose
   let overlayKind = 'start'; // start | win | lose | null
   let clock = 0, last = 0, animationFrameId = 0;
-  let speed, gap, score, hits, playTime, jy, vy, jumping, obstacles, particles, nextQ, spawnDist, groundOff, shake, flash, usedQ, qCount, winTime, poodleHop;
+  let speed, gap, score, hits, playTime, totalTime, jy, vy, jumping, obstacles, particles, nextQ, spawnDist, groundOff, shake, flash, usedQ, qCount, winTime, poodleHop;
   let current = null, answering = false;
   let questionVisible = false;
   let questionTimeLeft = QUESTION_TIME;
@@ -205,8 +205,12 @@
   }
 
   /* ---------- Game flow ---------- */
+  // playTime only runs while the tick is actually running and drives the game itself (Nelly's lead,
+  // obstacles and when the next question pops up). totalTime also runs while a question is on screen,
+  // so the time to catch Nelly is the whole chase from start to catch, answering included. Nelly
+  // never gains ground while you think, but the clock keeps going.
   function reset() {
-    speed = SPEED_START; gap = START_GAP; score = 0; hits = 0; playTime = 0; jy = 0; vy = 0; jumping = false;
+    speed = SPEED_START; gap = START_GAP; score = 0; hits = 0; playTime = 0; totalTime = 0; jy = 0; vy = 0; jumping = false;
     obstacles = []; particles = []; nextQ = 2.5; spawnDist = 700; groundOff = 0; shake = 0; flash = 0; usedQ = usedQ || []; qCount = 0; winTime = 0; poodleHop = 0;
     questionVisible = false;
     clearTimeout(answerTimer);
@@ -331,14 +335,14 @@
   }
   function win() {
     gameState = 'win'; winTime = clock; questionVisible = false; gap = CATCH_GAP; sfx.catchd();
-    finalTime = Math.round(playTime * 100) / 100; finalScore = score; finalHits = hits;
+    finalTime = Math.round(totalTime * 100) / 100; finalScore = score; finalHits = hits;
     for (let i = 0; i < 140; i++) particles.push({ x: Math.random() * W, y: -20 - Math.random() * 300, vx: Math.random() * 60 - 30, vy: 80 + Math.random() * 120, g: 60, r: 4 + Math.random() * 5, life: 6, max: 6, rot: Math.random() * 6, vr: Math.random() * 6 - 3, c: ['#f4a65c', '#ff6b9d', '#5ecb85', '#ffd93d', '#6fb6ff', '#ffffff'][i % 6] });
     panelTimers.push(setTimeout(playVictoryMusic, 400));
     panelTimers.push(setTimeout(() => { showPanel('win'); }, 1300));
   }
   function lose() {
     gameState = 'lose'; questionVisible = false; sfx.bad();
-    finalTime = Math.round(playTime * 100) / 100; finalScore = score; finalHits = hits;
+    finalTime = Math.round(totalTime * 100) / 100; finalScore = score; finalHits = hits;
     panelTimers.push(setTimeout(() => { showPanel('lose'); }, 600));
   }
   function showPanel(kind) {
@@ -530,10 +534,11 @@
     ctx.restore();
   }
   function updateHud() {
-    hudSpeed = speed; hudGap = gap; hudScore = score; hudTime = playTime;
+    hudSpeed = speed; hudGap = gap; hudScore = score; hudTime = totalTime;
   }
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000) || 0; last = now; clock += dt;
+    if (gameState === 'play' || gameState === 'question') totalTime += dt;
     if (gameState === 'play') update(dt);
     else if (gameState === 'question' && !answering) {
       questionTimeLeft = Math.max(0, questionTimeLeft - dt);
