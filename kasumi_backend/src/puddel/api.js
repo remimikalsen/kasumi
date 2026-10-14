@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../common/db');
+const { runOnce } = require('../common/migrations');
 const { parseInitials, parseNumber } = require('../common/validate');
 
 const router = express.Router();
@@ -8,6 +9,10 @@ const router = express.Router();
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS puddel_leaderboard (initials TEXT, time REAL)`);
 });
+
+// The time to catch Nelly now includes the time spent answering questions, so earlier times are
+// not comparable. Wipe the leaderboard once for this release; later releases keep the scores.
+runOnce('2026-10-puddel-leaderboard-reset-question-time', 'DELETE FROM puddel_leaderboard');
 
 // Endpoint to submit a score
 router.post('/puddel/submit_score', (req, res) => {
